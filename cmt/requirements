@@ -1,2 +1,18 @@
 package Combination
 
+use AtlasPolicy                 AtlasPolicy-01-*
+
+# We are using the combinator parser, spirit, in boost
+# to parse our text files.
+use AtlasBoost                  AtlasBoost-*             External
+
+#
+# Library and app build instructions
+#
+
+library Combination *.cxx
+
+application FTGenerateSummary ../bin/FTGenerateSummary.cxx
+
+apply_pattern installed_library
+apply_pattern application_alias FTGenerateSummary
