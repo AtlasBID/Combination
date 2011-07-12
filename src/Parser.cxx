@@ -38,6 +38,28 @@ struct SystematicError
   double val;
 };
 
+struct CentralValue
+{
+  double Value;
+  double Error;
+};
+
+// The spec for an analysis
+struct CalibrationAnalysisChannel
+{
+  std::string name; // ptRel or ttbardileptons, etc.
+  std::string flavor; // bottom, or light
+  std::string operating_point; // "SV050" or similar
+};
+
+// info for a binning boundary (30 < pt < 56).
+struct BinBoundary
+{
+  double lowerBound;
+  std::string variableName;
+  double upperBound;
+};
+
 //
 // Now, in order to make efficient use of boost with this
 // thing we need to attribute the structs. We do that here.
@@ -49,10 +71,31 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  (double, val)
 			  )
 
-//
-// Parse the systematic error
-//
+BOOST_FUSION_ADAPT_STRUCT(
+			  CentralValue,
+			  (double, Value)
+			  (double, Error)
+			  )
 
+BOOST_FUSION_ADAPT_STRUCT(
+			  CalibrationAnalysisChannel,
+			  (std::string, name)
+			  (std::string, flavor)
+			  (std::string, operating_point)
+			  )
+
+BOOST_FUSION_ADAPT_STRUCT(
+			  BinBoundary,
+			  (double, lowerBound)
+			  (std::string, variableName)
+			  (double, upperBound)
+			  )
+
+/////////////////
+// Parser primiatives. They parse combo info things
+////////////////
+
+// Parse  asystematic error ("sys(JES, 0.01)", "sys(JER, 0.1%)").
 template <typename Iterator>
 struct SystematicErrorParser : qi::grammar<Iterator, SystematicError(), ascii::space_type>
 {
@@ -74,6 +117,78 @@ struct SystematicErrorParser : qi::grammar<Iterator, SystematicError(), ascii::s
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     qi::rule<Iterator, SystematicError(), ascii::space_type> start;
+};
+
+// Parse  the central value "(central_value(0.9, 0.1%)".
+template <typename Iterator>
+struct CentralValueParser : qi::grammar<Iterator, CentralValue(), ascii::space_type>
+{
+  CentralValueParser() : CentralValueParser::base_type(start) {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+    using qi::double_;
+
+    name_string %= lexeme[+(char_ - ',' - '"')];
+
+    start = lit("central_value")
+      >> '('
+      >> double_ >> ","
+      >> double_
+      >> ')'
+      ;
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+   qi::rule<Iterator, CentralValue(), ascii::space_type> start;
+};
+
+// Parse  a bin boundary: "35 < pt < 50"
+template <typename Iterator>
+struct BinBoundaryParser : qi::grammar<Iterator, BinBoundary(), ascii::space_type>
+{
+  BinBoundaryParser() : BinBoundaryParser::base_type(start) {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+    using qi::double_;
+
+    name_string %= lexeme[+(char_ - ',' - '"')];
+
+    start = 
+      double_
+      >> name_string
+      >> double_
+      ;
+
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, BinBoundary(), ascii::space_type> start;
+};
+
+// Parse an analysis "Analysis(ptrel, bottom, SV050)".
+template <typename Iterator>
+struct CalibrationAnalysisChannelParser : qi::grammar<Iterator, CalibrationAnalysisChannel(), ascii::space_type>
+{
+ CalibrationAnalysisChannelParser() : CalibrationAnalysisChannelParser::base_type(start) {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+
+    name_string %= lexeme[+(char_ - ',' - '"')];
+
+    start = lit("Analysis")
+      >> '('
+      >> name_string >> ','
+      >> name_string >> ','
+      >> name_string
+      >> ')'
+      ;
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, CalibrationAnalysisChannel(), ascii::space_type> start;
 };
 
 ///////////////////////////////////////
