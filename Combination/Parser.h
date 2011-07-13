@@ -20,9 +20,18 @@ namespace BTagCombination
   //
 
 
+  // The binning boundaries
+  struct CalibrationBinBoundary
+  {
+    double lowvalue;
+    std::string variable;
+    double highvalue;
+  };
+
   // Data for a single bin (central value, stat error, sys errors, etc.)
   struct CalibrationBin
   {
+    std::vector<CalibrationBinBoundary> binSpec;
   };
 
   // Allowed flavors of calibration results

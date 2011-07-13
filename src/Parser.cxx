@@ -37,25 +37,60 @@ using namespace std;
 //
 //////////////
 
-// A systematic error
-struct SystematicError
+//
+// Parse a bin boundary "25 < pt < 30"
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::CalibrationBinBoundary,
+			  (double, lowvalue)
+			  (std::string, variable)
+			  (double, highvalue)
+			  )
+
+template <typename Iterator>
+struct CalibrationBinBoundaryParser : qi::grammar<Iterator, CalibrationBinBoundary(), ascii::space_type>
 {
-  std::string name;
-  double val;
+  CalibrationBinBoundaryParser() : CalibrationBinBoundaryParser::base_type(start) {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+    using boost::spirit::qi::alpha;
+    using qi::double_;
+
+    name_string %= lexeme[+alpha];
+
+    start %= 
+      double_ >> '<'
+      >> name_string >> '<'
+      >> double_
+      ;
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, CalibrationBinBoundary(), ascii::space_type> start;
 };
 
-struct CentralValue
-{
-  double Value;
-  double Error;
-};
+//
+// Parse the bin spec bin(30 < pt < 40, 2.5 < eta < 5.5) {xxx}
+//
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::CalibrationBin,
+			  (std::vector<BTagCombination::CalibrationBinBoundary>, binSpec)
+			  )
 
-// info for a binning boundary (30 < pt < 56).
-struct BinBoundary
+template <typename Iterator>
+struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::space_type>
 {
-  double lowerBound;
-  std::string variableName;
-  double upperBound;
+  CalibrationBinParser() : CalibrationBinParser::base_type(start) {
+    using qi::lit;
+
+    boundary_list %= boundary % ',';
+    start %= lit("bin") >> '(' >> boundary_list >>  ')';
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    CalibrationBinBoundaryParser<Iterator> boundary;
+    qi::rule<Iterator, std::vector<CalibrationBinBoundary>, ascii::space_type>  boundary_list;
+    qi::rule<Iterator, CalibrationBin(), ascii::space_type> start;
 };
 
 //
@@ -67,9 +102,9 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  //(BTagCombination::Flavor, flavor)
 			  (std::string, flavor)
 			  (std::string, operatingPoint)
+			  (std::vector<BTagCombination::CalibrationBin>, bins)
 			  )
 
-// Parse an analysis "Analysis(ptrel, bottom, SV050)".
 template <typename Iterator>
 struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), ascii::space_type>
 {
@@ -80,36 +115,26 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
 
     name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
 
-    start = lit("Analysis")
+    start %= lit("Analysis")
       >> '('
       >> name_string >> ','
       >> name_string >> ','
       >> name_string
       >> ')'
       >> lit('{')
+      >> *binParser
       >> lit('}')
       ;
   }
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
-};
-
-// Parse a list of the analyses (more than one per file, man!)
-template <typename Iterator>
-struct CalibrationAnalysisVectorParser : qi::grammar<Iterator, vector<CalibrationAnalysis>(), ascii::space_type>
-{
-  CalibrationAnalysisVectorParser() : CalibrationAnalysisVectorParser::base_type(start)
-    {
-      CalibrationAnalysisParser<Iterator> caParser;
-      start = *caParser;
-    }
-
-    qi::rule<Iterator, vector<CalibrationAnalysis>(), ascii::space_type> start;
+    CalibrationBinParser<Iterator> binParser;
 };
 
 //
 //
+#ifdef notyet
 BOOST_FUSION_ADAPT_STRUCT(
 			  SystematicError,
 			  (std::string, name)
@@ -120,13 +145,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 			    CentralValue,
 			    (double, Value)
 			    (double, Error)
-			    )
-
-  BOOST_FUSION_ADAPT_STRUCT(
-			    BinBoundary,
-			    (double, lowerBound)
-			    (std::string, variableName)
-			    (double, upperBound)
 			    )
 
 /////////////////
@@ -145,7 +163,7 @@ struct SystematicErrorParser : qi::grammar<Iterator, SystematicError(), ascii::s
 
     name_string %= lexeme[+(char_ - ',' - '"')];
 
-    start = lit("sys")
+    start %= lit("sys")
       >> '('
       >> name_string >> ','
       >> double_
@@ -169,7 +187,7 @@ struct CentralValueParser : qi::grammar<Iterator, CentralValue(), ascii::space_t
 
     name_string %= lexeme[+(char_ - ',' - '"')];
 
-    start = lit("central_value")
+    start %= lit("central_value")
       >> '('
       >> double_ >> ","
       >> double_
@@ -180,30 +198,7 @@ struct CentralValueParser : qi::grammar<Iterator, CentralValue(), ascii::space_t
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     qi::rule<Iterator, CentralValue(), ascii::space_type> start;
 };
-
-// Parse  a bin boundary: "35 < pt < 50"
-template <typename Iterator>
-struct BinBoundaryParser : qi::grammar<Iterator, BinBoundary(), ascii::space_type>
-{
-  BinBoundaryParser() : BinBoundaryParser::base_type(start) {
-    using ascii::char_;
-    using qi::lexeme;
-    using qi::lit;
-    using qi::double_;
-
-    name_string %= lexeme[+(char_ - ',' - '"')];
-
-    start = 
-      double_
-      >> name_string
-      >> double_
-      ;
-
-  }
-
-    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
-    qi::rule<Iterator, BinBoundary(), ascii::space_type> start;
-};
+#endif
 
 ///////////////////////////////////////
 
@@ -216,53 +211,26 @@ namespace BTagCombination
   //
   vector<CalibrationAnalysis> Parse(const string &inputText)
   {
-    CalibrationAnalysisVectorParser<string::const_iterator> cavParser;
-    //vector<CalibrationAnalysis> result;
-
     string::const_iterator iter = inputText.begin();
     string::const_iterator end = inputText.end();
 
-    //bool didit = phrase_parse(iter, end,
-    //cavParser, ascii::space, result);
+    vector<CalibrationAnalysis> result;
     CalibrationAnalysisParser<string::const_iterator> caParser;
-    CalibrationAnalysis result;
     bool didit = phrase_parse(iter, end,
-			      caParser, ascii::space, result);
+			      (*caParser >> qi::eoi),
+			      ascii::space, result);
 
     //
     // See if there were any errors doing the parse.
     //
 
     if (!didit)
-      throw new runtime_error ("Unable to parse!");
+      throw runtime_error ("Unable to parse!");
 
     //if (iter != end)
-    //  throw new runtime_error ("Did not parse the complete input text!");
+    //  throw runtime_error ("Did not parse the complete input text!");
 
-    vector<CalibrationAnalysis> dude;
-    dude.push_back(result);
-    return dude;
-#ifdef notyet
-    string input = "sys( JES, 22%)";
-  
-    SystematicErrorParser<string::const_iterator> sErrP;
-    SystematicError err;
-    using ascii::space;
-
-    string::const_iterator iter = input.begin();
-    string::const_iterator end = input.end();
-    bool r = phrase_parse(iter, end, sErrP, space, err);
-
-    if (!r) {
-      cout << "Error parsing the input!" << endl;
-    } else {
-      cout << "Got a parse" << endl;
-      cout << "  name: " << err.name << endl;
-      cout << "  value " << err.val << endl;
-    }
-
-    cout << "hi" << endl;
-#endif
+    return result;
   }
 #ifdef notyet
 
