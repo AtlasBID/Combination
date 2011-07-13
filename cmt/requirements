@@ -6,6 +6,7 @@ use AtlasPolicy                 AtlasPolicy-01-*
 # to parse our text files.
 use AtlasBoost                  AtlasBoost-*             External
 
+
 #
 # Library and app build instructions
 #
@@ -16,3 +17,14 @@ application FTGenerateSummary ../bin/FTGenerateSummary.cxx
 
 apply_pattern installed_library
 apply_pattern application_alias FTGenerateSummary
+
+private
+
+#
+# Use "make CppUnit" to run the unit tests for this
+# package
+#
+
+use TestPolicy			TestPolicy-00-*
+use TestTools			TestTools-*		AtlasTest
+apply_pattern CppUnit name=CombinationParserTests files="-s=../test ParserTest_CppUnit.cxx"
