@@ -12,7 +12,7 @@ using namespace std;
 
 int main()
 {
-  ParseMe();
+  BTagCombination::Parse("");
   cout << "hi " << SPIRIT_VERSION  <<endl;
   return 0;
 }
