@@ -31,7 +31,8 @@ namespace BTagCombination
   struct CalibrationAnalysis
   {
     std::string name; // The name of the analyiss, like "system8"
-    Flavor flavor; // What is this calibration for?
+    //Flavor flavor; // What is this calibration for?
+    std::string flavor; // What is this calibration for?
     std::string operatingPoint; // SV050 or similar - the operating point
 
     std::vector<CalibrationBin> bins; // List of bins with the actual results

@@ -6,6 +6,9 @@
 
 #include "Combination/Parser.h"
 
+#include <vector>
+#include <stdexcept>
+
 //
 // All the boost libraries
 //
@@ -26,6 +29,9 @@
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 
+using namespace BTagCombination;
+using namespace std;
+
 ///////////////
 // The parser code itself
 //
@@ -44,14 +50,6 @@ struct CentralValue
   double Error;
 };
 
-// The spec for an analysis
-struct CalibrationAnalysisChannel
-{
-  std::string name; // ptRel or ttbardileptons, etc.
-  std::string flavor; // bottom, or light
-  std::string operating_point; // "SV050" or similar
-};
-
 // info for a binning boundary (30 < pt < 56).
 struct BinBoundary
 {
@@ -61,9 +59,56 @@ struct BinBoundary
 };
 
 //
-// Now, in order to make efficient use of boost with this
-// thing we need to attribute the structs. We do that here.
-// Note: this has to be done in the global namespace/scope!
+// Parse the top level analysis info
+//
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::CalibrationAnalysis,
+			  (std::string, name)
+			  //(BTagCombination::Flavor, flavor)
+			  (std::string, flavor)
+			  (std::string, operatingPoint)
+			  )
+
+// Parse an analysis "Analysis(ptrel, bottom, SV050)".
+template <typename Iterator>
+struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), ascii::space_type>
+{
+  CalibrationAnalysisParser() : CalibrationAnalysisParser::base_type(start) {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+
+    name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
+
+    start = lit("Analysis")
+      >> '('
+      >> name_string >> ','
+      >> name_string >> ','
+      >> name_string
+      >> ')'
+      >> lit('{')
+      >> lit('}')
+      ;
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
+};
+
+// Parse a list of the analyses (more than one per file, man!)
+template <typename Iterator>
+struct CalibrationAnalysisVectorParser : qi::grammar<Iterator, vector<CalibrationAnalysis>(), ascii::space_type>
+{
+  CalibrationAnalysisVectorParser() : CalibrationAnalysisVectorParser::base_type(start)
+    {
+      CalibrationAnalysisParser<Iterator> caParser;
+      start = *caParser;
+    }
+
+    qi::rule<Iterator, vector<CalibrationAnalysis>(), ascii::space_type> start;
+};
+
+//
 //
 BOOST_FUSION_ADAPT_STRUCT(
 			  SystematicError,
@@ -75,13 +120,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 			    CentralValue,
 			    (double, Value)
 			    (double, Error)
-			    )
-
-  BOOST_FUSION_ADAPT_STRUCT(
-			    CalibrationAnalysisChannel,
-			    (std::string, name)
-			    (std::string, flavor)
-			    (std::string, operating_point)
 			    )
 
   BOOST_FUSION_ADAPT_STRUCT(
@@ -167,41 +205,43 @@ struct BinBoundaryParser : qi::grammar<Iterator, BinBoundary(), ascii::space_typ
     qi::rule<Iterator, BinBoundary(), ascii::space_type> start;
 };
 
-// Parse an analysis "Analysis(ptrel, bottom, SV050)".
-template <typename Iterator>
-struct CalibrationAnalysisChannelParser : qi::grammar<Iterator, CalibrationAnalysisChannel(), ascii::space_type>
-{
-  CalibrationAnalysisChannelParser() : CalibrationAnalysisChannelParser::base_type(start) {
-    using ascii::char_;
-    using qi::lexeme;
-    using qi::lit;
-
-    name_string %= lexeme[+(char_ - ',' - '"')];
-
-    start = lit("Analysis")
-      >> '('
-      >> name_string >> ','
-      >> name_string >> ','
-      >> name_string
-      >> ')'
-      ;
-  }
-
-    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
-    qi::rule<Iterator, CalibrationAnalysisChannel(), ascii::space_type> start;
-};
-
 ///////////////////////////////////////
 
-
-using namespace std;
 
 namespace BTagCombination
 {
 
+  //
+  // Parse the input text as a list of calibration inputs
+  //
   vector<CalibrationAnalysis> Parse(const string &inputText)
   {
-    return vector<CalibrationAnalysis>();
+    CalibrationAnalysisVectorParser<string::const_iterator> cavParser;
+    //vector<CalibrationAnalysis> result;
+
+    string::const_iterator iter = inputText.begin();
+    string::const_iterator end = inputText.end();
+
+    //bool didit = phrase_parse(iter, end,
+    //cavParser, ascii::space, result);
+    CalibrationAnalysisParser<string::const_iterator> caParser;
+    CalibrationAnalysis result;
+    bool didit = phrase_parse(iter, end,
+			      caParser, ascii::space, result);
+
+    //
+    // See if there were any errors doing the parse.
+    //
+
+    if (!didit)
+      throw new runtime_error ("Unable to parse!");
+
+    //if (iter != end)
+    //  throw new runtime_error ("Did not parse the complete input text!");
+
+    vector<CalibrationAnalysis> dude;
+    dude.push_back(result);
+    return dude;
 #ifdef notyet
     string input = "sys( JES, 22%)";
   

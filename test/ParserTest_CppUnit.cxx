@@ -12,6 +12,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 using namespace BTagCombination;
@@ -23,10 +24,16 @@ using namespace BTagCombination;
 class ParserTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( ParserTest );
-  CPPUNIT_TEST( testSourceComments );
+
+  //CPPUNIT_TEST( testSourceComments );
+
+  //CPPUNIT_TEST_EXCEPTION( testParseSyntaxBasicErrorThrows, std::runtime_error );
+
   CPPUNIT_TEST( testParseEmptyAnalysisString );
   CPPUNIT_TEST( testParseSimpleAnalysis );
-  CPPUNIT_TEST( testParseTwoAnalyses );
+  //CPPUNIT_TEST( testParseTwoAnalyses );
+  //CPPUNIT_TEST( testParseSimpleAnalysisBadFlavor );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testSourceComments()
@@ -41,14 +48,28 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.size() == 0);
   }
 
+  // Nothing good can come of this.
+  void testParseSyntaxBasicErrorThrows()
+  {
+    vector<CalibrationAnalysis> result (Parse("AAANNNnalysis(ptrel, bottom, SV050){}"));
+  }
+
   void testParseSimpleAnalysis()
   {
     vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){}"));
+    cout << "Result size is " << result.size() << "!" << endl;
     CPPUNIT_ASSERT(result.size() == 1);
     CPPUNIT_ASSERT(result[0].name == "ptrel");
-    CPPUNIT_ASSERT(result[0].operatingPoint == "SV050");
-    CPPUNIT_ASSERT(result[0].flavor == FBottom);
+    CPPUNIT_ASSERT_MESSAGE(result[0].operatingPoint, result[0].operatingPoint == "SV050");
+    //CPPUNIT_ASSERT(result[0].flavor == FBottom);
+    CPPUNIT_ASSERT(result[0].flavor == "bottom");
     CPPUNIT_ASSERT(result[0].bins.size() == 0);
+  }
+
+  void testParseSimpleAnalysisBadFlavor()
+  {
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, botttom, SV050){}"));
+    CPPUNIT_ASSERT(false);
   }
 
   void testParseTwoAnalyses()
