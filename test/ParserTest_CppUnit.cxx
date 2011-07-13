@@ -43,8 +43,12 @@ class ParserTest : public CppUnit::TestFixture
 
   void testParseSimpleAnalysis()
   {
-    // Load a dirt simple analyiss
-    CPPUNIT_ASSERT_MESSAGE("Not written yet", false);
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){}"));
+    CPPUNIT_ASSERT(result.size() == 1);
+    CPPUNIT_ASSERT(result[0].name == "ptrel");
+    CPPUNIT_ASSERT(result[0].operatingPoint == "SV050");
+    CPPUNIT_ASSERT(result[0].flavor == FBottom);
+    CPPUNIT_ASSERT(result[0].bins.size() == 0);
   }
 
   void testParseTwoAnalyses()
