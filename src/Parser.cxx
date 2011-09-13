@@ -8,6 +8,10 @@
 
 #include <vector>
 #include <stdexcept>
+#include <iostream>
+#include <ostream>
+#include <string>
+#include <vector>
 
 //
 // All the boost libraries
@@ -21,12 +25,6 @@
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/fusion/include/io.hpp>
-
-
-#include <iostream>
-#include <string>
-#include <vector>
-
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
@@ -47,6 +45,7 @@ using namespace std;
 
 //
 // Parse a bin boundary "25 < pt < 30"
+//
 BOOST_FUSION_ADAPT_STRUCT(
 			  CalibrationBinBoundary,
 			  (double, lowvalue)
@@ -66,6 +65,7 @@ struct CalibrationBinBoundaryParser :
     using qi::double_;
 
     name_string %= lexeme[+alpha];
+    name_string.name("variable name");
 
     start %= 
       double_ 
@@ -73,6 +73,10 @@ struct CalibrationBinBoundaryParser :
       >> name_string >> '<'
       >> double_
       ;
+    start.name("Boundary");
+
+    // Dump out what is going on with this rule
+    debug(start);
   }
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
@@ -90,16 +94,36 @@ BOOST_FUSION_ADAPT_STRUCT(
 template <typename Iterator>
 struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::space_type>
 {
-  CalibrationBinParser() : CalibrationBinParser::base_type(start, "Bin") {
-    using qi::lit;
+  CalibrationBinParser() : CalibrationBinParser::base_type(start, "Bin")
+    {
+      using qi::lit;
+      using namespace qi::labels;
+      using boost::phoenix::push_back;
 
-    boundary_list %= boundary % ',';
-    start %= lit("bin") > '(' > boundary_list >  ')';
-  }
+      qi::rule<Iterator, std::vector<int>, ascii::space_type>  dude_list;
 
-    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+      //dude_list = qi::int_[push_back(_val, _1)];
+      dude_list = (qi::int_ % ",")[_val = _1];
+
+      boundary_list %= (boundary % ',');
+      //boundary_list = boundary[push_back(_val, _1)] % ',';
+      //boundary_list = boundary[push_back(_val, _1)]
+      //>> *("," >> boundary[push_back(_val, _1)]);
+      boundary_list.name("List of Bin Boundaries");
+      debug(boundary_list);
+
+      start %= 
+	lit("bin")
+	> '('
+	> boundary_list
+	>  ')';
+      start.name("Bin");
+
+      debug(start);
+    }
+
     CalibrationBinBoundaryParser<Iterator> boundary;
-    qi::rule<Iterator, std::vector<CalibrationBinBoundary>, ascii::space_type>  boundary_list;
+    qi::rule<Iterator, std::vector<BTagCombination::CalibrationBinBoundary>, ascii::space_type>  boundary_list;
     qi::rule<Iterator, CalibrationBin(), ascii::space_type> start;
 };
 

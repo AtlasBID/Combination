@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace BTagCombination
 {
@@ -28,11 +29,29 @@ namespace BTagCombination
     double highvalue;
   };
 
+  std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundary &b)
+    {
+      out << b.lowvalue << " < " << b.variable << " < " << b.highvalue;
+      return out;
+    }
+
   // Data for a single bin (central value, stat error, sys errors, etc.)
   struct CalibrationBin
   {
     std::vector<CalibrationBinBoundary> binSpec;
   };
+
+  std::ostream &operator<< (std::ostream &out, const CalibrationBin &b)
+    {
+      out << "bin{";
+      for (unsigned int i = 0; i < b.binSpec.size(); i++) {
+	out << b.binSpec[i] << ",";
+      }
+      out << "}";
+
+      return out;
+    }
+
 
   // Allowed flavors of calibration results
   enum Flavor {FBottom, FCharm, FLight};
