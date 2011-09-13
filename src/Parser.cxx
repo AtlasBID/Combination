@@ -34,6 +34,12 @@ namespace ascii = boost::spirit::ascii;
 using namespace BTagCombination;
 using namespace std;
 
+//////////////////////////
+// Disable warnings caused by using the ">" operator in an
+// overloaded way. I know this is ugly.
+//
+#pragma GCC diagnostic ignored "-Wparentheses"
+
 ///////////////
 // The parser code itself
 //
@@ -42,7 +48,7 @@ using namespace std;
 //
 // Parse a bin boundary "25 < pt < 30"
 BOOST_FUSION_ADAPT_STRUCT(
-			  BTagCombination::CalibrationBinBoundary,
+			  CalibrationBinBoundary,
 			  (double, lowvalue)
 			  (std::string, variable)
 			  (double, highvalue)
@@ -77,7 +83,7 @@ struct CalibrationBinBoundaryParser :
 // Parse the bin spec bin(30 < pt < 40, 2.5 < eta < 5.5) {xxx}
 //
 BOOST_FUSION_ADAPT_STRUCT(
-			  BTagCombination::CalibrationBin,
+			  CalibrationBin,
 			  (std::vector<BTagCombination::CalibrationBinBoundary>, binSpec)
 			  )
 
@@ -106,7 +112,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  //(BTagCombination::Flavor, flavor)
 			  (std::string, flavor)
 			  (std::string, operatingPoint)
-			  (std::vector<BTagCombination::CalibrationBin>, bins)
+			  (std::vector<CalibrationBin>, bins)
 			  )
 
 template <typename Iterator>
