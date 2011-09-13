@@ -16,6 +16,8 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_fusion.hpp>
+#include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/fusion/include/io.hpp>
@@ -47,9 +49,10 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  )
 
 template <typename Iterator>
-struct CalibrationBinBoundaryParser : qi::grammar<Iterator, CalibrationBinBoundary(), ascii::space_type>
+struct CalibrationBinBoundaryParser :
+  qi::grammar<Iterator, CalibrationBinBoundary(), ascii::space_type>
 {
-  CalibrationBinBoundaryParser() : CalibrationBinBoundaryParser::base_type(start) {
+  CalibrationBinBoundaryParser() : CalibrationBinBoundaryParser::base_type(start, "Bin Boundary") {
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
@@ -59,7 +62,8 @@ struct CalibrationBinBoundaryParser : qi::grammar<Iterator, CalibrationBinBounda
     name_string %= lexeme[+alpha];
 
     start %= 
-      double_ >> '<'
+      double_ 
+      >> '<'
       >> name_string >> '<'
       >> double_
       ;
@@ -80,11 +84,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 template <typename Iterator>
 struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::space_type>
 {
-  CalibrationBinParser() : CalibrationBinParser::base_type(start) {
+  CalibrationBinParser() : CalibrationBinParser::base_type(start, "Bin") {
     using qi::lit;
 
     boundary_list %= boundary % ',';
-    start %= lit("bin") >> '(' >> boundary_list >>  ')';
+    start %= lit("bin") > '(' > boundary_list >  ')';
   }
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
@@ -108,7 +112,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 template <typename Iterator>
 struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), ascii::space_type>
 {
-  CalibrationAnalysisParser() : CalibrationAnalysisParser::base_type(start) {
+  CalibrationAnalysisParser() : CalibrationAnalysisParser::base_type(start, "Analysis") {
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
@@ -116,20 +120,62 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
     name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
 
     start %= lit("Analysis")
-      >> '('
-      >> name_string >> ','
-      >> name_string >> ','
-      >> name_string
-      >> ')'
-      >> lit('{')
-      >> *binParser
-      >> lit('}')
+      > lit('(')
+      > name_string
+      > lit(',')
+      > name_string
+      > lit(',')
+      > name_string
+      > lit(')')
+      > lit('{')
+      > *binParser
+      > lit('}')
       ;
   }
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
     CalibrationBinParser<Iterator> binParser;
+};
+
+//
+// Parse a file - so this is a sequence of Analysis guys, with nothing
+// else in them.
+//
+template<typename Iterator>
+struct CalibrationAnalysisFileParser : qi::grammar<Iterator, vector<CalibrationAnalysis>(), ascii::space_type>
+{
+  CalibrationAnalysisFileParser() : CalibrationAnalysisFileParser::base_type(start, "Calibration Analysis File")
+    {
+      using boost::spirit::qi::eoi;
+      anaParser.name("Analyiss");
+      start %= *anaParser > eoi;
+
+      //
+      // Error handling - attempt to make this a little nicer
+      //
+
+      using qi::on_error;
+      using qi::fail;
+      using boost::phoenix::val;
+      using boost::phoenix::construct;
+      using namespace qi::labels;
+
+      on_error<fail>
+	(
+	 start,
+	 std::cout
+	 << val("Error! Expecting ")
+	 << _4                               // what failed?
+	 << val(" here: \"")
+	 << construct<std::string>(_3, _2)   // iterators to error-pos, end
+	 << val("\"")
+	 << std::endl
+	 );
+    }
+
+    qi::rule<Iterator, vector<CalibrationAnalysis>(), ascii::space_type> start;
+    CalibrationAnalysisParser<Iterator> anaParser;
 };
 
 //
@@ -215,9 +261,9 @@ namespace BTagCombination
     string::const_iterator end = inputText.end();
 
     vector<CalibrationAnalysis> result;
-    CalibrationAnalysisParser<string::const_iterator> caParser;
+    CalibrationAnalysisFileParser<string::const_iterator> caParser;
     bool didit = phrase_parse(iter, end,
-			      (*caParser >> qi::eoi),
+			      caParser,
 			      ascii::space, result);
 
     //

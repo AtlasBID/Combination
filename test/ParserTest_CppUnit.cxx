@@ -31,7 +31,8 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION( testParseSyntaxBasicErrorThrows, std::runtime_error );
   CPPUNIT_TEST( testParseEmptyAnalysisString );
   CPPUNIT_TEST( testParseSimpleAnalysis );
-  //CPPUNIT_TEST( testParseSimpleAnalysisWithOneBinOneArg );
+  CPPUNIT_TEST( testParseSimpleAnalysisWithOneBinOneArg );
+  //CPPUNIT_TEST( testParseSimpleAnalysisWithOneBinTwoArg );
   CPPUNIT_TEST( testParseTwoAnalyses );
   //CPPUNIT_TEST( testParseSimpleAnalysisBadFlavor );
 
@@ -39,12 +40,14 @@ class ParserTest : public CppUnit::TestFixture
 
   void testSourceComments()
   {
+    cout << "Test testSourceComments" << endl;
     // Test that comments in the code can happen anywhere! :-)
     CPPUNIT_ASSERT_MESSAGE("Not written yet", false);
   }
 
   void testParseEmptyAnalysisString()
   {
+    cout << "Test testParseEmptyAnalysisString" << endl;
     vector<CalibrationAnalysis> result (Parse(""));
     CPPUNIT_ASSERT(result.size() == 0);
   }
@@ -52,11 +55,13 @@ class ParserTest : public CppUnit::TestFixture
   // Nothing good can come of this.
   void testParseSyntaxBasicErrorThrows()
   {
+    cout << "Test testparseSyntaxBasicErrorThrows" << endl;
     vector<CalibrationAnalysis> result (Parse("AAANNNnalysis(ptrel, bottom, SV050){}"));
   }
 
   void testParseSimpleAnalysis()
   {
+    cout << "Test testParseSimpleAnalysis" << endl;
     vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){}"));
     stringstream str;
     str << "Result size is " << result.size() << "!" << endl;
@@ -70,6 +75,7 @@ class ParserTest : public CppUnit::TestFixture
 
   void testParseTwoAnalyses()
   {
+    cout << "Test testParseTwoAnalyses" << endl;
     vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){} Analysis(system8, bottom, SV050) {}"));
     stringstream str;
     str << "Result size is " << result.size() << "!" << endl;
@@ -80,13 +86,15 @@ class ParserTest : public CppUnit::TestFixture
 
   void testParseSimpleAnalysisBadFlavor()
   {
+    cout << "Test testParseSimpleAnalysisBadFlavor" << endl;
     vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, botttom, SV050){}"));
     CPPUNIT_ASSERT(false);
   }
 
   void testParseSimpleAnalysisWithOneBinOneArg()
   {
-    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){bin(20<pt<30, 1.1<eta<5.5)}"));
+    cout << "Test testParseSimpleAnalysisWithOneBinOneArg" << endl;
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){bin(20<pt<30)}"));
     
     CPPUNIT_ASSERT(result.size() == 1);
     CalibrationAnalysis ana = result[0];
@@ -102,6 +110,32 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(bb.lowvalue == 20);
     CPPUNIT_ASSERT(bb.variable == "pt");
     CPPUNIT_ASSERT(bb.highvalue == 30);
+  }
+
+  void testParseSimpleAnalysisWithOneBinTwoArg()
+  {
+    cout << "Test testParseSimpleAnalysisWithOneBinTwoArg" << endl;
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){bin(20<pt<30, 1.1<eta<5.5)}"));
+    
+    CPPUNIT_ASSERT(result.size() == 1);
+    CalibrationAnalysis ana = result[0];
+    stringstream str;
+    str << "  Found " << ana.bins.size() << endl;
+    CPPUNIT_ASSERT_MESSAGE(str.str(), ana.bins.size() == 1);
+    CalibrationBin bin0 = ana.bins[0];
+    cout << "  Found bins to do spec in: " << bin0.binSpec.size() << endl;
+    stringstream str1;
+    str1 << "The number of bin boundaries is " << bin0.binSpec.size() << endl;
+    CPPUNIT_ASSERT_MESSAGE(str1.str(), bin0.binSpec.size() == 2);
+    CalibrationBinBoundary bb = bin0.binSpec[0];
+    CPPUNIT_ASSERT(bb.lowvalue == 20);
+    CPPUNIT_ASSERT(bb.variable == "pt");
+    CPPUNIT_ASSERT(bb.highvalue == 30);
+
+    bb = bin0.binSpec[1];
+    CPPUNIT_ASSERT(bb.lowvalue == 1.1);
+    CPPUNIT_ASSERT(bb.variable == "eta");
+    CPPUNIT_ASSERT(bb.highvalue == 5.5);
   }
 };
 
