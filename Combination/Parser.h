@@ -29,7 +29,7 @@ namespace BTagCombination
     double highvalue;
   };
 
-  std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundary &b)
+ inline std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundary &b)
     {
       out << b.lowvalue << " < " << b.variable << " < " << b.highvalue;
       return out;
@@ -41,7 +41,7 @@ namespace BTagCombination
     std::vector<CalibrationBinBoundary> binSpec;
   };
 
-  std::ostream &operator<< (std::ostream &out, const CalibrationBin &b)
+ inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b)
     {
       out << "bin{";
       for (unsigned int i = 0; i < b.binSpec.size(); i++) {
