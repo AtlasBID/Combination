@@ -19,6 +19,7 @@
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
@@ -102,28 +103,229 @@ struct CalibrationBinBoundaryParser :
 	qi::rule<Iterator, std::string(), ascii::space_type> name_string;
 	qi::rule<Iterator, CalibrationBinBoundary(), ascii::space_type> start;
 };
+//
+// An error can be relative or not. If relative is true, it is relative w.r.t. some central value.
+// The central value can be found by looking up at whatever is holding onto this guy. Most errors
+// have a name, but not all.
+//
+//  a "0.83" is an aboslute number, and "0.83%" is a relative number. You can add a <space> between
+// the two.
+//
+struct ErrorValue
+{
+	ErrorValue(double err = 0.0)
+	{
+		error = err;
+		relative = false;
+	}
+
+	void MakeRelative (void)
+	{
+		relative = true;
+	}
+
+	void SetName (const std::string &n)
+	{
+		name = n;
+	}
+
+	void CopyErrorAndRelative(const ErrorValue &cp)
+	{
+		error = cp.error;
+		relative = cp.relative;
+	}
+
+	string name;
+	double error;
+	bool relative;
+};
+
+ErrorValue EV_relative (const ErrorValue &ev)
+{
+	ErrorValue v (ev);
+	v.relative = true;
+	return v;
+}
 
 //
-// Parse the bin spec bin(30 < pt < 40, 2.5 < eta < 5.5) {xxx}
+// Parse a systematic error - these look like "sys(JES, 0.1)" or "sys(JER, 0.2%)".
 //
+template <typename Iterator>
+struct ErrorValueParser : qi::grammar<Iterator, ErrorValue(), ascii::space_type>
+{
+	ErrorValueParser() : ErrorValueParser::base_type(start, "Error") {
+		using qi::lit;
+		using qi::double_;
+		using qi::_val;
+		using qi::_1;
+
+		start = double_[_val = _1]
+			>> -(lit("%")[boost::phoenix::bind(&ErrorValue::MakeRelative, _val)]);
+		
+		start.name("error");
+	}
+
+	qi::rule<Iterator, ErrorValue(), ascii::space_type> start;
+};
+
+//
+// Parse  asystematic error ("sys(JES, 0.01)", "sys(JER, 0.1%)"). We parse
+// into a special struct b/c we can't do the % vs non-% until later.
+//
+template <typename Iterator>
+struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_type>
+{
+  SystematicErrorParser() : SystematicErrorParser::base_type(start, "Systematic Error") {
+	using ascii::char_;
+	using qi::lexeme;
+	using qi::lit;
+	using qi::double_;
+	using qi::_val;
+	using qi::labels::_1;
+
+	name_string %= lexeme[+(char_ - ',' - '"')];
+	name_string.name("Systematic Error Name");
+
+	start = lit("sys") > '('
+	  > name_string[boost::phoenix::bind(&ErrorValue::SetName, _val, _1)] > ','
+	  > errParser[boost::phoenix::bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
+	  > ')';
+
+	start.name("Systematic Error");
+  }
+
+	qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+	ErrorValueParser<Iterator> errParser;
+	qi::rule<Iterator, ErrorValue(), ascii::space_type> start;
+};
+
+struct centralvalue
+{
+	double value;
+	double error;
+
+	void SetError (const ErrorValue &e)
+	{
+		error = e.error;
+		if (e.relative)
+			error = error / 100.0 * value;
+	}
+	void SetValue (const double v)
+	{
+		value = v;
+	}
+};
+
+//
+// Parse the central value
+template <typename Iterator>
+struct CentralValueParser : qi::grammar<Iterator, centralvalue(), ascii::space_type>
+{
+  CentralValueParser() : CentralValueParser::base_type(start, "Central Value") {
+	using ascii::char_;
+	using qi::lexeme;
+	using qi::lit;
+	using qi::double_;
+	using qi::_val;
+	using qi::labels::_1;
+
+	start = lit("central_value")
+		> '('
+			> double_[boost::phoenix::bind(&centralvalue::SetValue, _val, _1)]
+		> ','
+			> errParser[boost::phoenix::bind(&centralvalue::SetError, _val, _1)]
+		  > ')';
+
+	start.name("Central Value");
+	errParser.name("central value error");
+  }
+
+	ErrorValueParser<Iterator> errParser;
+	qi::rule<Iterator, centralvalue(), ascii::space_type> start;
+};
+
+
+//
+// Parse the bin spec bin(30 < pt < 40, 2.5 < eta < 5.5) {xxx}. There should be only one central
+// value, but to make the parsing flexible we need to do this.
+//
+struct localCalibBin
+{
+	std::vector<BTagCombination::CalibrationBinBoundary> binSpec;
+	std::vector<ErrorValue> sysErrors;
+	std::vector<centralvalue> centralvalues;
+
+	void Convert (CalibrationBin &result)
+	{
+		result.binSpec = binSpec;
+		if (centralvalues.size() != 1)
+		{
+			throw std::runtime_error("One and only one central value must be present in each bin");
+		}
+		result.centralValue = centralvalues[0].value;
+		result.centralValueStatisticalError = centralvalues[0].error;
+
+		for (unsigned int i = 0; i < sysErrors.size(); i++)
+		{
+			SystematicError e;
+			e.name = sysErrors[i].name;
+			e.value = sysErrors[i].error;
+			if (sysErrors[i].relative)
+			{
+				e.value *= result.centralValue / 100.0;
+			}
+			result.systematicErrors.push_back(e);
+		}
+	}
+
+	void AddSysError (const ErrorValue &v)
+	{
+		sysErrors.push_back(v);
+	}
+	void AddCentralValue (const centralvalue &c)
+	{
+		centralvalues.push_back(c);
+	}
+
+	void SetBins(const vector<BTagCombination::CalibrationBinBoundary> &b)
+	{
+		binSpec = b;
+	}
+};
+
 BOOST_FUSION_ADAPT_STRUCT(
-			  CalibrationBin,
+			  localCalibBin,
 			  (std::vector<BTagCombination::CalibrationBinBoundary>, binSpec)
+			  (std::vector<ErrorValue>, sysErrors)
+			  (std::vector<centralvalue>, centralvalues)
 			  )
 
 template <typename Iterator>
 struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::space_type>
 {
-  CalibrationBinParser() : CalibrationBinParser::base_type(start, "Bin")
+  CalibrationBinParser() : CalibrationBinParser::base_type(converter, "Bin")
 	{
 	  using qi::lit;
+	  using namespace qi::labels;
+	  using boost::phoenix::bind;
 
 	  boundary_list %= (boundary % ',');
 	  boundary_list.name("List of Bin Boundaries");
 
-	  start %= lit("bin") > '(' > boundary_list > ')';
+	  sysErrors.name("Systematic Errors");
+	  cvFinder.name("Central Value");
 
-	  start.name("Bin");
+	  localBinFinder.name("Bin finder");
+
+	  localBinFinder = 
+		  lit("bin") > '(' > boundary_list[boost::phoenix::bind(&localCalibBin::SetBins, _val, _1)] > ')'
+		  > '{'
+		  > *(sysErrors[boost::phoenix::bind(&localCalibBin::AddSysError, _val, _1)] | cvFinder[boost::phoenix::bind(&localCalibBin::AddCentralValue, _val, _1)])
+		  > '}';
+
+	  converter = localBinFinder[bind(&localCalibBin::Convert, _1, _val)];
+
+	  converter.name("Bin");
 
 	  // Turn on debugging to sort out what is going on during development
 	  //debug(start);
@@ -132,7 +334,10 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 
 	CalibrationBinBoundaryParser<Iterator> boundary;
 	qi::rule<Iterator, std::vector<BTagCombination::CalibrationBinBoundary>(), ascii::space_type>  boundary_list;
-	qi::rule<Iterator, CalibrationBin(), ascii::space_type> start;
+	SystematicErrorParser<Iterator> sysErrors;
+	CentralValueParser<Iterator> cvFinder;
+	qi::rule<Iterator, localCalibBin(), ascii::space_type> localBinFinder;
+	qi::rule<Iterator, CalibrationBin(), ascii::space_type> converter;
 };
 
 //
@@ -178,7 +383,7 @@ struct CalibrationAnalysisFileParser : qi::grammar<Iterator, vector<CalibrationA
   CalibrationAnalysisFileParser() : CalibrationAnalysisFileParser::base_type(start, "Calibration Analysis File")
 	{
 	  using boost::spirit::qi::eoi;
-	  anaParser.name("Analyiss");
+	  anaParser.name("Analyis");
 	  start %= *anaParser > eoi;
 
 	  //
@@ -209,8 +414,6 @@ struct CalibrationAnalysisFileParser : qi::grammar<Iterator, vector<CalibrationA
 	CalibrationAnalysisParser<Iterator> anaParser;
 };
 
-//
-//
 #ifdef notyet
 BOOST_FUSION_ADAPT_STRUCT(
 			  SystematicError,
@@ -224,33 +427,15 @@ BOOST_FUSION_ADAPT_STRUCT(
 				(double, Error)
 				)
 
+#endif
+
+//
+//
+#ifdef notyet
+
 /////////////////
 // Parser primiatives. They parse combo info things
 ////////////////
-
-// Parse  asystematic error ("sys(JES, 0.01)", "sys(JER, 0.1%)").
-  template <typename Iterator>
-struct SystematicErrorParser : qi::grammar<Iterator, SystematicError(), ascii::space_type>
-{
-  SystematicErrorParser() : SystematicErrorParser::base_type(start) {
-	using ascii::char_;
-	using qi::lexeme;
-	using qi::lit;
-	using qi::double_;
-
-	name_string %= lexeme[+(char_ - ',' - '"')];
-
-	start %= lit("sys")
-	  >> '('
-	  >> name_string >> ','
-	  >> double_
-	  >> ')'
-	  ;
-  }
-
-	qi::rule<Iterator, std::string(), ascii::space_type> name_string;
-	qi::rule<Iterator, SystematicError(), ascii::space_type> start;
-};
 
 // Parse  the central value "(central_value(0.9, 0.1%)".
 template <typename Iterator>
@@ -288,6 +473,14 @@ struct CentralValueParser : qi::grammar<Iterator, CentralValue(), ascii::space_t
 		boundary_list,
 		ascii::space,
 		bb);
+
+	string input = "sys (JES, 0.55)";
+	SystematicErrorParser<string::const_iterator> errParser;
+	ErrorValue mr;
+	bool r1 = phrase_parse(input.begin(), input.end(),
+		errParser,
+		ascii::space,
+		mr);
 
 
 #endif
