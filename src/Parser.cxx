@@ -317,10 +317,10 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 
 	  localBinFinder.name("Bin finder");
 
-	  localBinFinder = 
-		  lit("bin") > '(' > boundary_list[boost::phoenix::bind(&localCalibBin::SetBins, _val, _1)] > ')'
+	  localBinFinder = lit("bin") 
+		  > '(' > boundary_list [boost::phoenix::bind(&localCalibBin::SetBins, _val, _1)] > ')'
 		  > '{'
-		  > *(sysErrors[boost::phoenix::bind(&localCalibBin::AddSysError, _val, _1)] | cvFinder[boost::phoenix::bind(&localCalibBin::AddCentralValue, _val, _1)])
+		  > *(sysErrors[bind(&localCalibBin::AddSysError, _val, _1)] | cvFinder[bind(&localCalibBin::AddCentralValue, _val, _1)])
 		  > '}';
 
 	  converter = localBinFinder[bind(&localCalibBin::Convert, _1, _val)];

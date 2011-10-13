@@ -21,6 +21,12 @@ apply_pattern application_alias FTGenerateSummary
 private
 
 #
+# The boost templates get a little deep! :-)
+#
+
+macro_append Combination_cppflags " -ftemplate-depth-200"
+
+#
 # Use "make CppUnit" to run the unit tests for this
 # package
 #
