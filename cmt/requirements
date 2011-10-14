@@ -4,8 +4,7 @@ use AtlasPolicy                 AtlasPolicy-01-*
 
 # We are using the combinator parser, spirit, in boost
 # to parse our text files.
-use AtlasBoost                  AtlasBoost-*             External
-
+use CalibrationDataInterface	CalibrationDataInterface-*	PhysicsAnalysis/JetTagging/JetTagPerformanceCalibration
 
 #
 # Library and app build instructions
@@ -14,9 +13,12 @@ use AtlasBoost                  AtlasBoost-*             External
 library Combination *.cxx
 
 application FTGenerateSummary ../bin/FTGenerateSummary.cxx
+apply_pattern application_alias FTGenerateSummary
+
+application FTConvertToCDI ../bin/FTConvertToCDI.cxx
+apply_pattern application_alias FTConvertToCDI
 
 apply_pattern installed_library
-apply_pattern application_alias FTGenerateSummary
 
 private
 
@@ -25,6 +27,11 @@ private
 #
 
 macro_append Combination_cppflags " -ftemplate-depth-200"
+
+#
+# We need the boost library
+#
+use AtlasBoost                  AtlasBoost-*             External
 
 #
 # Use "make CppUnit" to run the unit tests for this
