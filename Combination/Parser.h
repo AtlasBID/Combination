@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <istream>
 
 namespace BTagCombination
 {
@@ -87,6 +88,9 @@ namespace BTagCombination
 
   // Returns a list of analyses given an input string.
   std::vector<CalibrationAnalysis> Parse(const std::string &inputText);
+
+  // Returns a list of analyses given an input text file (reads the complete text file)
+  std::vector<CalibrationAnalysis> Parse(std::istream &input);
 }
 
 #endif

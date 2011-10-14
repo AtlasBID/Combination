@@ -514,6 +514,23 @@ namespace BTagCombination
 
 	return result;
   }
+
+  //
+  // Parse an input file
+  //
+  vector<CalibrationAnalysis> Parse (istream &input)
+  {
+
+    ostringstream text;
+    while (!input.eof()) {
+      string line;
+      getline(input, line);
+      text << line << endl;
+    }
+
+    return Parse(text.str());
+  }
+  
 #ifdef notyet
 
   namespace client
