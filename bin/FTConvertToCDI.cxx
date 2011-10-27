@@ -4,12 +4,16 @@
 //
 
 #include "Combination/Parser.h"
+#include "Combination/CDIConverter.h"
+
+#include <TFile.h>
 
 #include <iostream>
 #include <fstream>
 
 using namespace std;
 using namespace BTagCombination;
+using namespace Analysis;
 
 void Usage (void);
 
@@ -37,11 +41,27 @@ int main(int argc, char **argv)
   }
   vector<CalibrationAnalysis> calib = Parse (input);
 
+  if (calib.size() != 1) {
+    cerr << "Input file contains more than one analysis - only a single analysis can be converted to a CalibrationDataInterface object!" << endl;
+    return 1;
+  }
+
   cout << "I found " << calib.size() << " analyses" << endl;
 
   //
   // Convert it to an output root file.
   //
+
+  CalibrationDataContainer *c = ConvertToCDI (calib[0], "dude");
+
+  //
+  // Write them all out toa  root file
+  //
+
+  TFile *output = TFile::Open("output.root", "RECREATE");
+  output->WriteTObject(c);
+  output->Close();
+  delete output;
 
   return 0;
 }
