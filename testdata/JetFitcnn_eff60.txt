@@ -1,4 +1,4 @@
-Analysis(ttbar_kin_ljets,bottom,JetFitcnn_eff60)
+Analysis(ttbar_kin_ljets,bottom,JetTaggerCOMBNN,0.60,AntiKt4Topo)
 {
   bin(25<pt<40,0<eta<4.5)
   {

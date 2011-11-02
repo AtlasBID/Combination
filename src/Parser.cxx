@@ -346,9 +346,10 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 BOOST_FUSION_ADAPT_STRUCT(
 			  BTagCombination::CalibrationAnalysis,
 			  (std::string, name)
-			  //(BTagCombination::Flavor, flavor)
 			  (std::string, flavor)
+			  (std::string, tagger)
 			  (std::string, operatingPoint)
+			  (std::string, jetAlgorithm)
 			  (std::vector<CalibrationBin>, bins)
 			  )
 
@@ -362,7 +363,7 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
 
 	name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
 
-	start %= lit("Analysis") > lit('(') > name_string > ',' > name_string > ',' > name_string > ')'
+	start %= lit("Analysis") > lit('(') > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ')'
 	  > '{'
 	  > *binParser
 	  > '}';
