@@ -167,7 +167,11 @@ namespace {
 	  throw runtime_error ("Duplicate bins found!");
 	}
 	if (last.second != acopy[i].first) {
-	  throw runtime_error ("Lower bin boundary and upper bind boundary do not match up");
+	  ostringstream errtxt;
+	  errtxt << "Lower bin boundary and upper bind boundary do not match up:"
+		 << " lower: " << last.second
+		 << " upper: " << acopy[i].first;
+	  throw runtime_error (errtxt.str().c_str());
 	}
 	result.push_back(acopy[i].first);
       }
