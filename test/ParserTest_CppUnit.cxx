@@ -62,13 +62,15 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSimpleAnalysis()
   {
     cout << "Test testParseSimpleAnalysis" << endl;
-    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){}"));
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){}"));
     stringstream str;
     str << "Result size is " << result.size() << "!" << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.size() == 1);
     CPPUNIT_ASSERT(result[0].name == "ptrel");
-    CPPUNIT_ASSERT_MESSAGE(result[0].operatingPoint, result[0].operatingPoint == "SV050");
+    CPPUNIT_ASSERT_MESSAGE(result[0].operatingPoint, result[0].operatingPoint == "0.50");
     //CPPUNIT_ASSERT(result[0].flavor == FBottom);
+    CPPUNIT_ASSERT(result[0].tagger == "SV0");
+    CPPUNIT_ASSERT(result[0].jetAlgorithm == "MyJets");
     CPPUNIT_ASSERT(result[0].flavor == "bottom");
     CPPUNIT_ASSERT(result[0].bins.size() == 0);
   }
@@ -76,7 +78,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseTwoAnalyses()
   {
     cout << "Test testParseTwoAnalyses" << endl;
-    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){} Analysis(system8, bottom, SV050) {}"));
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){} Analysis(system8, bottom, SV0, 0.50, MyJets) {}"));
     stringstream str;
     str << "Result size is " << result.size() << "!" << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.size() == 2);
@@ -94,7 +96,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSimpleAnalysisWithOneBinOneArg()
   {
     cout << "Test testParseSimpleAnalysisWithOneBinOneArg" << endl;
-    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV050){bin(20<pt<30)}"));
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     
     CPPUNIT_ASSERT(result.size() == 1);
     CalibrationAnalysis ana = result[0];

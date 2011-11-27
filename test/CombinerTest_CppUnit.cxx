@@ -29,3 +29,5 @@ class CombinerTest : public CppUnit::TestFixture
   }
 
 };
+
+CPPUNIT_TEST_SUITE_REGISTRATION(CombinerTest);
