@@ -11,6 +11,7 @@
 #include <cppunit/Exception.h>
 
 #include <stdexcept>
+#include <cmath>
 
 using namespace std;
 using namespace BTagCombination;
@@ -24,7 +25,7 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( testOBTwoDiffComplexBins, std::runtime_error );
 
   CPPUNIT_TEST ( testOBOneBinIn );
-  //CPPUNIT_TEST ( testOBTwoBinIn );
+  CPPUNIT_TEST ( testOBTwoBinIn );
   //CPPUNIT_TEST ( testOBTwoComplexBinIn );
   //CPPUNIT_TEST ( testOBTwoBinInWithSys );
 
@@ -83,6 +84,41 @@ class CombinerTest : public CppUnit::TestFixture
     bins.push_back(b2);
 
     CalibrationBin result = CombineBin(bins);
+  }
+
+  // Look to see if two doubles are close - we are dealing with rounding
+  // errors, etc., for unit tests here.
+  bool isCloseTo (double actual, double expected)
+  {
+    if (expected == 0)
+      return actual == 0;
+
+    return abs((actual - expected)/expected) < 0.001;
+  }
+
+  void testOBTwoBinIn()
+  {
+    // Combine two identical bins with no sys errors
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    
+    vector<CalibrationBin> bins;
+    bins.push_back(b1);
+    bins.push_back(b1);
+
+    CalibrationBin result = CombineBin(bins);
+
+    CPPUNIT_ASSERT(result.binSpec.size() == 1);
+    CPPUNIT_ASSERT(result.binSpec[0].variable == "eta");
+
+    CPPUNIT_ASSERT(isCloseTo(result.centralValue, 0.5));
+    CPPUNIT_ASSERT(isCloseTo(result.centralValueStatisticalError, sqrt(0.1*0.1 + 0.1*0.1)));
   }
 
   void testOBTwoDiffComplexBins()

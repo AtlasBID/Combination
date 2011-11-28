@@ -3,6 +3,7 @@
 //
 
 #include "Combination/CDIConverter.h"
+#include "Combination/BinBoundaryUtils.h"
 
 #include "CalibrationDataInterface/CalibrationDataContainer.h"
 
@@ -95,7 +96,7 @@ namespace {
     inline int find_bin (const pair<string, vector<double> > &axis_info,
 			 const vector<CalibrationBinBoundary> &bin_spec) const
     {
-      CalibrationBinBoundary spec = find_spec(bin_spec, axis_info.first);
+      CalibrationBinBoundary spec = BinBoundaryUtils::find_spec(bin_spec, axis_info.first);
       for (unsigned int ibin = 0; ibin < axis_info.second.size(); ibin++) {
 	if (spec.lowvalue == axis_info.second[ibin]) {
 	  return ibin + 1; // Remamer, root is offset by 1 its bin numbers!!
@@ -104,15 +105,6 @@ namespace {
       ostringstream error;
       error << "Unable to find bin wiht lower boundary '" << spec.lowvalue << "' in axis '" << axis_info.first << "'.";
       throw new runtime_error (error.str().c_str());
-    }
-
-    inline CalibrationBinBoundary find_spec (const vector<CalibrationBinBoundary> &bin_spec, const string &name) const
-    {
-      for (unsigned int i = 0; i < bin_spec.size(); i++) {
-	if (bin_spec[i].variable == name)
-	  return bin_spec[i];
-      }
-      throw runtime_error (("Unable to find bin coordinate '" + name + ".").c_str());
     }
   };
 

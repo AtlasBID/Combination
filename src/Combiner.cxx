@@ -3,20 +3,11 @@
 //
 
 #include "Combination/Combiner.h"
+#include "Combination/BinBoundaryUtils.h"
 
 #include <stdexcept>
 
 using namespace std;
-
-namespace {
-  using namespace BTagCombination;
-
-  // Check to see if the two bins are the same or not.
-  bool sameBin (const vector<CalibrationBinBoundary> &b1, const vector<CalibrationBinBoundary> &b2)
-  {
-    return false;
-  }
-}
 
 namespace BTagCombination
 {
@@ -36,7 +27,7 @@ namespace BTagCombination
     // If there are more than 1 bins, then they all need to be identical!
     vector<CalibrationBinBoundary> specs (bins[0].binSpec);
     for (unsigned int ibin = 1; ibin < bins.size(); ibin++)
-      if (!sameBin(specs, bins[ibin].binSpec))
+      if (!BinBoundaryUtils::compare_spec(specs, bins[ibin].binSpec))
 	throw runtime_error ("Attempt to combine two bins with different boundaries");
 
     // Now we are ready to build the combination!
@@ -45,7 +36,7 @@ namespace BTagCombination
     CalibrationBin result;
     result.binSpec = specs;
 
-    return CalibrationBin();
+    return result;
   }
 }
 
