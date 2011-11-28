@@ -1,5 +1,6 @@
 //
-// Code to implement the combination of bins and analyses.
+// Code to implement the combination of bins and analyses, and the direct interface to the
+// actual combination code.
 //
 
 #include "Combination/Combiner.h"
