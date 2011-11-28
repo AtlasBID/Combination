@@ -14,53 +14,59 @@
 #include <vector>
 #include <map>
 
-class CombinationContext;
 
 class RooAbsReal;
 
-class Measurement
-{
-public:
-	/// Add a new systematic error
-	void addSystematicAbs (const std::string &errorName, const double oneSigmaSizeAbsolute);
-	void addSystematicRel (const std::string &errorName, const double oneSigmaSizeRelativeFractional);
-	void addSystematicPer (const std::string &errorName, const double oneSigmaSizePercent);
+namespace BTagCombination {
+  class CombinationContext;
 
-private:
-	inline const std::string &Name(void) const
-	{ return _name; }
-	inline const std::string &What(void) const
-	{ return _what; }
+  class Measurement
+  {
+  public:
+    /// Add a new systematic error
+    void addSystematicAbs (const std::string &errorName, const double oneSigmaSizeAbsolute);
+    void addSystematicRel (const std::string &errorName, const double oneSigmaSizeRelativeFractional);
+    void addSystematicPer (const std::string &errorName, const double oneSigmaSizePercent);
 
-	RooRealVar *GetActualMeasurement() {return &_actualValue;}
-	RooConstVar *GetStatisticalError() {return &_statError;}
+  private:
+    inline const std::string &Name(void) const
+      { return _name; }
+    inline const std::string &What(void) const
+      { return _what; }
 
-private:
-	/// The context is allowed access to everything.
-	friend class CombinationContext;
+#ifdef notyet
+    RooRealVar *GetActualMeasurement() {return &_actualValue;}
+    RooConstVar *GetStatisticalError() {return &_statError;}
+#endif
 
-	/// Only the Context can create a new measurement.
-	Measurement(const std::string &measurementName, const std::string &what, const double val, const double statError);
+  private:
+    /// The context is allowed access to everything.
+    friend class CombinationContext;
 
-	~Measurement(void);
+    /// Only the Context can create a new measurement.
+    Measurement(const std::string &measurementName, const std::string &what, const double val, const double statError);
 
-	/// Keep track...
-	const std::string _name;
-	const std::string _what;
+    ~Measurement(void);
 
-	std::vector<std::pair<std::string, double> > _sysErrors;
+    /// Keep track...
+    const std::string _name;
+    const std::string _what;
 
-	/// Variables we'll need later
-	RooRealVar _actualValue;
-	RooConstVar _statError;
+    std::vector<std::pair<std::string, double> > _sysErrors;
 
-	inline std::string NameStat(void) const
-	{ return Name() + "StatError";}
+    /// Variables we'll need later
+    //RooRealVar _actualValue;
+    //RooConstVar _statError;
 
-	/// Systematic Error Access
-	std::vector<std::string> GetSystematicErrorNames(void) const;
-	RooAbsReal *GetSystematicErrorWeight (RooRealVar &error);
-	double GetSystematicErrorWidth (const std::string &errorName) const;
-};
+    inline std::string NameStat(void) const
+      { return Name() + "StatError";}
+
+    /// Systematic Error Access
+    std::vector<std::string> GetSystematicErrorNames(void) const;
+    RooAbsReal *GetSystematicErrorWeight (RooRealVar &error);
+    double GetSystematicErrorWidth (const std::string &errorName) const;
+  };
+}
+
 #endif
 

@@ -40,4 +40,4 @@ use AtlasBoost                  AtlasBoost-*             External
 
 use TestPolicy			TestPolicy-00-*
 use TestTools			TestTools-*		AtlasTest
-apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx"
+apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx"

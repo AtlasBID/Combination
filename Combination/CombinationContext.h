@@ -11,41 +11,45 @@
 #include <vector>
 #include <map>
 
-class Measurement;
 class RooRealVar;
 
-class CombinationContext
-{
-public:
-	/// Create/Destroy a new context. This will contain the common
-	/// data to do a fit to mutliple measurements.
-	CombinationContext(void);
-	~CombinationContext(void);
+namespace BTagCombination {
 
-	/// Create a new measurement. You are trying to measure "what", and with
-	/// this particular measurement you found a value "value", and statistical
-	/// error "statError". Min and Max values are the min and max values of 'what'.
-	/// You can name your measurement or let the code choose a generic name for you.
-	/// Names must be unique!
-	Measurement *AddMeasurement (const std::string &measurementName, const std::string &what, const double minValue, const double maxValue,
-			const double value, const double statError);
-	Measurement *AddMeasurement (const std::string &what, const double minValue, const double maxValue,
-			const double value, const double statError);
+  class Measurement;
+  class CombinationContext
+  {
+  public:
+    /// Create/Destroy a new context. This will contain the common
+    /// data to do a fit to mutliple measurements.
+    CombinationContext(void);
+    ~CombinationContext(void);
 
-	/// Fit all the measurements that we've asked for.
-	void Fit(void);
+    /// Create a new measurement. You are trying to measure "what", and with
+    /// this particular measurement you found a value "value", and statistical
+    /// error "statError". Min and Max values are the min and max values of 'what'.
+    /// You can name your measurement or let the code choose a generic name for you.
+    /// Names must be unique!
+    Measurement *AddMeasurement (const std::string &measurementName, const std::string &what, const double minValue, const double maxValue,
+				 const double value, const double statError);
+    Measurement *AddMeasurement (const std::string &what, const double minValue, const double maxValue,
+				 const double value, const double statError);
 
-	/// Get the fit value (the 'what' of the add measurement)
-	RooRealVar GetFitValue(const std::string &what) const;
-private:
-	/// Keep track of all the measurements.
-	//RooRealVarCache _whatMeasurements;
+    /// Fit all the measurements that we've asked for.
+    void Fit(void);
 
-	/// Keep track fo all the systematic errors between the various measurements.
-	//RooRealVarCache _systematicErrors;
+    /// Get the fit value (the 'what' of the add measurement)
+    RooRealVar GetFitValue(const std::string &what) const;
+  private:
+    /// Keep track of all the measurements.
+    //RooRealVarCache _whatMeasurements;
 
-	/// Keep a list of all measurements
-	std::vector<Measurement*> _measurements;
-};
+    /// Keep track fo all the systematic errors between the various measurements.
+    //RooRealVarCache _systematicErrors;
+
+    /// Keep a list of all measurements
+    std::vector<Measurement*> _measurements;
+  };
+}
+
 #endif
 
