@@ -5,7 +5,7 @@
 #ifndef COMBINATION_CombinationContext
 #define COMBINATION_CombinationContext
 
-//#include "RooRealVarCache.h"
+#include "Combination/RooRealVarCache.h"
 
 #include <string>
 #include <vector>
@@ -41,7 +41,7 @@ namespace BTagCombination {
     RooRealVar GetFitValue(const std::string &what) const;
   private:
     /// Keep track of all the measurements.
-    //RooRealVarCache _whatMeasurements;
+    RooRealVarCache _whatMeasurements;
 
     /// Keep track fo all the systematic errors between the various measurements.
     //RooRealVarCache _systematicErrors;

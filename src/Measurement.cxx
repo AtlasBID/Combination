@@ -27,7 +27,6 @@ namespace BTagCombination {
   Measurement::~Measurement(void)
   {
   }
-#ifdef notyet
   Measurement::Measurement(const string &measurementName, const string &what, const double val, const double statError)
     : _name(measurementName), _what(what),
       _actualValue(_name.c_str(), _name.c_str(), val),
@@ -35,6 +34,7 @@ namespace BTagCombination {
   {
     _actualValue.setConstant(true);
   }
+#ifdef notyet
 
 
   ///

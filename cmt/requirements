@@ -32,6 +32,9 @@ macro_append Combination_cppflags " -ftemplate-depth-200"
 # We need the boost library
 #
 use AtlasBoost                  AtlasBoost-*             External
+use AtlasROOT			AtlasROOT-*		 External
+
+apply_tag ROOTRooFitLibs
 
 #
 # Use "make CppUnit" to run the unit tests for this

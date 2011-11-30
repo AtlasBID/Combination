@@ -55,8 +55,8 @@ namespace BTagCombination {
     std::vector<std::pair<std::string, double> > _sysErrors;
 
     /// Variables we'll need later
-    //RooRealVar _actualValue;
-    //RooConstVar _statError;
+    RooRealVar _actualValue;
+    RooConstVar _statError;
 
     inline std::string NameStat(void) const
       { return Name() + "StatError";}

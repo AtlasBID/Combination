@@ -48,16 +48,13 @@ namespace BTagCombination {
     }
   }
 
-#ifdef notyet
-
   namespace {
     /// When we don't have a measurement name, generate it!
-    static string NewMeasurementName(const string &name)
-    {
+    static string NewMeasurementName(const string &name) {
       static map<string, int> gNameIndex;
 
       int index = 0;
-      auto f = gNameIndex.find(name);
+      map<string, int>::const_iterator f = gNameIndex.find(name);
       if (f == gNameIndex.end()) {
 	gNameIndex[name] = 1;
       } else {
@@ -75,24 +72,25 @@ namespace BTagCombination {
   /// Creates a new measurement.
   ///
   Measurement *CombinationContext::AddMeasurement(const string &measurementName, const string &what, const double minValue, const double maxValue,
-						  const double value, const double statError)
-    {
-      ///
-      /// Get the thing we are fitting to
-      ///
+						  const double value, const double statError) {
+    ///
+    /// Get the thing we are fitting to
+    ///
 
-      auto whatVar = _whatMeasurements.FindOrCreateRooVar(what, minValue, maxValue);
-      whatVar->setVal(value);
+    RooRealVar* whatVar = _whatMeasurements.FindOrCreateRooVar(what, minValue, maxValue);
+    whatVar->setVal(value);
 
-      auto m = new Measurement(measurementName, what, value, statError);
-      _measurements.push_back(m);
-      return m;
-    }
+    Measurement *m = new Measurement(measurementName, what, value, statError);
+    _measurements.push_back(m);
+    return m;
+  }
+
   Measurement *CombinationContext::AddMeasurement(const string &what, const double minValue, const double maxValue,
-						  const double value, const double statError)
-    {
-      return AddMeasurement("blah", what, minValue, maxValue, value, statError);
-    }
+						  const double value, const double statError) {
+    return AddMeasurement("blah", what, minValue, maxValue, value, statError);
+  }
+
+#ifdef notyet
 
   ///
   /// Return the value that we got by doing the fit.

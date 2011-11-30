@@ -18,6 +18,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE( CombinationContextTest );
 
   CPPUNIT_TEST ( testCTor );
+  CPPUNIT_TEST ( testAddMeasurement );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -26,6 +27,13 @@ class CombinationContextTest : public CppUnit::TestFixture
     CombinationContext *c = new CombinationContext();
     delete c;
   }
+
+  void testAddMeasurement()
+  {
+    CombinationContext c;
+    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);
