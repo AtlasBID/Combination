@@ -90,14 +90,12 @@ namespace BTagCombination {
     return AddMeasurement("blah", what, minValue, maxValue, value, statError);
   }
 
-#ifdef notyet
-
   ///
   /// Return the value that we got by doing the fit.
   ///
   RooRealVar CombinationContext::GetFitValue (const string &what) const
   {
-    auto var = _whatMeasurements.FindRooVar(what);
+    RooRealVar *var = _whatMeasurements.FindRooVar(what);
     if (var == nullptr)
       throw new runtime_error("There is no measurement named " + what);
 
@@ -120,67 +118,64 @@ namespace BTagCombination {
     /// Get all the systematic errors and create the variables we will need for them.
     ///
 
-    for_each(_measurements.begin(), _measurements.end(),
-	     [&] (Measurement *m)
-	     {
-	       auto systematicErrorNames (m->GetSystematicErrorNames());
-	       for_each(systematicErrorNames.begin(), systematicErrorNames.end(),
-			[&] (const string &sysErrorName)
-			{
-			  _systematicErrors.FindOrCreateRooVar(sysErrorName, -5.0, 5.0);
-			});
-
-	     });
+    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+      Measurement *m(*imeas);
+      vector<string> errorNames (m->GetSystematicErrorNames());
+      for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
+	const string &sysErrorName(*isyserr);
+	_systematicErrors.FindOrCreateRooVar(sysErrorName, -5.0, 5.0);
+      }
+    }
 
     ///
     /// Build the central value gaussian that we are going to fit.
     ///
 
     vector<RooAbsPdf*> measurementGaussians;
-    transform(_measurements.begin(), _measurements.end(), back_inserter(measurementGaussians),
-	      [&] (Measurement *m) -> RooGaussian *
-	      {
-		///
-		/// The variable we are measureing is also balenced by the various
-		/// systematic errors for this measurement. eff*(1+m1*s1)*(1.m2*s2)*(1+m3*s3)...
-		///
+    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+      Measurement *m(*imeas);
 
-		auto var = _whatMeasurements.FindRooVar(m->What());
+      ///
+      /// The variable we are measureing is also balenced by the various
+      /// systematic errors for this measurement. eff*(1+m1*s1)*(1.m2*s2)*(1+m3*s3)...
+      ///
 
-		RooArgList varAddition;
-		varAddition.add(*var);
+      RooRealVar *var = _whatMeasurements.FindRooVar(m->What());
 
-		auto errorNames (m->GetSystematicErrorNames());
-		for_each(errorNames.begin(), errorNames.end(),
-			 [&] (const string &errName)
-			 {
-			   auto weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
-			   /// Mutiply by the eff that we are already looking at!
-			   varAddition.add(*weight);
-			 });
+      RooArgList varAddition;
+      varAddition.add(*var);
 
-		string internalName = "InternalAddition" + m->Name();
-		auto varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
+      vector<string> errorNames (m->GetSystematicErrorNames());
+      for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
+	const string &errName(*isyserr);
+	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
+	/// Mutiply by the eff that we are already looking at!
+	varAddition.add(*weight);
+      }
+      
+      string internalName = "InternalAddition" + m->Name();
+      RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
 
-		///
-		/// The actual variable and th esystematic error are also inputs into this
-		/// guassian.
-		///
+      ///
+      /// The actual variable and th esystematic error are also inputs into this
+      /// guassian.
+      ///
 
-		auto actualValue = (m->GetActualMeasurement());
-		auto statValue = (m->GetStatisticalError());
+      RooRealVar *actualValue = (m->GetActualMeasurement());
+      RooConstVar *statValue = (m->GetStatisticalError());
 
-		///
-		/// Finally, built the gaussian. Make sure that its name is not
-		/// the same as anything else... or *very* odd errors (with/out error messages)
-		/// show up later!
-		///
+      ///
+      /// Finally, built the gaussian. Make sure that its name is not
+      /// the same as anything else... or *very* odd errors (with/out error messages)
+      /// show up later!
+      ///
 
-		auto gName = m->Name() + "Gaussian";
-		RooGaussian *g = new RooGaussian(gName.c_str(), gName.c_str(),
-						 *actualValue, *varSumed, *statValue);
-		return g;
-	      });
+      string gName = m->Name() + "Gaussian";
+      RooGaussian *g = new RooGaussian(gName.c_str(), gName.c_str(),
+				       *actualValue, *varSumed, *statValue);
+      
+      measurementGaussians.push_back(g);
+    }
 
     ///
     /// Get a list of all the measurement gaussians and all the systematic error constraints, and create the product PDF
@@ -188,15 +183,14 @@ namespace BTagCombination {
     ///
 
     RooArgList products;
-    for_each(measurementGaussians.begin(), measurementGaussians.end(),
-	     [&products] (RooAbsPdf* item)
-	     {
-	       products.add(*item);
-	     });
+    for (vector<RooAbsPdf*>::iterator itr = measurementGaussians.begin(); itr != measurementGaussians.end(); itr++) {
+      products.add(*itr);
+    }
 
     auto zero = new RooConstVar("zero", "zero", 0.0);
     auto one = new RooConstVar("one", "one", 1.0);
     auto allVars = _systematicErrors.GetAllVars();
+#ifdef notyet
     for_each(allVars.begin(), allVars.end(),
 	     [&] (const string &errName)
 	     {
@@ -424,7 +418,6 @@ namespace BTagCombination {
 
     for_each(measurementGaussians.begin(), measurementGaussians.end(),
 	     [] (RooAbsPdf *item) { delete item; });
-  }
-
 #endif
+  }
 }

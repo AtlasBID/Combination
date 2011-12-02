@@ -34,6 +34,50 @@ namespace BTagCombination {
   {
     _actualValue.setConstant(true);
   }
+
+  ///
+  /// Return a list of the systematic errors that we are "using".
+  ///
+  vector<string> Measurement::GetSystematicErrorNames(void) const
+  {
+    vector<string> result;
+    for(vector<pair<string,double> >::const_iterator itr = _sysErrors.begin(); itr != _sysErrors.end(); itr++) {
+      result.push_back(itr->first);
+    }
+    return result;
+  }
+
+  ///
+  /// Fetch back the w*s weighting. Keep the objects around so we can
+  /// deal with Roo's funny ownership rules.
+  ///
+  RooAbsReal *Measurement::GetSystematicErrorWeight (RooRealVar &error)
+  {
+    string s1WidthName = string(error.GetName()) + "Width";
+    string s1WidthProduct = string(error.GetName()) + "Product";
+    string s1WidthSumName = string(error.GetName()) + "Weight";
+
+    /// Q: Why is innerWidht allowed as a pointer, but that causes a crash?
+
+    RooConstVar *s1Width = new RooConstVar(s1WidthName.c_str(), s1WidthName.c_str(), GetSystematicErrorWidth(error.GetName()));
+    RooProduct *innerWidth = new RooProduct (s1WidthProduct.c_str(), s1WidthProduct.c_str(), RooArgList(error, *s1Width));
+
+    return innerWidth;
+  }
+
+  ///
+  /// Get back the width of an error. Throw if we don't know about the error.
+  ///
+  double Measurement::GetSystematicErrorWidth (const std::string &errorName) const
+  {
+    for(vector<pair<string,double> >::const_iterator itr = _sysErrors.begin(); itr != _sysErrors.end(); itr++) {
+      if (errorName == itr->first) {
+	return itr->second;
+      }
+    }
+
+    throw runtime_error ("Don't know about error '" + errorName + "'.");
+  }
 #ifdef notyet
 
 
@@ -53,47 +97,6 @@ namespace BTagCombination {
     addSystematicRel(errorName,  oneSigmaSizeRelativePercent/100.0);
   }
 
-  ///
-  /// Fetch back the w*s weighting. Keep the objects around so we can
-  /// deal with Roo's funny ownership rules.
-  ///
-  RooAbsReal *Measurement::GetSystematicErrorWeight (RooRealVar &error)
-  {
-    auto s1WidthName = string(error.GetName()) + "Width";
-    auto s1WidthProduct = string(error.GetName()) + "Product";
-    auto s1WidthSumName = string(error.GetName()) + "Weight";
-
-    /// Q: Why is innerWidht allowed as a pointer, but that causes a crash?
-
-    auto s1Width = new RooConstVar(s1WidthName.c_str(), s1WidthName.c_str(), GetSystematicErrorWidth(error.GetName()));
-    auto innerWidth = new RooProduct (s1WidthProduct.c_str(), s1WidthProduct.c_str(), RooArgList(error, *s1Width));
-
-    return innerWidth;
-  }
-
-  ///
-  /// Return a list of the systematic errors that we are "using".
-  ///
-  vector<string> Measurement::GetSystematicErrorNames(void) const
-  {
-    vector<string> result;
-    transform(_sysErrors.begin(), _sysErrors.end(),
-	      back_inserter(result),
-	      [&result] (const pair<string, double> &item) { return item.first; } );
-    return result;
-  }
-
-  ///
-  /// Get back the width of an error. Throw if we don't know about the error.
-  ///
-  double Measurement::GetSystematicErrorWidth (const std::string &errorName) const
-  {
-    auto err = find_if(_sysErrors.begin(), _sysErrors.end(), 
-		       [&errorName] (const pair<string, double> &item) { return item.first == errorName; } );
-    if (err == _sysErrors.end())
-      throw runtime_error ("Don't know about error '" + errorName + "'.");
-    return err->second;
-  }
 
 #endif
 }

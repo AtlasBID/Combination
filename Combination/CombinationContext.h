@@ -44,7 +44,7 @@ namespace BTagCombination {
     RooRealVarCache _whatMeasurements;
 
     /// Keep track fo all the systematic errors between the various measurements.
-    //RooRealVarCache _systematicErrors;
+    RooRealVarCache _systematicErrors;
 
     /// Keep a list of all measurements
     std::vector<Measurement*> _measurements;

@@ -34,10 +34,8 @@ namespace BTagCombination {
     inline const std::string &What(void) const
       { return _what; }
 
-#ifdef notyet
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
     RooConstVar *GetStatisticalError() {return &_statError;}
-#endif
 
   private:
     /// The context is allowed access to everything.
