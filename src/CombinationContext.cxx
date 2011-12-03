@@ -184,24 +184,23 @@ namespace BTagCombination {
 
     RooArgList products;
     for (vector<RooAbsPdf*>::iterator itr = measurementGaussians.begin(); itr != measurementGaussians.end(); itr++) {
-      products.add(*itr);
+      products.add(**itr);
     }
 
-    auto zero = new RooConstVar("zero", "zero", 0.0);
-    auto one = new RooConstVar("one", "one", 1.0);
-    auto allVars = _systematicErrors.GetAllVars();
-#ifdef notyet
-    for_each(allVars.begin(), allVars.end(),
-	     [&] (const string &errName)
-	     {
-	       auto cName = errName + "ConstraintGaussian";
-	       auto c = _systematicErrors.FindRooVar(errName);
-	       auto constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
-	       products.add(*constraint);
-	     });
+    RooConstVar *zero = new RooConstVar("zero", "zero", 0.0);
+    RooConstVar *one = new RooConstVar("one", "one", 1.0);
+    vector<string> allVars = _systematicErrors.GetAllVars();
+
+    for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
+      string cName = *iVar + "ConstraintGaussian";
+      RooRealVar *c = _systematicErrors.FindRooVar(errName);
+      RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
+      products.add(*constraint);
+    }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
 
+#ifdef notyet
     ///
     /// Next, we need to fit to a dataset. It will have a single data point - the
     /// central values of all the measurements.
