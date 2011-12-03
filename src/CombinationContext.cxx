@@ -193,14 +193,13 @@ namespace BTagCombination {
 
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
       string cName = *iVar + "ConstraintGaussian";
-      RooRealVar *c = _systematicErrors.FindRooVar(errName);
+      RooRealVar *c = _systematicErrors.FindRooVar(*iVar);
       RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
       products.add(*constraint);
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
 
-#ifdef notyet
     ///
     /// Next, we need to fit to a dataset. It will have a single data point - the
     /// central values of all the measurements.
@@ -209,12 +208,11 @@ namespace BTagCombination {
     ///
 
     RooArgList varNames, varValues;
-    for_each(_measurements.begin(), _measurements.end(),
-	     [&] (Measurement *m)
-	     {
-	       varNames.add(*(m->GetActualMeasurement()));
-	       varValues.add(*(m->GetActualMeasurement()));
-	     });
+    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+      Measurement *m(*imeas);
+      varNames.add(*(m->GetActualMeasurement()));
+      varValues.add(*(m->GetActualMeasurement()));
+    }
 
     RooDataSet measuredPoints ("pointsMeasured", "Measured Values", varNames);
     measuredPoints.add(varValues);
@@ -225,6 +223,7 @@ namespace BTagCombination {
 
     finalPDF.fitTo(measuredPoints);
 
+#ifdef notyet
     ///
     /// Now that the fit is done, dump out a root file that contains some good info
     ///
