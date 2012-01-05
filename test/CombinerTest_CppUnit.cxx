@@ -12,6 +12,8 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 using namespace BTagCombination;
@@ -117,8 +119,8 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.binSpec.size() == 1);
     CPPUNIT_ASSERT(result.binSpec[0].variable == "eta");
 
-    CPPUNIT_ASSERT(isCloseTo(result.centralValue, 0.5));
-    CPPUNIT_ASSERT(isCloseTo(result.centralValueStatisticalError, sqrt(0.1*0.1 + 0.1*0.1)));
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1 + 0.1*0.1), result.centralValueStatisticalError, 0.001);
   }
 
   void testOBTwoDiffComplexBins()
