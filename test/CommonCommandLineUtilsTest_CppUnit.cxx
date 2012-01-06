@@ -27,6 +27,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testInputFromFile );
   CPPUNIT_TEST_EXCEPTION( testInputFromBadFile, std::runtime_error );
 
+  CPPUNIT_TEST( testOPName );
+  CPPUNIT_TEST( testOPBin );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testEmptyCommandLine()
@@ -74,6 +77,39 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     const char *argv[] = {"simpleInputBogus.txt"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
+  }
+
+  void testOPName()
+  {
+    CalibrationAnalysis ana;
+    ana.name = "name";
+    ana.flavor = "flavor";
+    ana.tagger = "tagger";
+    ana.operatingPoint = "op";
+    ana.jetAlgorithm = "alg";
+
+    string name (OPFullName(ana));
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("name", string("name-flavor-tagger-op-alg"), name);
+  }
+
+  void testOPBin()
+  {
+    CalibrationBin bin;
+    CalibrationBinBoundary spec1;
+    spec1.lowvalue = 0;
+    spec1.highvalue = 2.5;
+    spec1.variable = "eta";
+    bin.binSpec.push_back(spec1);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("1 bin boundary", string("0<eta<2.5"), OPBinName(bin));
+
+    CalibrationBinBoundary spec2;
+    spec2.lowvalue = 0;
+    spec2.highvalue = 95.0;
+    spec2.variable = "pt";
+    bin.binSpec.push_back(spec2);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("2 bin boundary", string("0<eta<2.5|0<pt<95"), OPBinName(bin));
   }
 
 };

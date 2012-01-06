@@ -18,6 +18,9 @@ apply_pattern application_alias FTGenerateSummary
 application FTConvertToCDI ../bin/FTConvertToCDI.cxx
 apply_pattern application_alias FTConvertToCDI
 
+application FTDump ../bin/FTDump.cxx
+apply_pattern application_alias FTDump
+
 apply_pattern installed_library
 
 private
@@ -44,3 +47,10 @@ apply_tag ROOTRooFitLibs
 use TestPolicy			TestPolicy-00-*
 use TestTools			TestTools-*		AtlasTest
 apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx"
+
+#
+# Turn on debugging if it is needed!!
+#
+
+macro cppdebugflags '$(cppdebugflags_s)'
+macro_remove componentshr_linkopts "-Wl,-s"

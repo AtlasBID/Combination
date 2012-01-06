@@ -83,5 +83,30 @@ namespace BTagCombination {
 
   }
 
+  // Returns a well formed name for the analysis. This is text only,
+  // and is what a person can use to talk to us. :-)
+  string OPFullName (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.name
+	<< "-" << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.jetAlgorithm;
+    return msg.str();
+  }
 
+  // return name of a bin
+  string OPBinName (const CalibrationBin &bin)
+  {
+    ostringstream msg;
+    for (unsigned int i = 0; i < bin.binSpec.size(); i++) {
+      if (i > 0)
+	msg << "|";
+      msg << bin.binSpec[i].lowvalue
+	  << "<" << bin.binSpec[i].variable
+	  << "<" << bin.binSpec[i].highvalue;
+    }
+    return msg.str();
+  }
 }

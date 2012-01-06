@@ -20,6 +20,10 @@ namespace BTagCombination {
 			 std::vector<CalibrationAnalysis> &operatingPoints,
 			 std::vector<std::string> &unknownFlags);
 
+  // Returns a common format name for teh analysis. Can be used in suppression
+  // files, etc.
+  std::string OPFullName (const CalibrationAnalysis &ana);
+  std::string OPBinName (const CalibrationBin &bin);
 }
 
 #endif
