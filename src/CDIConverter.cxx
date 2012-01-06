@@ -251,7 +251,7 @@ namespace {
 							   find_error(_name));
       if (e == bin.systematicErrors.end())
 	return make_pair(0.0, 0.0);
-      return make_pair(e->value, 0.0);
+      return make_pair(e->value, e->value);
     }
   private:
     const string &_name;
