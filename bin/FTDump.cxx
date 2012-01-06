@@ -16,7 +16,58 @@ using namespace BTagCombination;
 
 // Helper routines forward defined.
 void Usage(void);
+void DumpEverything (vector<CalibrationAnalysis> &calibs);
+void CheckEverything (vector<CalibrationAnalysis> &calibs);
 
+// Main program - run & control everything.
+int main (int argc, char **argv)
+{
+  if (argc <= 1) {
+    Usage();
+    return 1;
+  }
+
+  try {
+    // Parse the input arguments
+    vector<CalibrationAnalysis> calibs;
+    vector<string> otherFlags;
+    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, calibs, otherFlags);
+
+    bool doCheck = false;
+    bool doDump = true;
+
+    for (unsigned int i = 0; i < otherFlags.size(); i++) {
+      if (otherFlags[i] == "check") {
+	doCheck = true;
+	doDump = false;
+      } else {
+	cerr << "Unknown command line option --" << otherFlags[i] << endl;
+	return 1;
+      }
+    }
+
+    // Dump out a list of comma seperated values
+    if (doDump)
+      DumpEverything (calibs);
+
+    // Check to see if there are overlapping bins
+    if (doCheck)
+      CheckEverything(calibs);
+
+    // Check to see if the bin specifications are consistent.
+    return 0;
+
+  } catch (exception &e) {
+    cerr << "Error: " << e.what() << endl;
+  }
+
+  return 0;
+}
+
+//
+// Hold onto a single ana/bin - makes sorting and otherwise
+// dealing with this a bit simpler in the code.
+//
 class holder
 {
 public:
@@ -51,21 +102,11 @@ private:
   CalibrationBin _bin;
 };
 
-// Main program - run & control everything.
-int main (int argc, char **argv)
+//
+// Generate a comma seperated list of csv values.
+//
+void DumpEverything (vector<CalibrationAnalysis> &calibs)
 {
-  if (argc <= 1) {
-    Usage();
-    return 1;
-  }
-
-  try {
-    // Parse the input arguments
-    vector<CalibrationAnalysis> calibs;
-    vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, calibs, otherFlags);
-
-    // Now, rap them in our helper object to make the nest step easy
     vector<holder> held;
     for (unsigned int i = 0; i < calibs.size(); i++)
       for (unsigned int b = 0; b < calibs[i].bins.size(); b++)
@@ -97,12 +138,14 @@ int main (int argc, char **argv)
       }
       cout << endl;
     }
+}
 
-  } catch (exception &e) {
-    cerr << "Error: " << e.what() << endl;
-  }
-
-  return 0;
+//
+// Make sure there are no overlapping bins, etc. for each
+// analysis.
+//
+void CheckEverything (vector<CalibrationAnalysis> &calibs)
+{
 }
 
 void Usage(void)
