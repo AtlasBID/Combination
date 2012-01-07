@@ -19,6 +19,7 @@ using namespace BTagCombination;
 void Usage(void);
 void DumpEverything (vector<CalibrationAnalysis> &calibs);
 void CheckEverything (vector<CalibrationAnalysis> &calibs);
+void PrintNames (vector<CalibrationAnalysis> &calibs);
 
 // Main program - run & control everything.
 int main (int argc, char **argv)
@@ -36,11 +37,15 @@ int main (int argc, char **argv)
 
     bool doCheck = false;
     bool doDump = true;
+    bool doNames = false;
 
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "check") {
 	doCheck = true;
 	doDump = false;
+      } else if (otherFlags[i] == "names") {
+	doDump = false;
+	doNames = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
 	return 1;
@@ -54,6 +59,9 @@ int main (int argc, char **argv)
     // Check to see if there are overlapping bins
     if (doCheck)
       CheckEverything(calibs);
+
+    if (doNames)
+      PrintNames(calibs);
 
     // Check to see if the bin specifications are consistent.
     return 0;
@@ -152,8 +160,18 @@ void CheckEverything (vector<CalibrationAnalysis> &calibs)
   }
 }
 
+void PrintNames (vector<CalibrationAnalysis> &calibs)
+{
+  for (unsigned int i = 0; i < calibs.size(); i++) {
+    for (unsigned int b = 0; b < calibs[i].bins.size(); b++) {
+      cout << OPIgnoreFormat(calibs[i], calibs[i].bins[b]) << endl;
+    }
+  }
+}
+
 void Usage(void)
 {
   cout << "FTDump <file-list-and-options>" << endl;
   cout << "  --check - check if the binning of the input is self consistent" << endl;
+  cout << "  --names - print out the names used for the --ignore command of everything" << endl;
 }
