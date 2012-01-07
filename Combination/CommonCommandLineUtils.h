@@ -24,6 +24,7 @@ namespace BTagCombination {
   // files, etc.
   std::string OPFullName (const CalibrationAnalysis &ana);
   std::string OPBinName (const CalibrationBin &bin);
+  std::string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
 }
 
 #endif

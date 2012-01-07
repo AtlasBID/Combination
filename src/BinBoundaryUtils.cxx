@@ -15,6 +15,16 @@ namespace {
 
   typedef map<string, vector<pair<double,double> > > t_bin_list;
 
+  // Error class used to move info between layers when there is a failure.
+  class binning_error : public runtime_error {
+  public:
+    inline binning_error (double lowbinHigh, double highbinLow, const string &message)
+      : runtime_error (message.c_str()), _lowbinH (lowbinHigh), _highbinL (highbinLow)
+    {}
+
+    double _lowbinH, _highbinL;
+  };
+
   // Go through all the analysis and extract all the bins that are
   // being used.
   //
@@ -65,10 +75,10 @@ namespace {
 	}
 	if (last.second != acopy[i].first) {
 	  ostringstream errtxt;
-	  errtxt << "Bins are not adjacent: lower bin boundary and upper bin boundary do not match up:"
-		 << " lower: " << last.second
-		 << " upper: " << acopy[i].first;
-	  throw runtime_error (errtxt.str().c_str());
+	  errtxt << "Bins must be adjacent and exclusive - "
+		 << " lower bin's upper boundary (" << last.second << ")"
+		 << " and upper bins' lower boundary (" << acopy[i].first << ") need to be the same";
+	  throw binning_error (last.second, acopy[i].first, errtxt.str());
 	}
 	result.push_back(acopy[i].first);
       }
@@ -78,6 +88,29 @@ namespace {
     return result;
   }
 
+  CalibrationBinBoundary get_bin_boundary_for (const CalibrationBin &bin, const string &boundaryname)
+  {
+    for (unsigned int i = 0; i < bin.binSpec.size(); i++) {
+      if (bin.binSpec[i].variable == boundaryname)
+	return bin.binSpec[i];
+    }
+    return CalibrationBinBoundary();
+  }
+
+  // Get a list of all bins that match a criteria
+  vector<CalibrationBin> get_all_bins_matching (const CalibrationAnalysis &ana, const string &binname,
+						double lowbinH, double highbinL)
+  {
+    vector<CalibrationBin> result;
+
+    for (unsigned int i = 0; i < ana.bins.size(); i++) {
+      CalibrationBinBoundary b (get_bin_boundary_for(ana.bins[i], binname));
+      if (b.lowvalue == highbinL || b.highvalue == lowbinH)
+	result.push_back(ana.bins[i]);
+    }
+
+    return result;
+  }
 }
 
 namespace BTagCombination {
@@ -107,7 +140,7 @@ namespace BTagCombination {
     }
     ostringstream error;
     error << "Unable to find bin wiht lower boundary '" << spec.lowvalue << "' in axis '" << axis_info.first << "'.";
-    throw new runtime_error (error.str().c_str());
+    throw runtime_error (error.str().c_str());
   }
 
   // Grab the boundaries from the analysis, and put them into
@@ -132,8 +165,21 @@ namespace BTagCombination {
     for (t_bin_list::const_iterator ibin = raw_bins.begin(); ibin != raw_bins.end(); ibin++) {
       try {
 	result.add_axis(ibin->first, get_bin_boundaries_hist(ibin->second));
-      } catch (exception &e){
-	errmsg << OPFullName(ana) << "|" << ibin->first << ": " << e.what();
+      } catch (binning_error &e){
+	errmsg << endl;
+	errmsg << "    " << e.what() << endl;
+
+	// Now we have to find all the possibly offending bins, and then
+	// print them out in the standard printing format that can be used as part
+	// of our --ignore command line.
+
+	errmsg << "      One of the following analysis/bins is in error - please use --ignore" << endl;
+
+	vector<CalibrationBin> badbins(get_all_bins_matching(ana, ibin->first, e._lowbinH, e._highbinL));
+	for (unsigned int i = 0; i < badbins.size(); i++) {
+	  errmsg << "      -> " << OPIgnoreFormat(ana, badbins[i]) << endl;
+	}
+
 	errorSeen = true;
       }
     }

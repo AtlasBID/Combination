@@ -115,4 +115,10 @@ namespace BTagCombination {
     }
     return msg.str();
   }
+
+  // The format of the name used in the ignore command line option
+  string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin)
+  {
+    return OPFullName(ana) + "|" + OPBinName(bin);
+  }
 }
