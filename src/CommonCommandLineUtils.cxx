@@ -74,15 +74,37 @@ namespace BTagCombination {
     // Start processing each argument
     //
 
+    vector<string> OPsToIgnore;
     for (int index = 0; index < argc; index++) {
       // is it a flag or a file containing operating points?
       string a (argv[index]);
       if (a.size() > 0) {
 	if (a.substr(0, 2) == "--") {
 	  string flag(a.substr(2));
-	  unknownFlags.push_back(flag);
+
+	  if (flag == "ignore") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("every --ignore must have an analysis name");
+	    }
+	    OPsToIgnore.push_back(argv[++index]);
+	  } else {
+	    unknownFlags.push_back(flag);
+	  }
+
 	} else {
 	  loadOPsFromFile(operatingPoints, a);
+	}
+      }
+    }
+
+    // If anything is to be ignored, better do that now.
+    for (unsigned int i = 0; i < OPsToIgnore.size(); i++) {
+      for (unsigned int op = 0; op < operatingPoints.size(); op++) {
+	for (unsigned int b = 0; b < operatingPoints[op].bins.size(); b++) {
+	  if (OPsToIgnore[i] == OPIgnoreFormat(operatingPoints[op], operatingPoints[op].bins[b])) {
+	    operatingPoints[op].bins.erase(operatingPoints[op].bins.begin() + b);
+	    break;
+	  }
 	}
       }
     }
@@ -102,16 +124,16 @@ namespace BTagCombination {
     return msg.str();
   }
 
-  // return name of a bin
+  // return name of a bin (in a command-line friendly way)
   string OPBinName (const CalibrationBin &bin)
   {
     ostringstream msg;
     for (unsigned int i = 0; i < bin.binSpec.size(); i++) {
       if (i > 0)
-	msg << "|";
+	msg << ":";
       msg << bin.binSpec[i].lowvalue
-	  << "<" << bin.binSpec[i].variable
-	  << "<" << bin.binSpec[i].highvalue;
+	  << "-" << bin.binSpec[i].variable
+	  << "-" << bin.binSpec[i].highvalue;
     }
     return msg.str();
   }
@@ -119,6 +141,6 @@ namespace BTagCombination {
   // The format of the name used in the ignore command line option
   string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin)
   {
-    return OPFullName(ana) + "|" + OPBinName(bin);
+    return OPFullName(ana) + ":" + OPBinName(bin);
   }
 }
