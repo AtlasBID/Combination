@@ -3,6 +3,7 @@
 // analyses and bins.
 //
 #include "Combination/BinBoundaryUtils.h"
+#include "Combination/CommonCommandLineUtils.h"
 
 #include <sstream>
 #include <algorithm>
@@ -64,7 +65,7 @@ namespace {
 	}
 	if (last.second != acopy[i].first) {
 	  ostringstream errtxt;
-	  errtxt << "Lower bin boundary and upper bind boundary do not match up:"
+	  errtxt << "Bins are not adjacent: lower bin boundary and upper bin boundary do not match up:"
 		 << " lower: " << last.second
 		 << " upper: " << acopy[i].first;
 	  throw runtime_error (errtxt.str().c_str());
@@ -125,8 +126,20 @@ namespace BTagCombination {
     // For each variable, get a set of bin boundaries
 
     bin_boundaries result;
+    bool errorSeen = false;
+    ostringstream errmsg;
+    errmsg << "Found problems with binning: ";
     for (t_bin_list::const_iterator ibin = raw_bins.begin(); ibin != raw_bins.end(); ibin++) {
-      result.add_axis(ibin->first, get_bin_boundaries_hist(ibin->second));
+      try {
+	result.add_axis(ibin->first, get_bin_boundaries_hist(ibin->second));
+      } catch (exception &e){
+	errmsg << OPFullName(ana) << "|" << ibin->first << ": " << e.what();
+	errorSeen = true;
+      }
+    }
+
+    if (errorSeen) {
+      throw runtime_error (errmsg.str().c_str());
     }
 
     return result;

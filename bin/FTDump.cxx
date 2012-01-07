@@ -5,6 +5,7 @@
 
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/BinBoundaryUtils.h"
 
 #include <vector>
 #include <set>
@@ -146,6 +147,9 @@ void DumpEverything (vector<CalibrationAnalysis> &calibs)
 //
 void CheckEverything (vector<CalibrationAnalysis> &calibs)
 {
+  for (unsigned int i = 0; i < calibs.size(); i++) {
+    bin_boundaries r (calcBoundaries(calibs[i]));
+  }
 }
 
 void Usage(void)

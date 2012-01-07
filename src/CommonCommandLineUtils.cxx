@@ -31,10 +31,16 @@ namespace {
     }
 
     // Load it up!
-    ifstream input(fname.c_str());
-    vector<CalibrationAnalysis> calib = Parse(input);
-    input.close();
-    list.insert(list.end(), calib.begin(), calib.end());
+    try {
+      ifstream input(fname.c_str());
+      vector<CalibrationAnalysis> calib = Parse(input);
+      input.close();
+      list.insert(list.end(), calib.begin(), calib.end());
+    } catch (exception &e) {
+      ostringstream msg;
+      msg << "Caught error parsing file '" << fname << "': " << e.what();
+      throw runtime_error(msg.str().c_str());
+    }
   }
 }
 
