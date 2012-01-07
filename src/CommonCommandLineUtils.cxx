@@ -42,6 +42,23 @@ namespace {
       throw runtime_error(msg.str().c_str());
     }
   }
+
+  // The file contains a list of items to ignore, one per line.
+  vector<string> loadIgnoreFile (string fname)
+  {
+    vector<string> result;
+    ifstream input (fname.c_str());
+    if (!input.is_open()) {
+      throw runtime_error ("Unable to open --ignore file '" + fname + "'");
+    }
+    
+    while (!input.eof()) {
+      string line;
+      getline(input, line);
+      result.push_back(line);
+    }
+    return result;
+  }
 }
 
 //
@@ -86,7 +103,13 @@ namespace BTagCombination {
 	    if (index+1 == argc) {
 	      throw runtime_error ("every --ignore must have an analysis name");
 	    }
-	    OPsToIgnore.push_back(argv[++index]);
+	    string ignore (argv[++index]);
+	    if (ignore[0] != '@') {
+	      OPsToIgnore.push_back(ignore);
+	    } else {
+	      vector<string> alltoignore (loadIgnoreFile(ignore.substr(1)));
+	      OPsToIgnore.insert(OPsToIgnore.end(), alltoignore.begin(), alltoignore.end());
+	    }
 	  } else {
 	    unknownFlags.push_back(flag);
 	  }
