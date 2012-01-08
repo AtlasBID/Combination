@@ -41,17 +41,23 @@ namespace BTagCombination {
   // Helper class to hold onto info about each axis.
   class bin_boundaries {
   public:
+    inline bin_boundaries()
+      {}
+    inline bin_boundaries(const bin_boundaries &old)
+      : _axes(old._axes)
+      {}
+
     // Save another axis in our list.
     void add_axis (const std::string &axis_name, const std::vector<double> &bin_edges)
     {
       _axes[axis_name] = bin_edges;
     }
+    int size() const {return _axes.size();}
     
-  private:
+  protected:
     // Axis names and bin boundaries
     std::map<std::string, std::vector<double> > _axes;
 
-  protected:
     inline const std::pair<std::string, std::vector<double> > get_xaxis() const
     { return *(_axes.begin());}
     inline const std::pair<std::string, std::vector<double> > get_yaxis() const

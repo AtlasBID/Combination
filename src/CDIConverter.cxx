@@ -4,6 +4,7 @@
 
 #include "Combination/CDIConverter.h"
 #include "Combination/BinBoundaryUtils.h"
+#include "Combination/CommonCommandLineUtils.h"
 
 #include "CalibrationDataInterface/CalibrationDataContainer.h"
 
@@ -44,9 +45,22 @@ namespace {
     // Create a 2D histogram using the two axes we know about.
     TH2 *create_histo (const string &name) const
     {
-      if (_axes.size() != 2)
-	throw runtime_error ("Only two axes are allowed!");
-      
+      if (_axes.size() != 2) {
+	ostringstream msg;
+	msg << "There must be exactly two axes (found: ";
+	if (_axes.size() == 0) {
+	  msg << "none";
+	} else {
+	  for (map<string,vector<double> >::const_iterator i = _axes.begin(); i != _axes.end(); i++) {
+	    if (i != _axes.begin())
+	      msg << ", ";
+	    msg << i->first;
+	  }
+	}
+	msg << ")!";
+	throw runtime_error (msg.str().c_str());
+      }
+
       // x,y axes
       const pair<string,vector<double> > xaxis (get_xaxis());
       const pair<string,vector<double> > yaxis (get_yaxis());
@@ -72,10 +86,6 @@ namespace {
       histo->SetBinContent (xbin, ybin, central);
       histo->SetBinError (xbin, ybin, error);
     }
-
-  private:
-    // Axis names and bin boundaries
-    map<string, vector<double> > _axes;
   };
 
   // Using a functor to extract the name/value pairs for all the bins, set them.
@@ -87,17 +97,25 @@ namespace {
 		       const string &hist_name,
 		       const Pred &getter)
   {
-    // Create the histo
-    TH2 *values = bins.create_histo(hist_name);
+    try {
+      // Create the histo
+      TH2 *values = bins.create_histo(hist_name);
 
-    // Now loop over all bins in the analysis.
-    for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
-      const CalibrationBin &bin (ana.bins[ibin]);
-      pair<double, double> val_and_error (getter(bin));
-      bins.set_bin_contents (values, bin.binSpec, val_and_error.first, val_and_error.second);
+      // Now loop over all bins in the analysis.
+      for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
+	const CalibrationBin &bin (ana.bins[ibin]);
+	pair<double, double> val_and_error (getter(bin));
+	bins.set_bin_contents (values, bin.binSpec, val_and_error.first, val_and_error.second);
+      }
+
+      return values;
+    } catch (runtime_error e) {
+      ostringstream msg;
+      msg << "Error while processing analysis: " << e.what() << endl
+	  << ana;
+      throw runtime_error(msg.str().c_str());
     }
 
-    return values;
   }
 
   // Extract central value and statistical error from a bin
@@ -168,7 +186,7 @@ namespace BTagCombination {
     // being the systematic errors for each value.
     //
 
-    bin_boundaries_hist bins =  calcBoundaries(eff);
+    bin_boundaries_hist bins = calcBoundaries(eff);
     TH2 *central_value = set_bin_values(bins, eff, "central", get_central_value);
     result->setResult(central_value);
 

@@ -5,6 +5,7 @@
 
 #include "Combination/Parser.h"
 #include "Combination/CDIConverter.h"
+#include "Combination/CommonCommandLineUtils.h"
 
 #include <TFile.h>
 #include <TDirectory.h>
@@ -29,26 +30,17 @@ int main(int argc, char **argv)
   // Parse input arguments
   //
 
-  if (argc != 2) {
+  if (argc <= 1) {
     Usage();
     return 1;
   }
 
-  string input_file(argv[1]);
-
-  //
-  // Parse the input file to extract the calibration
-  //
-
-  ifstream input (input_file.c_str());
-  if (!input.is_open()) {
-    cout << "Unable to open file '" << input_file << "'." << endl;
-    return 1;
-  }
-  vector<CalibrationAnalysis> calib = Parse (input);
-
-  if (calib.size() == 0) {
-    cerr << "Input file contains no analyses - so nothign will get copied over!" << endl;
+  vector<CalibrationAnalysis> calib;
+  try {
+    vector<string> otherFlags;
+    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, calib, otherFlags);
+  } catch (exception &e) {
+    cerr << "Error parsing input files: " << e.what() << endl;
     return 1;
   }
 
@@ -82,9 +74,9 @@ int main(int argc, char **argv)
 void Usage (void)
 {
   cout << "Convert a text file to a CalibrationDataInterface ROOT file" << endl;
-  cout << "FTConvertToCDI <input-filename>" << endl;
-  cout << "  The output file will have the same name as the input file, with a file" << endl;
-  cout << "  extension of .root." << endl;
+  cout << "FTConvertToCDI <input-filenames> <options>" << endl;
+  cout << "  --ignore <item> - use to ignore a particular bin in the input" << endl;
+  cout << "  --update <rootfname> - use to update the root file" << endl;
 }
 
 //

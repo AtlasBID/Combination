@@ -12,6 +12,7 @@
 #include <vector>
 #include <ostream>
 #include <istream>
+#include <iostream>
 
 namespace BTagCombination
 {
@@ -85,6 +86,21 @@ namespace BTagCombination
 
     std::vector<CalibrationBin> bins; // List of bins with the actual 
   };
+
+  //
+  // Dump out a full analysis.
+  //
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationAnalysis &ana) {
+    out << ana.name
+	<< "-" << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.jetAlgorithm
+	<< std::endl;
+    for (unsigned int i = 0; i < ana.bins.size(); i++)
+      out << "  " << ana.bins[i] << std::endl;
+    return out;
+  }
 
   //////
 
