@@ -223,7 +223,6 @@ namespace BTagCombination {
 
     finalPDF.fitTo(measuredPoints);
 
-#ifdef notyet
     ///
     /// Now that the fit is done, dump out a root file that contains some good info
     ///
@@ -235,31 +234,35 @@ namespace BTagCombination {
       /// First task - look at the actual values that are input and dump some informative plots on what it is.
       ///
 
-      for_each (_measurements.begin(), _measurements.end(),
-		[&] (Measurement *item)
-		{
-		  auto h = new TH1F((string(item->Name()) + "_input_errors_absolute").c_str(),
-				    (string(item->Name()) + " Absolute Input Errors").c_str(),
-				    allVars.size()+1, 0.0, allVars.size()+1);
-		  for_each(allVars.begin(), allVars.end(), [&] (const string &errName) { h->Fill(errName.c_str(), 0.0);});
+      for (unsigned int i = 0; i < _measurements.size(); i++) {
+	Measurement *item(_measurements[i]);
+	TH1F* h = new TH1F((string(item->Name()) + "_input_errors_absolute").c_str(),
+			  (string(item->Name()) + " Absolute Input Errors").c_str(),
+			  allVars.size()+1, 0.0, allVars.size()+1);
 
-		  h->Fill("statistical", item->GetStatisticalError()->getVal());
+	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	  h->Fill(allVars[i_av].c_str(), 0.0);
+	}
+	
+	h->Fill("statistical", item->GetStatisticalError()->getVal());
+	
+	vector<string> allErrs = item->GetSystematicErrorNames();
+	for (unsigned int i_ae = 0; i_ae < allErrs.size(); i_ae++) {
+	  h->Fill(allErrs[i_ae].c_str(), item->GetSystematicErrorWidth(allErrs[i_ae]));
+	}
+	
+	h->LabelsOption("a");
+	h->SetStats(false);
+	h->Write();
 
-		  auto allErrs = item->GetSystematicErrorNames();
-		  for_each(allErrs.begin(), allErrs.end(),
-			   [&] (const string &sysName) { h->Fill(sysName.c_str(), item->GetSystematicErrorWidth(sysName)); });
+	TH1F* hRel = static_cast<TH1F*>(h->Clone());
+	hRel->SetName((string(item->Name()) + "_input_errors_percent").c_str());
+	hRel->SetTitle((string(item->Name()) + " Input Errors (%)").c_str());
+	hRel->Scale(1.0/item->GetActualMeasurement()->getVal()*100.0);
+	hRel->Write();
+      }
 
-		  h->LabelsOption("a");
-		  h->SetStats(false);
-		  h->Write();
-
-		  auto hRel = static_cast<TH1F*>(h->Clone());
-		  hRel->SetName((string(item->Name()) + "_input_errors_percent").c_str());
-		  hRel->SetTitle((string(item->Name()) + " Input Errors (%)").c_str());
-		  hRel->Scale(1.0/item->GetActualMeasurement()->getVal()*100.0);
-		  hRel->Write();
-		});
-
+#ifdef notyet
       ///
       /// First, the measurements, with and w/out errors
       ///
@@ -408,14 +411,14 @@ namespace BTagCombination {
       ///
 
       finalPDF.fitTo(measuredPoints);
+#endif
     }
 
     ///
     /// Done. We need to clean up the measurement Gaussian
     ///
 
-    for_each(measurementGaussians.begin(), measurementGaussians.end(),
-	     [] (RooAbsPdf *item) { delete item; });
-#endif
+    for(vector<RooAbsPdf*>::iterator item = measurementGaussians.begin(); item!=measurementGaussians.end(); item++)
+      delete *item;
   }
 }
