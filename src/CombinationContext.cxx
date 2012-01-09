@@ -262,156 +262,147 @@ namespace BTagCombination {
 	hRel->Write();
       }
 
-#ifdef notyet
       ///
       /// First, the measurements, with and w/out errors
       ///
 
-      auto allMeasureNames = _whatMeasurements.GetAllVars();
-      for_each(allMeasureNames.begin(), allMeasureNames.end(),
-	       [&] (const string &item)
-	       {
-		 auto m = _whatMeasurements.FindRooVar(item);
-		 auto plotrange (SigmaRange(*m, 10.0));
+      vector<string> allMeasureNames = _whatMeasurements.GetAllVars();
+      for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
+	const string item (allMeasureNames[i_mn]);
+	RooRealVar *m = _whatMeasurements.FindRooVar(item);
+	RooCmdArg plotrange (SigmaRange(*m, 10.0));
 
-		 auto nllplot = m->frame(plotrange);
-		 nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
-		 nllplot->SetName((string(m->GetName()) + "_nll").c_str());
-		 auto nll = finalPDF.createNLL(measuredPoints);
-		 nll->plotOn(nllplot);
-		 nllplot->Write();
+	RooPlot *nllplot = m->frame(plotrange);
+	nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
+	nllplot->SetName((string(m->GetName()) + "_nll").c_str());
+	RooAbsReal *nll = finalPDF.createNLL(measuredPoints);
+	nll->plotOn(nllplot);
+	nllplot->Write();
 
-		 ///
-		 /// Make the profile plot for all the various errors allowed to float
-		 ///
+	///
+	/// Make the profile plot for all the various errors allowed to float
+	///
 
-		 auto profilePlot = m->frame(plotrange);
-		 profilePlot->SetTitle((string("Profile of ") + m->GetTitle()).c_str());
-		 profilePlot->SetName((string(m->GetName()) + "_profile").c_str());
-		 auto profile = nll->createProfile(*m);
-		 profile->plotOn(profilePlot);
+	RooPlot *profilePlot = m->frame(plotrange);
+	profilePlot->SetTitle((string("Profile of ") + m->GetTitle()).c_str());
+	profilePlot->SetName((string(m->GetName()) + "_profile").c_str());
+	RooAbsReal *profile = nll->createProfile(*m);
+	profile->plotOn(profilePlot);
 
-		 ///
-		 /// Next, make the plot for just the statistical error
-		 ///
+	///
+	/// Next, make the plot for just the statistical error
+	///
 
-		 RooArgSet allRooVars;
-		 for_each (allVars.begin(), allVars.end(),
-			   [&] (const string &sysErrName)
-			   {
-			     auto sysVar = _systematicErrors.FindRooVar(sysErrName);
-			     allRooVars.add(*sysVar);
-			   });
-		 allRooVars.add(*m);
+	RooArgSet allRooVars;
+	for (unsigned int i_av=0; i_av < allVars.size(); i_av++) {
+	  const string sysErrName(allVars[i_av]);
+	  RooRealVar *sysVar = _systematicErrors.FindRooVar(sysErrName);
+	  allRooVars.add(*sysVar);
+	}
+	allRooVars.add(*m);
 
-		 auto profileStat = nll->createProfile(allRooVars);
-		 profileStat->plotOn(profilePlot, RooFit::LineColor(kRed));
-		 profilePlot->Write();
+	RooAbsReal *profileStat = nll->createProfile(allRooVars);
+	profileStat->plotOn(profilePlot, RooFit::LineColor(kRed));
+	profilePlot->Write();
 
-		 ///
-		 /// Next, do an extra plot alloweing everything but one systematic error to
-		 /// float.
-		 ///
+	///
+	/// Next, do an extra plot alloweing everything but one systematic error to
+	/// float.
+	///
 
-		 for_each(allVars.begin(), allVars.end(),
-			  [&] (const string &excludeSysErrorName)
-			  {
-			    RooArgSet allButRooVars;
-			    allButRooVars.add(*m);
-			    for_each(allVars.begin(), allVars.end(),
-				     [&] (const string &sysError)
-				     {
-				       if (sysError != excludeSysErrorName) {
-					 allButRooVars.add(*(_systematicErrors.FindRooVar(sysError)));
-				       }
-				     });
+	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	  const string excludeSysErrorName(allVars[i_av]);
+	  RooArgSet allButRooVars;
+	  allButRooVars.add(*m);
 
-			    auto allButProfilePlot = m->frame(plotrange);
-			    allButProfilePlot->SetTitle((string("Profile of ") + m->GetTitle() + " (" + excludeSysErrorName + ")").c_str() );
-			    allButProfilePlot->SetName((string(m->GetName()) + "_profile_" + excludeSysErrorName).c_str());
-			    auto allButProfile = nll->createProfile(allButRooVars);
-			    allButProfile->plotOn(allButProfilePlot, RooFit::LineColor(kRed));
-			    profile->plotOn(allButProfilePlot);
-			    allButProfilePlot->Write();				
-			  });
+	  for (unsigned int i_av2 = 0; i_av2 < allVars.size(); i_av2++) {
+	    const string sysError(allVars[i_av2]);
+	    if (sysError != excludeSysErrorName) {
+	      allButRooVars.add(*(_systematicErrors.FindRooVar(sysError)));
+	    }
+	  }
 
-		 ///
-		 /// Next, we need to re-run the fit, freezing each variable in turn, and extract the 
-		 /// fit values from there.
-		 ///
+	  RooPlot *allButProfilePlot = m->frame(plotrange);
+	  allButProfilePlot->SetTitle((string("Profile of ") + m->GetTitle() + " (" + excludeSysErrorName + ")").c_str() );
+	  allButProfilePlot->SetName((string(m->GetName()) + "_profile_" + excludeSysErrorName).c_str());
+	  RooAbsReal *allButProfile = nll->createProfile(allButRooVars);
+	  allButProfile->plotOn(allButProfilePlot, RooFit::LineColor(kRed));
+	  profile->plotOn(allButProfilePlot);
+	  allButProfilePlot->Write();				
+	}
+	
+	///
+	/// Next, we need to re-run the fit, freezing each variable in turn, and extract the 
+	/// fit values from there.
+	///
 
-		 double centralValue = m->getVal();
-		 double centralError = m->getError();
+	double centralValue = m->getVal();
+	double centralError = m->getError();
 
-		 map<string, double> errorMap;
+	map<string, double> errorMap;
 
-		 /// Do each stasticial error by running the total.
-		 for_each(allVars.begin(), allVars.end(),
-			  [&] (const string &sysErrorName)
-			  {
-			    auto sysErr = _systematicErrors.FindRooVar(sysErrorName);
-			    sysErr->setConstant(true);
-			    sysErr->setVal(0.0);
-			    sysErr->setError(0.0);
+	/// Do each stasticial error by running the total.
+	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	  const string sysErrorName(allVars[i_av]);
+	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	  sysErr->setConstant(true);
+	  sysErr->setVal(0.0);
+	  sysErr->setError(0.0);
 
-			    finalPDF.fitTo(measuredPoints);
+	  finalPDF.fitTo(measuredPoints);
 
-			    double errDiff = sqrt(centralError*centralError - m->getError()*m->getError());
-			    errorMap[sysErrorName] = errDiff;
+	  double errDiff = sqrt(centralError*centralError - m->getError()*m->getError());
+	  errorMap[sysErrorName] = errDiff;
 
-			    sysErr->setConstant(false);
-			  });
+	  sysErr->setConstant(false);
+	}
 
-		 /// And the statistical error
-		 for_each(allVars.begin(), allVars.end(),
-			  [&] (const string &sysErrorName)
-			  {
-			    auto sysErr = _systematicErrors.FindRooVar(sysErrorName);
-			    sysErr->setConstant(true);
-			    sysErr->setVal(0.0);
-			    sysErr->setError(0.0);
-			  });
+	/// And the statistical error
+	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	  const string sysErrorName (allVars[i_av]);
+	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	  sysErr->setConstant(true);
+	  sysErr->setVal(0.0);
+	  sysErr->setError(0.0);
+	}
 
-		 finalPDF.fitTo(measuredPoints);
-		 errorMap["statistical"] = m->getError();
+	finalPDF.fitTo(measuredPoints);
+	errorMap["statistical"] = m->getError();
 
-		 for_each(allVars.begin(), allVars.end(),
-			  [&] (const string &sysErrorName)
-			  {
-			    auto sysErr = _systematicErrors.FindRooVar(sysErrorName);
-			    sysErr->setConstant(false);
-			  });
+	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	  const string sysErrorName (allVars[i_av]);
+	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	  sysErr->setConstant(false);
+	}
 
-		 /// Put them in a nice plot so we can read them out.
-		 auto errorSummary = new TH1F((string(m->GetName()) + "_error_summary_absolute").c_str(),
-					      (string(m->GetTitle()) + " Absolute Error Summary").c_str(),
-					      errorMap.size(), 0, errorMap.size());
+	/// Put them in a nice plot so we can read them out.
+	TH1F *errorSummary = new TH1F((string(m->GetName()) + "_error_summary_absolute").c_str(),
+				      (string(m->GetTitle()) + " Absolute Error Summary").c_str(),
+				      errorMap.size(), 0, errorMap.size());
 
-		 int bin_index = 1;
-		 for_each(errorMap.begin(), errorMap.end(),
-			  [&] (const pair<string, double> &item)
-			  {
-			    errorSummary->Fill(item.first.c_str(), item.second);
-			    bin_index++;
-			  });
+	int bin_index = 1;
+	for(map<string,double>::const_iterator i_em = errorMap.begin(); i_em != errorMap.end(); i_em++) {
+	  const pair<string, double> item(*i_em);
+	  errorSummary->Fill(item.first.c_str(), item.second);
+	  bin_index++;
+	}
 
-		 errorSummary->LabelsOption("a");
-		 errorSummary->SetStats(false);
-		 errorSummary->Write();
+	errorSummary->LabelsOption("a");
+	errorSummary->SetStats(false);
+	errorSummary->Write();
 
-		 auto hRel = static_cast<TH1F*>(errorSummary->Clone());
-		 hRel->SetName((string(m->GetName()) + "_error_summary_percent").c_str());
-		 hRel->SetTitle((string(m->GetTitle()) + " Percent Error Summary").c_str());
-		 hRel->Scale(1.0/m->getVal()*100.0);
-		 hRel->Write();
-	       });
+	TH1F* hRel = static_cast<TH1F*>(errorSummary->Clone());
+	hRel->SetName((string(m->GetName()) + "_error_summary_percent").c_str());
+	hRel->SetTitle((string(m->GetTitle()) + " Percent Error Summary").c_str());
+	hRel->Scale(1.0/m->getVal()*100.0);
+	hRel->Write();
+      }
 
       ///
       /// Since we've been futzing with all of this, we had better return the fit to be "normal".
       ///
 
       finalPDF.fitTo(measuredPoints);
-#endif
     }
 
     ///
