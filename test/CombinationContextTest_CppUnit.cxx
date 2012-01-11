@@ -25,7 +25,10 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitOneZeroMeasurement );
   CPPUNIT_TEST ( testFitTwoZeroMeasurement );
   CPPUNIT_TEST ( testFitOneNonZeroMeasurement );
-  CPPUNIT_TEST ( testFitTwoMeasurement );
+  CPPUNIT_TEST ( testFitTwoDataOneMeasurement );
+
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
+  CPPUNIT_TEST ( testFitTwoDataTwoMeasurement );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -90,7 +93,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.getError(), 0.01);
   }
 
-  void testFitTwoMeasurement()
+  void testFitTwoDataOneMeasurement()
   {
     // Garbage in, garbage out.
     CombinationContext c;
@@ -102,6 +105,44 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.getVal(), 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.getError(), 0.01);
+  }
+
+  void testFitOneDataTwoMeasurement()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m1 = c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
+
+    c.Fit();
+    RooRealVar r1 = c.GetFitValue("a1");
+    RooRealVar r2 = c.GetFitValue("a2");
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, r1.getVal(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, r2.getVal(), 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, r1.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, r2.getError(), 0.01);
+  }
+
+  void testFitTwoDataTwoMeasurement()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    c.AddMeasurement ("a1", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("a2", -10.0, 10.0, 1.0, 0.1);
+    c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
+
+    c.Fit();
+    RooRealVar r1 = c.GetFitValue("a1");
+    RooRealVar r2 = c.GetFitValue("a2");
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, r1.getVal(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, r2.getVal(), 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), r1.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), r2.getError(), 0.01);
   }
 };
 
