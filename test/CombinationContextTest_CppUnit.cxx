@@ -3,6 +3,7 @@
 ///
 
 #include "Combination/CombinationContext.h"
+#include "Combination/Measurement.h"
 
 #include <RooRealVar.h>
 
@@ -30,6 +31,8 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
   CPPUNIT_TEST ( testFitTwoDataTwoMeasurement );
 
+  CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testCTor()
@@ -41,14 +44,14 @@ class CombinationContextTest : public CppUnit::TestFixture
   void testAddMeasurement()
   {
     CombinationContext c;
-    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
   }
 
   void testFitOneMeasurement()
   {
     // Garbage in, garbage out.
     CombinationContext c;
-    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
     c.Fit();
     RooRealVar result = c.GetFitValue("average");
 
@@ -59,7 +62,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   {
     // Garbage in, garbage out.
     CombinationContext c;
-    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
     c.Fit();
     RooRealVar result = c.GetFitValue("average");
 
@@ -71,7 +74,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   {
     // Garbage in, garbage out.
     CombinationContext c;
-    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.5);
+    c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.5);
     c.Fit();
     RooRealVar result = c.GetFitValue("average");
 
@@ -83,8 +86,8 @@ class CombinationContextTest : public CppUnit::TestFixture
   {
     // Garbage in, garbage out.
     CombinationContext c;
-    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
-    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
 
     c.Fit();
     RooRealVar result = c.GetFitValue("average");
@@ -97,8 +100,8 @@ class CombinationContextTest : public CppUnit::TestFixture
   {
     // Garbage in, garbage out.
     CombinationContext c;
-    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
 
     c.Fit();
     RooRealVar result = c.GetFitValue("average");
@@ -111,8 +114,8 @@ class CombinationContextTest : public CppUnit::TestFixture
   {
     // Garbage in, garbage out.
     CombinationContext c;
-    Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
-    Measurement *m1 = c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
 
     c.Fit();
     RooRealVar r1 = c.GetFitValue("a1");
@@ -144,6 +147,22 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), r1.getError(), 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), r2.getError(), 0.01);
   }
+
+  void testFitOneDataOneMeasurementSys()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.1);
+    m->addSystematicAbs("s1", 0.1);
+    
+
+    c.Fit();
+    RooRealVar result = c.GetFitValue("average");
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.getVal(), 0.1);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, result.getError(), 0.01);
+  }
 };
+
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);
