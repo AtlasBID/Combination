@@ -21,8 +21,11 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testCTor );
   CPPUNIT_TEST ( testAddMeasurement );
+
   CPPUNIT_TEST ( testFitOneZeroMeasurement );
+  CPPUNIT_TEST ( testFitTwoZeroMeasurement );
   CPPUNIT_TEST ( testFitOneNonZeroMeasurement );
+  CPPUNIT_TEST ( testFitTwoMeasurement );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -73,6 +76,33 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.getError(), 0.01);
   }
 
+  void testFitTwoZeroMeasurement()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+
+    c.Fit();
+    RooRealVar result = c.GetFitValue("average");
+
+    CPPUNIT_ASSERT(result.getVal() == 0.0);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.getError(), 0.01);
+  }
+
+  void testFitTwoMeasurement()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+
+    c.Fit();
+    RooRealVar result = c.GetFitValue("average");
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.getVal(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.getError(), 0.01);
+  }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);

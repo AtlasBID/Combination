@@ -87,7 +87,7 @@ namespace BTagCombination {
 
   Measurement *CombinationContext::AddMeasurement(const string &what, const double minValue, const double maxValue,
 						  const double value, const double statError) {
-    return AddMeasurement("blah", what, minValue, maxValue, value, statError);
+    return AddMeasurement(NewMeasurementName(what), what, minValue, maxValue, value, statError);
   }
 
   ///
