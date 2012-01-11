@@ -90,18 +90,6 @@ namespace BTagCombination {
     return AddMeasurement(NewMeasurementName(what), what, minValue, maxValue, value, statError);
   }
 
-  ///
-  /// Return the value that we got by doing the fit.
-  ///
-  RooRealVar CombinationContext::GetFitValue (const string &what) const
-  {
-    RooRealVar *var = _whatMeasurements.FindRooVar(what);
-    if (var == nullptr)
-      throw new runtime_error("There is no measurement named " + what);
-
-    return *var;
-  }
-
   RooCmdArg SigmaRange (const RooRealVar &v, const double sigma = 5.0)
   {
     double low = v.getVal() - sigma*v.getError();
@@ -110,9 +98,10 @@ namespace BTagCombination {
   }
 
   ///
-  /// Do the fit. We do all the building here.
+  /// Do the fit. We do all the building here, and then the fit, and then we extract
+  /// all the results needed.
   ///
-  void CombinationContext::Fit(void)
+  map<string, CombinationContext::FitResult> CombinationContext::Fit(void)
   {
     ///
     /// Get all the systematic errors and create the variables we will need for them.
@@ -222,6 +211,17 @@ namespace BTagCombination {
     ///
 
     finalPDF.fitTo(measuredPoints);
+
+    ///
+    /// Extract the central values
+    ///
+
+    map<string, FitResult> result;
+    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+      Measurement *m(*imeas);
+      RooRealVar *v = _whatMeasurements.FindRooVar(m->What());
+      result[m->What()].centralValue = v->getVal();
+    }
 
     ///
     /// Now that the fit is done, dump out a root file that contains some good info
@@ -368,6 +368,7 @@ namespace BTagCombination {
 
 	finalPDF.fitTo(measuredPoints);
 	errorMap["statistical"] = m->getError();
+	result[item].statisticalError = m->getError();
 
 	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
 	  const string sysErrorName (allVars[i_av]);
@@ -403,6 +404,7 @@ namespace BTagCombination {
       ///
 
       finalPDF.fitTo(measuredPoints);
+      
     }
 
     ///
@@ -411,5 +413,11 @@ namespace BTagCombination {
 
     for(vector<RooAbsPdf*>::iterator item = measurementGaussians.begin(); item!=measurementGaussians.end(); item++)
       delete *item;
+    
+    //
+    // Return all the final results.
+    //
+
+    return result;
   }
 }

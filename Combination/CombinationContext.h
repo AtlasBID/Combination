@@ -19,6 +19,16 @@ namespace BTagCombination {
   class CombinationContext
   {
   public:
+    // Results of the fit for a particular measurement
+    struct FitResult
+    {
+      double centralValue;
+      double statisticalError;
+
+      std::map<std::string, double> sysErrors;
+    };
+
+  public:
     /// Create/Destroy a new context. This will contain the common
     /// data to do a fit to mutliple measurements.
     CombinationContext(void);
@@ -34,11 +44,9 @@ namespace BTagCombination {
     Measurement *AddMeasurement (const std::string &what, const double minValue, const double maxValue,
 				 const double value, const double statError);
 
-    /// Fit all the measurements that we've asked for.
-    void Fit(void);
+    /// Fit all the measurements that we've asked for, and return results for each measurement done.
+    std::map<std::string, FitResult> Fit(void);
 
-    /// Get the fit value (the 'what' of the add measurement)
-    RooRealVar GetFitValue(const std::string &what) const;
   private:
     /// Keep track of all the measurements.
     RooRealVarCache _whatMeasurements;

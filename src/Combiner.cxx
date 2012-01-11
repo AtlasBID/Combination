@@ -42,18 +42,13 @@ namespace {
   // Extract the complete result - with sys errors - from the calibratoin bin
   //  - Context has already had the fit run.
   //
-  CalibrationBin ExtractBinResult (CombinationContext &ctx, CalibrationBin &forThisBin)
+  CalibrationBin ExtractBinResult (CombinationContext::FitResult binResult, CalibrationBin &forThisBin)
   {
-    string binName (OPBinName(forThisBin));    
     CalibrationBin result;
     result.binSpec = forThisBin.binSpec;
 
-    RooRealVar m = ctx.GetFitValue (binName);
-    if (m == 0)
-      throw runtime_error ("Unable to find result for bin fit '" + binName + "'.");
-
-    result.centralValue = m.getVal();
-    result.centralValueStatisticalError = m.getError();
+    result.centralValue = binResult.centralValue;
+    result.centralValueStatisticalError = binResult.statisticalError;
 
     return result;
   }
@@ -83,10 +78,15 @@ namespace BTagCombination
     // Now we are ready to build the combination. Do a single fit of everything.
     CombinationContext ctx;
     FillContextWithBinInfo (ctx, bins);
-    ctx.Fit();
+    map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
 
     // Now that we have the result, we need to extract the numbers and build the resulting bin
-    CalibrationBin result (ExtractBinResult (ctx, bins[0]));
+    string binName (OPBinName(bins[0]));    
+
+    if (fitResult.find(binName) == fitResult.end())
+      throw runtime_error ("Unable to find bin '" + binName + "' in the fit results");
+
+    CalibrationBin result (ExtractBinResult (fitResult[binName], bins[0]));
     result.binSpec = specs;
 
     return result;

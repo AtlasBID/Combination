@@ -52,10 +52,9 @@ class CombinationContextTest : public CppUnit::TestFixture
     // Garbage in, garbage out.
     CombinationContext c;
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
-    c.Fit();
-    RooRealVar result = c.GetFitValue("average");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT(result.getVal() == 0.0);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, fr["average"].centralValue, 0.01);
   }
 
   void testFitOneZeroMeasurement()
@@ -63,11 +62,10 @@ class CombinationContextTest : public CppUnit::TestFixture
     // Garbage in, garbage out.
     CombinationContext c;
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
-    c.Fit();
-    RooRealVar result = c.GetFitValue("average");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT(result.getVal() == 0.0);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, result.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].statisticalError, 0.01);
   }
 
   void testFitOneNonZeroMeasurement()
@@ -75,11 +73,10 @@ class CombinationContextTest : public CppUnit::TestFixture
     // Garbage in, garbage out.
     CombinationContext c;
     c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.5);
-    c.Fit();
-    RooRealVar result = c.GetFitValue("average");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.getVal(), 0.1);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["average"].statisticalError, 0.01);
   }
 
   void testFitTwoZeroMeasurement()
@@ -89,11 +86,10 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
 
-    c.Fit();
-    RooRealVar result = c.GetFitValue("average");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT(result.getVal() == 0.0);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["average"].statisticalError, 0.01);
   }
 
   void testFitTwoDataOneMeasurement()
@@ -103,11 +99,10 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
 
-    c.Fit();
-    RooRealVar result = c.GetFitValue("average");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.getVal(), 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["average"].statisticalError, 0.01);
   }
 
   void testFitOneDataTwoMeasurement()
@@ -117,15 +112,13 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
     c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
 
-    c.Fit();
-    RooRealVar r1 = c.GetFitValue("a1");
-    RooRealVar r2 = c.GetFitValue("a2");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, r1.getVal(), 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, r2.getVal(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a1"].statisticalError, 0.01);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, r1.getError(), 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, r2.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["a2"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a2"].statisticalError, 0.01);
   }
 
   void testFitTwoDataTwoMeasurement()
@@ -137,15 +130,13 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("a2", -10.0, 10.0, 1.0, 0.1);
     c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
 
-    c.Fit();
-    RooRealVar r1 = c.GetFitValue("a1");
-    RooRealVar r2 = c.GetFitValue("a2");
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, r1.getVal(), 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, r2.getVal(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a2"].centralValue, 0.01);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), r1.getError(), 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), r2.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a1"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a2"].statisticalError, 0.01);
   }
 
   void testFitOneDataOneMeasurementSys()
@@ -155,14 +146,11 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.1);
     m->addSystematicAbs("s1", 0.1);
     
+    map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    c.Fit();
-    RooRealVar result = c.GetFitValue("average");
-
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.getVal(), 0.1);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1*sqrt(2.0), result.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1*sqrt(2.0), fr["a1"].statisticalError, 0.01);
   }
 };
-
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);

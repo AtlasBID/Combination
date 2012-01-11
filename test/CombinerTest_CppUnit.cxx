@@ -28,8 +28,7 @@ class CombinerTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testOBOneBinIn );
   CPPUNIT_TEST ( testOBTwoBinIn );
-  //CPPUNIT_TEST ( testOBTwoComplexBinIn );
-  //CPPUNIT_TEST ( testOBTwoBinInWithSys );
+  CPPUNIT_TEST ( testOBTwoBinInWithSys );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -118,6 +117,40 @@ class CombinerTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT(result.binSpec.size() == 1);
     CPPUNIT_ASSERT(result.binSpec[0].variable == "eta");
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.centralValueStatisticalError, 0.001);
+  }
+
+  void testOBTwoBinInWithSys()
+  {
+    // Combine two identical bins with no sys errors
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+    
+    vector<CalibrationBin> bins;
+    bins.push_back(b1);
+    bins.push_back(b1);
+
+    CalibrationBin result = CombineBin(bins);
+
+    CPPUNIT_ASSERT(result.binSpec.size() == 1);
+    CPPUNIT_ASSERT(result.binSpec[0].variable == "eta");
+
+    CPPUNIT_ASSERT(result.systematicErrors.size() == 1);
+    SystematicError s1r (result.systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL (string("s1"), s1r.name);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, s1r.value, 0.01);
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, result.centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), result.centralValueStatisticalError, 0.001);
