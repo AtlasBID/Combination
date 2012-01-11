@@ -78,8 +78,6 @@ namespace BTagCombination {
 
     throw runtime_error ("Don't know about error '" + errorName + "'.");
   }
-#ifdef notyet
-
 
   ///
   /// Add a new systematic error to the list of systeematic errors.
@@ -96,7 +94,4 @@ namespace BTagCombination {
   {
     addSystematicRel(errorName,  oneSigmaSizeRelativePercent/100.0);
   }
-
-
-#endif
 }

@@ -160,7 +160,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     RooRealVar result = c.GetFitValue("average");
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.getVal(), 0.1);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, result.getError(), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1*sqrt(2.0), result.getError(), 0.01);
   }
 };
 

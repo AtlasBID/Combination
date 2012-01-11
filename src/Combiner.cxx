@@ -5,10 +5,59 @@
 
 #include "Combination/Combiner.h"
 #include "Combination/BinBoundaryUtils.h"
+#include "Combination/CombinationContext.h"
+#include "Combination/CommonCommandLineUtils.h"
+
+#include <RooRealVar.h>
 
 #include <stdexcept>
 
 using namespace std;
+
+namespace {
+  using namespace BTagCombination;
+
+  //
+  // Add all the measurements for a particular bin into the context.
+  //  - Assume everythign in the bins vector is the same bin! (no x-checking).
+  //  - Variable name is based on the bin name - mapping should be "obvious".
+  //  - Sys errors are added as well.
+  //
+  void FillContextWithBinInfo (CombinationContext &ctx, const vector<CalibrationBin> &bins)
+  {
+    // Simple x-checks and setup
+    if (bins.size() == 0)
+      return;
+
+    string binName (OPBinName(bins[0]));
+
+    // For each bin, add the info
+    for (unsigned int i = 0; i < bins.size(); i++) {
+      const CalibrationBin &b(bins[i]);
+      Measurement *m = ctx.AddMeasurement (binName, -1.0, 2.0, b.centralValue, b.centralValueStatisticalError);
+    }
+  }
+
+  //
+  // Extract the complete result - with sys errors - from the calibratoin bin
+  //  - Context has already had the fit run.
+  //
+  CalibrationBin ExtractBinResult (CombinationContext &ctx, CalibrationBin &forThisBin)
+  {
+    string binName (OPBinName(forThisBin));    
+    CalibrationBin result;
+    result.binSpec = forThisBin.binSpec;
+
+    RooRealVar m = ctx.GetFitValue (binName);
+    if (m == 0)
+      throw runtime_error ("Unable to find result for bin fit '" + binName + "'.");
+
+    result.centralValue = m.getVal();
+    result.centralValueStatisticalError = m.getError();
+
+    return result;
+  }
+}
 
 namespace BTagCombination
 {
@@ -31,10 +80,13 @@ namespace BTagCombination
       if (!BinBoundaryUtils::compare_spec(specs, bins[ibin].binSpec))
 	throw runtime_error ("Attempt to combine two bins with different boundaries");
 
-    // Now we are ready to build the combination!
+    // Now we are ready to build the combination. Do a single fit of everything.
+    CombinationContext ctx;
+    FillContextWithBinInfo (ctx, bins);
+    ctx.Fit();
 
     // Now that we have the result, we need to extract the numbers and build the resulting bin
-    CalibrationBin result;
+    CalibrationBin result (ExtractBinResult (ctx, bins[0]));
     result.binSpec = specs;
 
     return result;
