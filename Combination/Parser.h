@@ -60,16 +60,22 @@ namespace BTagCombination
 	std::vector<SystematicError> systematicErrors;	
   };
 
- inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b)
-	{
-	  out << "bin{";
-	  for (unsigned int i = 0; i < b.binSpec.size(); i++) {
-	out << b.binSpec[i] << ",";
-	  }
-	  out << "}";
-
-	  return out;
-	}
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
+    out << "bin{";
+    for (unsigned int i = 0; i < b.binSpec.size(); i++) {
+      if (i != 0)
+	out << ",";
+      out << b.binSpec[i];
+    }
+    out << std::endl;
+    out << "    value (" << b.centralValue << ", " << b.centralValueStatisticalError << ")";
+    for (size_t i = 0; i < b.systematicErrors.size(); i++) {
+      out << std::endl << "    sys (" << b.systematicErrors[i].name << ", " << b.systematicErrors[i].value << ")";
+    }
+    out << std::endl << "  }";
+    
+    return out;
+  }
 
 
   // Allowed flavors of calibration results

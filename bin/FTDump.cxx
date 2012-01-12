@@ -48,6 +48,7 @@ int main (int argc, char **argv)
 	doNames = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
+	Usage();
 	return 1;
       }
     }

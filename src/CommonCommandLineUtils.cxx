@@ -121,6 +121,7 @@ namespace BTagCombination {
     }
 
     // If anything is to be ignored, better do that now.
+    // Make sure to remove analyses that have nothing in them in the end...
     for (unsigned int i = 0; i < OPsToIgnore.size(); i++) {
       for (unsigned int op = 0; op < operatingPoints.size(); op++) {
 	for (unsigned int b = 0; b < operatingPoints[op].bins.size(); b++) {
@@ -132,6 +133,11 @@ namespace BTagCombination {
       }
     }
 
+    for (size_t op = operatingPoints.size(); op > size_t(0); op--) {
+      if (operatingPoints[op-1].bins.size() == 0) {
+	operatingPoints.erase(operatingPoints.begin() + (op-1));
+      }
+    }
   }
 
   // Returns a well formed name for the analysis. This is text only,

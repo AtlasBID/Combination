@@ -32,6 +32,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testIgnoreFlag );
   CPPUNIT_TEST ( testIgnoreFlagFile );
+  CPPUNIT_TEST ( testIgnoreAnalysis );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -108,6 +109,20 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CalibrationAnalysis ana = results[0];
     CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 8, ana.bins.size());
+  }
+
+  void testIgnoreAnalysis()
+  {
+    vector<CalibrationAnalysis> results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--ignore",
+			  "@../testdata/ignoreallfile.txt"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
   }
 
   void testInputFromBadFile()

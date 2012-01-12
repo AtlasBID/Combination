@@ -1,0 +1,9 @@
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:25-pt-40:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:40-pt-50:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:50-pt-60:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:60-pt-75:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:75-pt-90:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:90-pt-110:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:110-pt-140:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:140-pt-200:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:200-pt-300:0-eta-4.5

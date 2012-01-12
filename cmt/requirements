@@ -21,6 +21,9 @@ apply_pattern application_alias FTConvertToCDI
 application FTDump ../bin/FTDump.cxx
 apply_pattern application_alias FTDump
 
+application FTCombine ../bin/FTCombine.cxx
+apply_pattern application_alias FTCombine
+
 apply_pattern installed_library
 
 private
