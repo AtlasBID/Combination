@@ -27,6 +27,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitTwoZeroMeasurement );
   CPPUNIT_TEST ( testFitOneNonZeroMeasurement );
   CPPUNIT_TEST ( testFitTwoDataOneMeasurement );
+  CPPUNIT_TEST ( testFitTwoDataOneMeasurement2 );
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
   CPPUNIT_TEST ( testFitTwoDataTwoMeasurement );
@@ -144,6 +145,30 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a1"].statisticalError, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a2"].statisticalError, 0.01);
+  }
+
+  void testFitTwoDataOneMeasurement2()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    m1->addSystematicAbs("s1", 0.2);
+    Measurement *m2 = c.AddMeasurement ("a2", -10.0, 10.0, 1.0, 0.1);
+    m2->addSystematicAbs("s1", 0.2);
+
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a2"].centralValue, 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a1"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a2"].statisticalError, 0.01);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), fr["a1"].sysErrors.size());
+    CPPUNIT_ASSERT_EQUAL (size_t(1), fr["a2"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a1"].sysErrors["s1"], 0.01);
+    CPPUNIT_ASSERT(fr["a2"].sysErrors.find("s1") != fr["a2"].sysErrors.end());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a2"].sysErrors["s1"], 0.01);
   }
 
   void testFitOneDataOneMeasurementSys()

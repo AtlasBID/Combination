@@ -19,6 +19,10 @@ namespace BTagCombination
 
   // Given a list of analyses, combine them all at once!
   CalibrationAnalysis CombineSimilarAnalyses (std::vector<CalibrationAnalysis> &anas);
+
+  // Given a list of analses (diff jet alg, dif tags, dif, etc.), with bins all equal on boundaries,
+  // combine them and return the total new combined analysis.
+  std::vector<CalibrationAnalysis> CombineAnalyses (std::vector<CalibrationAnalysis> &anas);
 }
 
 #endif
