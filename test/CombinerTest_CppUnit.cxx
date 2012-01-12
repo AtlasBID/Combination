@@ -33,7 +33,7 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaOne );
   CPPUNIT_TEST ( testAnaTwoDifBins );
   //CPPUNIT_TEST_EXCPETION ( testAnaTwoBinsBad1, std::runtime_error );
-  //CPPUNIT_TEST ( testAnaTwoSamBins );
+  CPPUNIT_TEST ( testAnaTwoSamBins );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -221,7 +221,7 @@ class CombinerTest : public CppUnit::TestFixture
     vector<CalibrationAnalysis> inputs;
     inputs.push_back (ana);
 
-    CalibrationAnalysis result (CombineAnalyses(inputs));
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
     CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
     CPPUNIT_ASSERT_EQUAL (string("comb"), result.tagger);
@@ -236,7 +236,7 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b.centralValue, 0.01);
   }
 
-  void testAnaTwoDifBins()
+  void testAnaTwoSamBins()
   {
     // Single analysis - test simple case!
     CalibrationBin b1;
@@ -267,7 +267,7 @@ class CombinerTest : public CppUnit::TestFixture
     inputs.push_back (ana1);
     inputs.push_back (ana2);
 
-    CalibrationAnalysis result (CombineAnalyses(inputs));
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
     CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
     CPPUNIT_ASSERT_EQUAL (string("comb"), result.tagger);
@@ -281,6 +281,55 @@ class CombinerTest : public CppUnit::TestFixture
     // came over otherwise other tests in this file would have failed.
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b.centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.1*0.1/2.0), b.centralValueStatisticalError, 0.001);
+  }
+
+  void testAnaTwoDifBins()
+  {
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+    ana2.bins[0].binSpec[0].lowvalue = 2.5;
+    ana2.bins[0].binSpec[0].highvalue = 2.5;
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana1);
+    inputs.push_back (ana2);
+
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
+    CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
+    CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
+    CPPUNIT_ASSERT_EQUAL (string("comb"), result.tagger);
+    CPPUNIT_ASSERT_EQUAL (string("0.50"), result.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL (string("AntiKt4Topo"), result.jetAlgorithm);
+    CPPUNIT_ASSERT_EQUAL (size_t(2), result.bins.size());
+    CalibrationBin b (result.bins[0]);
+    CPPUNIT_ASSERT_EQUAL (size_t(1), b.binSpec.size());
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, b.centralValueStatisticalError, 0.001);
   }
 };
 

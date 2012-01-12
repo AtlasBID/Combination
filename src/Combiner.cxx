@@ -111,7 +111,7 @@ namespace BTagCombination
   //  - The cut point is the same
   //  - The tagger is the same
   //  - The jet algorithm is the same
-  CalibrationAnalysis CombineAnalyses (vector<CalibrationAnalysis> &ana)
+  CalibrationAnalysis CombineSimilarAnalyses (vector<CalibrationAnalysis> &ana)
   {
     //
     // Specal cases and input checks, and simple setup
