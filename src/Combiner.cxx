@@ -47,7 +47,7 @@ namespace {
   // Extract the complete result - with sys errors - from the calibratoin bin
   //  - Context has already had the fit run.
   //
-  CalibrationBin ExtractBinResult (CombinationContext::FitResult binResult, CalibrationBin &forThisBin)
+  CalibrationBin ExtractBinResult (CombinationContext::FitResult binResult, const CalibrationBin &forThisBin)
   {
     CalibrationBin result;
     result.binSpec = forThisBin.binSpec;
@@ -99,9 +99,72 @@ namespace BTagCombination
       throw runtime_error ("Unable to find bin '" + binName + "' in the fit results");
 
     CalibrationBin result (ExtractBinResult (fitResult[binName], bins[0]));
-    result.binSpec = specs;
 
     return result;
   }
+
+  // Given a list of compatible analyses, combine them.
+  // Compatible means matching bins and matching flavors.
+  // Assume:
+  //  - The bins do not overlap
+  //  - The flavor is the same
+  //  - The cut point is the same
+  //  - The tagger is the same
+  //  - The jet algorithm is the same
+  CalibrationAnalysis CombineAnalyses (vector<CalibrationAnalysis> &ana)
+  {
+    //
+    // Specal cases and input checks, and simple setup
+    //
+
+    if (ana.size() == 0)
+      throw runtime_error ("Can't combine zero analyses!");
+
+    CalibrationAnalysis result (ana[0]);
+    result.name = "combined";
+
+    if (ana.size() == 1) {
+      return result;
+    }
+    result.bins.clear();
+
+    //
+    // Now that we know everything is the same, and we only differ by the analysis
+    // we can sort by the bins.
+    //
+
+    map<string, vector<CalibrationBin> > bybins;
+    for (unsigned int i_ana = 0; i_ana < ana.size(); i_ana++) {
+      const CalibrationAnalysis &a(ana[i_ana]);
+      for (unsigned int i_bin = 0; i_bin < a.bins.size(); i_bin++) {
+	const CalibrationBin &b(a.bins[i_bin]);
+	bybins[OPBinName(b)].push_back(b);
+      }
+    }
+
+    //
+    // Now, build the context for the fit, and do the fit.
+    //
+
+    CombinationContext ctx;
+    for (map<string, vector<CalibrationBin> >::const_iterator i_b = bybins.begin(); i_b != bybins.end(); i_b++) {
+      FillContextWithBinInfo (ctx, i_b->second);
+    }
+
+    map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+
+    //
+    // Finally, go through and extract the fit results.
+    //
+
+    for (map<string, vector<CalibrationBin> >::const_iterator i_b = bybins.begin(); i_b != bybins.end(); i_b++) {
+      string binName = i_b->first;
+      CalibrationBin thisBin (ExtractBinResult (fitResult[binName], i_b->second[0]));
+      result.bins.push_back(thisBin);
+    }
+
+    return result;
+  }
+
 }
 

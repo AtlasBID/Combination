@@ -17,6 +17,8 @@ namespace BTagCombination
   // not likley to be used for real.
   CalibrationBin CombineBin (std::vector<CalibrationBin> &bins);
 
+  // Given a list of analyses, combine them all at once!
+  CalibrationAnalysis CombineAnalyses (std::vector<CalibrationAnalysis> &anas);
 }
 
 #endif
