@@ -132,18 +132,28 @@ namespace BTagCombination {
       RooRealVar *var = _whatMeasurements.FindRooVar(m->What());
 
       RooArgList varAddition;
+      RooConstVar *one = new RooConstVar("one", "one", 1.0);
+      //varAddition.add(*one);
       varAddition.add(*var);
 
       vector<string> errorNames (m->GetSystematicErrorNames());
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &errName(*isyserr);
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
-	/// Mutiply by the eff that we are already looking at!
+
 	varAddition.add(*weight);
+	weight->Print();
       }
       
       string internalName = "InternalAddition" + m->Name();
       RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
+      varSumed->Print();
+      //string internal1Mult = "InternalAdditionMult" + m->Name();
+      //RooArgList forMult;
+      //forMult.add(*varSumedP);
+      //forMult.add(*var);
+      //RooProduct *varSumed = new RooProduct(internal1Mult.c_str(), internal1Mult.c_str(), forMult);
+      //varSumed->Print();
 
       ///
       /// The actual variable and th esystematic error are also inputs into this
@@ -162,7 +172,8 @@ namespace BTagCombination {
       string gName = m->Name() + "Gaussian";
       RooGaussian *g = new RooGaussian(gName.c_str(), gName.c_str(),
 				       *actualValue, *varSumed, *statValue);
-      
+
+      g->Print();
       measurementGaussians.push_back(g);
     }
 
@@ -174,6 +185,7 @@ namespace BTagCombination {
     RooArgList products;
     for (vector<RooAbsPdf*>::iterator itr = measurementGaussians.begin(); itr != measurementGaussians.end(); itr++) {
       products.add(**itr);
+      (*itr)->Print();
     }
 
     RooConstVar *zero = new RooConstVar("zero", "zero", 0.0);
@@ -185,9 +197,11 @@ namespace BTagCombination {
       RooRealVar *c = _systematicErrors.FindRooVar(*iVar);
       RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
       products.add(*constraint);
+      constraint->Print();
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
+    finalPDF.Print();
 
     ///
     /// Next, we need to fit to a dataset. It will have a single data point - the
@@ -353,6 +367,7 @@ namespace BTagCombination {
 
 	  double errDiff = sqrt(centralError*centralError - m->getError()*m->getError());
 	  errorMap[sysErrorName] = errDiff;
+	  result[item].sysErrors[sysErrorName] = errDiff;
 
 	  sysErr->setConstant(false);
 	}

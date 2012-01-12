@@ -6,6 +6,7 @@
 #include "Combination/Combiner.h"
 #include "Combination/BinBoundaryUtils.h"
 #include "Combination/CombinationContext.h"
+#include "Combination/Measurement.h"
 #include "Combination/CommonCommandLineUtils.h"
 
 #include <RooRealVar.h>
@@ -35,6 +36,10 @@ namespace {
     for (unsigned int i = 0; i < bins.size(); i++) {
       const CalibrationBin &b(bins[i]);
       Measurement *m = ctx.AddMeasurement (binName, -1.0, 2.0, b.centralValue, b.centralValueStatisticalError);
+      for (unsigned int i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {
+	const SystematicError &err(b.systematicErrors[i_sys]);
+	m->addSystematicAbs(err.name, err.value);
+      }
     }
   }
 
@@ -49,6 +54,13 @@ namespace {
 
     result.centralValue = binResult.centralValue;
     result.centralValueStatisticalError = binResult.statisticalError;
+
+    for (map<string, double>::const_iterator i_sys = binResult.sysErrors.begin(); i_sys != binResult.sysErrors.end(); i_sys++) {
+      SystematicError e;
+      e.name = i_sys->first;
+      e.value = i_sys->second;
+      result.systematicErrors.push_back(e);
+    }
 
     return result;
   }

@@ -53,9 +53,8 @@ namespace BTagCombination {
   ///
   RooAbsReal *Measurement::GetSystematicErrorWeight (RooRealVar &error)
   {
-    string s1WidthName = string(error.GetName()) + "Width";
-    string s1WidthProduct = string(error.GetName()) + "Product";
-    string s1WidthSumName = string(error.GetName()) + "Weight";
+    string s1WidthName = Name() + error.GetName() + "Width";
+    string s1WidthProduct = Name() + error.GetName() + "Product";
 
     /// Q: Why is innerWidht allowed as a pointer, but that causes a crash?
 
