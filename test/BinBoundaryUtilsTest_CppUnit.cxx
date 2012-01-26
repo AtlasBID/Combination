@@ -23,6 +23,7 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE( BinBoundaryUtilsTest );
 
   CPPUNIT_TEST( testSimpleOneBins );
+  CPPUNIT_TEST_EXCEPTION ( TestOverlapNegEta, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestOverlapBins, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestGappedBins, std::runtime_error );
 
@@ -57,6 +58,28 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
     bb2.lowvalue = 0.5;
     bb2.highvalue = 1.5;
     bb2.variable = "pt";
+    b1.binSpec.push_back(bb2);
+
+    ana.bins.push_back(b1);
+
+    bin_boundaries result (calcBoundaries(ana));
+  }
+
+  void TestOverlapNegEta()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "eta";
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.lowvalue = -2.5;
+    bb2.highvalue = 2.5;
+    bb2.variable = "eta";
     b1.binSpec.push_back(bb2);
 
     ana.bins.push_back(b1);
