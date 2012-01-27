@@ -28,7 +28,14 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( TestGappedBins, std::runtime_error );
 
   CPPUNIT_TEST (TestBBOK1D);
+  CPPUNIT_TEST (TestBBOK1D2);
   CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D2, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D3, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D4, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D5, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D6, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D7, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestBBMissingAxes1D, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestBBMissingAxes1D2, std::runtime_error );
 
@@ -134,6 +141,26 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
     checkForConsitentBoundaries(bb);
   }
 
+  void TestBBOK1D2()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(0.0);
+    bounds.push_back(2.5);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    bounds.push_back(5.0);
+    b2.add_axis("e1", bounds);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b1);
+    bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
   void TestBBOverlap1D()
   {
     // A set of analyses with bin boundaries that are "ok".
@@ -152,6 +179,140 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
     vector<bin_boundaries> bb;
     bb.push_back(b1);
     bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
+  void TestBBOverlap1D2()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(0.0);
+    bounds.push_back(2.5);
+    bounds.push_back(5.0);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    vector<double> bounds2;
+    bounds2.push_back(0.0);
+    bounds2.push_back(5.0);
+    b2.add_axis("e1", bounds2);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b1);
+    bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
+  void TestBBOverlap1D3()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(1.0);
+    bounds.push_back(2.5);
+    bounds.push_back(4.0);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    vector<double> bounds2;
+    bounds2.push_back(0.0);
+    bounds2.push_back(5.0);
+    b2.add_axis("e1", bounds2);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b1);
+    bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
+  void TestBBOverlap1D4()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(1.0);
+    bounds.push_back(4.0);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    vector<double> bounds2;
+    bounds2.push_back(0.0);
+    bounds2.push_back(5.0);
+    b2.add_axis("e1", bounds2);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b1);
+    bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
+  void TestBBOverlap1D5()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(0.0);
+    bounds.push_back(4.0);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    vector<double> bounds2;
+    bounds2.push_back(0.0);
+    bounds2.push_back(5.0);
+    b2.add_axis("e1", bounds2);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b1);
+    bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
+  void TestBBOverlap1D6()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(1.0);
+    bounds.push_back(5.0);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    vector<double> bounds2;
+    bounds2.push_back(0.0);
+    bounds2.push_back(5.0);
+    b2.add_axis("e1", bounds2);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b1);
+    bb.push_back(b2);
+
+    checkForConsitentBoundaries(bb);
+  }
+
+  void TestBBOverlap1D7()
+  {
+    // A set of analyses with bin boundaries that are "ok".
+    bin_boundaries b1;
+    vector<double> bounds;
+    bounds.push_back(1.0);
+    bounds.push_back(5.0);
+    b1.add_axis("e1", bounds);
+
+    bin_boundaries b2;
+    vector<double> bounds2;
+    bounds2.push_back(0.0);
+    bounds2.push_back(5.0);
+    b2.add_axis("e1", bounds2);
+
+    vector<bin_boundaries> bb;
+    bb.push_back(b2);
+    bb.push_back(b1);
 
     checkForConsitentBoundaries(bb);
   }

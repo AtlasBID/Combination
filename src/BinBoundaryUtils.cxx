@@ -112,6 +112,62 @@ namespace {
 
     return result;
   }
+
+  // Return the bin pairs
+  vector<pair<double, double> > make_bin_boundaries(const vector<double> &blist)
+  {
+    vector<pair<double, double> > result;;
+    if (blist.size() < 2)
+      return result;
+
+    double low = blist[0];
+    for (unsigned int i = 1; i < blist.size(); i++){
+      result.push_back(make_pair(low, blist[i]));
+      low = blist[i];
+    }
+    
+    return result;
+  }
+
+  // Can we find this exact bin in here?
+  bool find_exact_match(const vector<pair<double, double> > &blist, const pair<double, double> &bin) {
+    for (unsigned int i = 0; i < blist.size(); i++) {
+      if (bin == blist[i])
+	return true;
+    }
+    return false;
+  }
+
+  // True if a bin point is in one of these bins.
+  bool is_in_bin (const pair<double, double> &bin, double point)
+  {
+    return bin.first < point && bin.second > point;
+  }
+
+  // Make sure there is no overlap... Asumme that this is not
+  // the identical bin.
+  bool spans_bins (const vector<pair<double, double> > &blist, const pair<double, double> &bin)
+  {
+    for (unsigned int i = 0; i < blist.size(); i++) {
+      cout << "Comparing (" << blist[i].first << ", " << blist[i].second << ") with (" << bin.first << ", " << bin.second << ")" << endl;
+      bool inf = is_in_bin(blist[i], bin.first);
+      bool ins = is_in_bin(blist[i], bin.second);
+
+      // If either one has a foot inside, or both feet inside, then
+      // this guy is spannign this bin.
+      if ((inf && !ins)
+	  || (!inf && ins)
+	  || (inf && ins))
+	return true;
+
+      // Check to see if the bin is outside...
+      if (blist[i].first >= bin.first
+	  && blist[i].second <= bin.second)
+	return true; // Bigger than the whole bin!!
+    }
+    return false;
+  }
+  
 }
 
 namespace BTagCombination {
@@ -216,6 +272,12 @@ namespace BTagCombination {
   // Check to see if bins from multiple analyses are consistent. If not,
   // then total failure and throw!
   //
+  // We know a few things before we show up here.
+  //  1) Each analysis has no gaps in the bin boundaries
+  //
+  // It is ok if the binning dosen't match in the following cases:
+  //  1) an analysis has a bin the other is missing
+  //
   void checkForConsitentBoundaries (const std::vector<bin_boundaries> &boundaries)
   {
     // Setup
@@ -243,11 +305,19 @@ namespace BTagCombination {
 	  err << "Not all analyses have a bin axis '" << anames[i_n] << "'.";
 	  throw runtime_error (err.str().c_str());
 	}
-	if (boundaries[i].get_axis_bins(anames[i_n]) != proto.get_axis_bins(anames[i_n])) {
-	  ostringstream err;
-	  err << "Bins in '" << anames[i_n] << "' have inconsistent boundaries" ;
-	  throw runtime_error (err.str().c_str());
-	}	
+
+	vector<pair<double, double> > pblist (make_bin_boundaries(proto.get_axis_bins(anames[i_n])));
+	vector<pair<double, double> > tblist (make_bin_boundaries(boundaries[i].get_axis_bins(anames[i_n])));
+
+	for (unsigned int i_b = 0; i_b < tblist.size(); i_b++) {
+	  pair<double, double> tbin (tblist[i_b]);
+	  if (!find_exact_match(pblist, tbin)
+	      && spans_bins(pblist, tbin)) {
+	    ostringstream err;
+	    err << "Bins in '" << anames[i_n] << "' have inconsistent boundaries" ;
+	    throw runtime_error (err.str().c_str());
+	  }
+	}
       }
     }
   }
