@@ -156,9 +156,21 @@ void DumpEverything (vector<CalibrationAnalysis> &calibs)
 //
 void CheckEverything (vector<CalibrationAnalysis> &calibs)
 {
+  //
+  // Calculating boundaries will make sure each analysis
+  // has a fully consitent set of bin boundaries
+  //
+
+  vector<bin_boundaries> bb;
   for (unsigned int i = 0; i < calibs.size(); i++) {
-    bin_boundaries r (calcBoundaries(calibs[i]));
+    bb.push_back(calcBoundaries(calibs[i]));
   }
+  
+  //
+  // Next we check different analysis have consistent bins.
+  //
+  
+  checkForConsitentBoundaries(bb);
 }
 
 void PrintNames (vector<CalibrationAnalysis> &calibs)

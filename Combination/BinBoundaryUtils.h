@@ -9,6 +9,7 @@
 
 #include <stdexcept>
 #include <vector>
+#include <string>
 #include <map>
 
 namespace BTagCombination {
@@ -54,6 +55,10 @@ namespace BTagCombination {
     }
     int size() const {return _axes.size();}
     
+    std::vector<std::string> axis_names() const;
+
+    std::vector<double> get_axis_bins(const std::string &axis_name) const;
+
   protected:
     // Axis names and bin boundaries
     std::map<std::string, std::vector<double> > _axes;
@@ -71,6 +76,10 @@ namespace BTagCombination {
 
   // Calculate the bin boundaries for a set of bins...
   bin_boundaries calcBoundaries (const CalibrationAnalysis &ana);
+  
+  // Check that this list of bin boundaries is consistent
+  // with each other
+  void checkForConsitentBoundaries (const std::vector<bin_boundaries> &boundaries);
 }
 
 #endif

@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <algorithm>
+#include <set>
 
 using namespace std;
 
@@ -129,6 +130,26 @@ namespace BTagCombination {
     return find_bin (get_yaxis(), bin_spec);
   }
 
+  // return a list of the axes we know about.
+  vector<string> bin_boundaries::axis_names() const
+  {
+    vector<string> result;
+    for(map<string,vector<double> >::const_iterator itr = _axes.begin(); itr != _axes.end(); itr++) {
+      result.push_back(itr->first);
+    }
+    return result;
+  }
+
+  // return bin boundaries for aparticular bin. Bomb if we can't find them.
+  vector<double> bin_boundaries::get_axis_bins(const string &axis_name) const
+  {
+    vector<double> result;
+    map<string,vector<double> >::const_iterator axis = _axes.find(axis_name);
+    if (axis == _axes.end())
+      throw runtime_error ((string("This analysis has no axis called '") + axis_name + "'").c_str());
+    return axis->second;
+  }
+
   int bin_boundaries::find_bin (const pair<string, vector<double> > &axis_info,
 			 const vector<CalibrationBinBoundary> &bin_spec) const
   {
@@ -190,4 +211,46 @@ namespace BTagCombination {
 
     return result;
   }
+
+  //
+  // Check to see if bins from multiple analyses are consistent. If not,
+  // then total failure and throw!
+  //
+  void checkForConsitentBoundaries (const std::vector<bin_boundaries> &boundaries)
+  {
+    // Setup
+    if (boundaries.size() <= 1)
+      return;
+
+    const bin_boundaries &proto(boundaries[0]);
+    set<string> panames;
+    {
+      vector<string> allnames(proto.axis_names());
+      panames.insert(allnames.begin(), allnames.end());
+    }
+
+    // First the easy stuff - everyone must have the same # of axes and
+    // same axes - the binning must be identical.
+
+    for (unsigned int i = 1; i < boundaries.size(); i++) {
+      if (boundaries[0].size() != boundaries[i].size()) {
+	throw runtime_error ("Analyses to combine don't have identical binning: number of binning axes differs");
+      }
+      vector<string> anames (boundaries[i].axis_names());
+      for (unsigned int i_n = 0; i_n < anames.size(); i_n++) {
+	if (panames.find(anames[i_n]) == panames.end()) {
+	  ostringstream err;
+	  err << "Not all analyses have a bin axis '" << anames[i_n] << "'.";
+	  throw runtime_error (err.str().c_str());
+	}
+	if (boundaries[i].get_axis_bins(anames[i_n]) != proto.get_axis_bins(anames[i_n])) {
+	  ostringstream err;
+	  err << "Bins in '" << anames[i_n] << "' have inconsistent boundaries" ;
+	  throw runtime_error (err.str().c_str());
+	}	
+      }
+    }
+  }
+
+
 }
