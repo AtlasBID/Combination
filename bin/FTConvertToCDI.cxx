@@ -45,6 +45,7 @@ int main(int argc, char **argv)
 	updateROOTFile = true;
       } else {
 	cerr << "Unknown command line flag '" << otherFlags[i] << "'." << endl;
+	Usage();
 	return 1;
       }
     }
