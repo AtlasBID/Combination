@@ -126,12 +126,15 @@ class CombinationContextTest : public CppUnit::TestFixture
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     // Weighted average:
-    double wtAvg = 1.0/(e1*e1)*1.0 + 1.0/(e2*e2)*0.0;
-    double wtSum = 1/(e1*e1) + 1/(e2*e2);
-    double expected = wtAvg/wtSum;
+    double w1 = 1.0/(e1*e1);
+    double w2 = 1.0/(e2*e2);
+
+    double expected = (w1*1.0 + w2*0.0)/(w1+w2);
+    double wtExpected =sqrt(w1*w1+w2*w2);
+    double errExpected = sqrt(1.0/wtExpected);
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (expected, fr["average"].centralValue, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (errExpected, fr["average"].statisticalError, 0.01);
   }
 
   void testFitOneDataTwoMeasurement()
