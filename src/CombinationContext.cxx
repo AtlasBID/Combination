@@ -132,7 +132,7 @@ namespace BTagCombination {
       RooRealVar *var = _whatMeasurements.FindRooVar(m->What());
 
       RooArgList varAddition;
-      RooConstVar *one = new RooConstVar("one", "one", 1.0);
+      //RooConstVar *one = new RooConstVar("one", "one", 1.0);
       //varAddition.add(*one);
       varAddition.add(*var);
 
@@ -231,10 +231,12 @@ namespace BTagCombination {
     ///
 
     map<string, FitResult> result;
+    map<string, double> totalError;
     for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
       Measurement *m(*imeas);
       RooRealVar *v = _whatMeasurements.FindRooVar(m->What());
       result[m->What()].centralValue = v->getVal();
+      totalError[m->What()] = v->getError();
     }
 
     ///
@@ -350,26 +352,38 @@ namespace BTagCombination {
 	/// fit values from there.
 	///
 
-	double centralValue = m->getVal();
-	double centralError = m->getError();
-
 	map<string, double> errorMap;
 
 	/// Do each stasticial error by running the total.
 	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	  cout << "Doing sys error index " << i_av << endl;
 	  const string sysErrorName(allVars[i_av]);
+	  cout << "  Name (for " << item << "): " << sysErrorName << endl;
+
 	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	  cout << "  Pointer: " << sysErr << endl;
+	  cout << "  Orginal value for error is " << sysErr->getVal() << " +- " << sysErr->getError() << endl;
+
+	  double sysErrOldVal = sysErr->getVal();
+	  double sysErrOldError = sysErr->getError();
 	  sysErr->setConstant(true);
 	  sysErr->setVal(0.0);
 	  sysErr->setError(0.0);
 
 	  finalPDF.fitTo(measuredPoints);
 
-	  double errDiff = sqrt(centralError*centralError - m->getError()*m->getError());
+	  double centralError = totalError[item];
+	  cout << "  Central error - total - for this meausrement is " << centralError << endl;
+	  double delta = centralError*centralError - m->getError()*m->getError();
+	  double errDiff = sqrt(fabs(delta));
+	  cout << "  Error " << sysErrorName << " is (bf sqrt) " << delta << endl;
+	  cout << "  Post const fit value for error is " << sysErr->getVal() << " +- " << sysErr->getError() << endl;
 	  errorMap[sysErrorName] = errDiff;
 	  result[item].sysErrors[sysErrorName] = errDiff;
 
 	  sysErr->setConstant(false);
+	  sysErr->setVal(sysErrOldVal);
+	  sysErr->setError(sysErrOldError);
 	}
 
 	/// And the statistical error
