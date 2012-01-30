@@ -29,6 +29,19 @@ namespace BTagCombination
 	double lowvalue;
 	std::string variable;
 	double highvalue;
+
+    enum BinBoundaryFormatEnum { kNormal, kROOTFormatted };
+    static BinBoundaryFormatEnum gFormatForNextBoundary;
+
+  };
+
+  class CalibrationBinBoundaryFormat {
+  public:
+    inline CalibrationBinBoundaryFormat (CalibrationBinBoundary::BinBoundaryFormatEnum how)
+      : _how (how)
+      {}
+
+    CalibrationBinBoundary::BinBoundaryFormatEnum _how;
   };
 
   inline bool operator< (const CalibrationBinBoundary &x,
@@ -41,8 +54,30 @@ namespace BTagCombination
       return x.highvalue < y.highvalue;
     }
 
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundaryFormat &f) {
+    CalibrationBinBoundary::gFormatForNextBoundary = f._how;
+    return out;
+  }
+
+  inline std::string formatForRoot (const std::string &input) {
+    if (input == "pt")
+      return "p_{T}";
+    if (input == "eta")
+      return "\\eta";
+    if (input == "abseta")
+      return "|\\eta|";
+    return input;
+  }
+
   inline std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundary &b) {
-    out << b.lowvalue << " < " << b.variable << " < " << b.highvalue;
+    if (CalibrationBinBoundary::gFormatForNextBoundary == CalibrationBinBoundary::kNormal) {
+      out << b.lowvalue << " < " << b.variable << " < " << b.highvalue;
+    }
+    else if (CalibrationBinBoundary::gFormatForNextBoundary == CalibrationBinBoundary::kROOTFormatted) {
+      out << b.lowvalue << "<" << formatForRoot(b.variable) << "<" << b.highvalue;
+    }
+    CalibrationBinBoundary::gFormatForNextBoundary = CalibrationBinBoundary::kNormal;
+
     return out;
   }
 
@@ -75,32 +110,67 @@ namespace BTagCombination
 
 	// Systematic Errors
 	std::vector<SystematicError> systematicErrors;	
+   
+    // Helper for printing
+    enum BinFormatEnum { kBinInfoOnly = 1,
+			 kFullInfo = 2,
+			 kROOTFormatted = 4};
+    static unsigned int gForNextPrinting;
+
+
   };
 
   inline double relativeErrorCalc (double central, double err) {
     return err / central * 100.0;
   }
 
-  inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
-    out << "bin(";
-    for (unsigned int i = 0; i < b.binSpec.size(); i++) {
-      if (i != 0)
-	out << ",";
-      out << b.binSpec[i];
-    }
-    out << ") {" << std::endl;
-    out << "    central_value (" << b.centralValue
-	<< ", " << relativeErrorCalc(b.centralValue, b.centralValueStatisticalError)
-	<< "%)";
+  class CalibrationBinFormat {
+  public:
+    inline CalibrationBinFormat (unsigned int what)
+      : _what(what)
+      {
+      }
+      unsigned int _what;
+  };
 
-    for (size_t i = 0; i < b.systematicErrors.size(); i++) {
-      out << std::endl
-	  << "    sys (" << b.systematicErrors[i].name
-	  << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
+  // Deal with teh modifier - we need to keep state, so we do it globally.
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationBinFormat &f) {
+    CalibrationBin::gForNextPrinting = f._what;
+    return out;
+  }
+
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
+    if (CalibrationBin::gForNextPrinting & CalibrationBin::kFullInfo) {
+      out << "bin(";
+      for (unsigned int i = 0; i < b.binSpec.size(); i++) {
+	if (i != 0)
+	  out << ",";
+	out << b.binSpec[i];
+      }
+      out << ") {" << std::endl;
+      out << "    central_value (" << b.centralValue
+	  << ", " << relativeErrorCalc(b.centralValue, b.centralValueStatisticalError)
 	  << "%)";
+      
+      for (size_t i = 0; i < b.systematicErrors.size(); i++) {
+	out << std::endl
+	    << "    sys (" << b.systematicErrors[i].name
+	    << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
+	    << "%)";
+      }
+      out << std::endl << "  }";
+
+    } else if (CalibrationBin::gForNextPrinting & CalibrationBin::kBinInfoOnly) {
+      for (unsigned int i = 0; i < b.binSpec.size(); i++) {
+	if (i != 0)
+	  out << ", ";
+	if (CalibrationBin::gForNextPrinting | CalibrationBin::kROOTFormatted)
+	  out << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted);
+	out << b.binSpec[i];
+      }
     }
-    out << std::endl << "  }";
-    
+    CalibrationBin::gForNextPrinting = CalibrationBin::kFullInfo;
+
     return out;
   }
 

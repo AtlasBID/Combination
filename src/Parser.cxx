@@ -492,6 +492,13 @@ struct CentralValueParser : qi::grammar<Iterator, CentralValue(), ascii::space_t
 namespace BTagCombination
 {
 
+  // Declare the printout guy.
+  unsigned int CalibrationBin::gForNextPrinting =
+    CalibrationBin::kFullInfo;
+
+  CalibrationBinBoundary::BinBoundaryFormatEnum CalibrationBinBoundary::gFormatForNextBoundary =
+    CalibrationBinBoundary::kNormal;
+
   //
   // Parse the input text as a list of calibration inputs
   //

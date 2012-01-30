@@ -136,7 +136,7 @@ namespace {
 	// Fill in the axis labels if this is our first time through.
 	if (ia == 0) {
 	  ostringstream buf;
-	  buf << cb;
+	  buf << CalibrationBinFormat(CalibrationBin::kBinInfoOnly | CalibrationBin::kROOTFormatted) << cb;
 	  binlabels.push_back(buf.str());
 	}
 
