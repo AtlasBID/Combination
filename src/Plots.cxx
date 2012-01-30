@@ -4,6 +4,7 @@
 ///
 #include "Combination/Plots.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/AtlasLabels.h"
 
 #include "TGraphErrors.h"
 #include "TCanvas.h"
@@ -73,6 +74,10 @@ namespace {
     // Some setup and defs that make life simpler below.
     string binName (axisBins.begin()->variable);
 
+    double legendYPos = 0.85;
+    double legendYDelta = 0.05;
+    double legendXPos = 0.65;
+
     // Extract all the results.
 
     typedef map<string, CalibrationBin> t_CBMap;
@@ -104,6 +109,7 @@ namespace {
     // we pass to the TGraph.
 
     vector<TGraphErrors*> plots, plotsSys;
+    vector<string> plotAnalysisName;
     vector<string> binlabels;
     Double_t *v_bin = new Double_t[axisBins.size()];
     Double_t *v_binError = new Double_t[axisBins.size()];
@@ -168,6 +174,8 @@ namespace {
       g->SetTitle((anaName + " Total Error").c_str());
       plotsSys.push_back(g);
 
+      plotAnalysisName.push_back(anaName);
+
       x_InitialCoordinate += x_DeltaCoordinate;
     }
 
@@ -208,9 +216,37 @@ namespace {
 
       plotsSys[i_p]->SetLineColor(colorID[markerIndex]);
       plotsSys[i_p]->Draw("[]");
+
+      myMarkerText (legendXPos, legendYPos,
+		    colorID[markerIndex], markerID[markerIndex],
+		    plotAnalysisName[i_p].c_str());
+      legendYPos -= legendYDelta;
     }
+
+    // Last thing to do is add to the legend all the bin coordinates that we have
+    // fixed for this plot.
+
+    legendYPos -= 0.3*legendYDelta;
+    for (t_BBSet::const_iterator i = specifiedBins.begin(); i != specifiedBins.end(); i++) {
+      ostringstream buf;
+      buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
+	  << *i;
+      myText(legendXPos, legendYPos, 1, buf.str().c_str());
+      legendYPos -= legendYDelta;
+    }
+
+    //
+    // Write it out in that directory that we are using so it can be found
+    // by the user. We have to actually write it b/c root really doesn't like
+    // more than one canvas with the same name in memory at a time. Writing it
+    // out makes sure that it stays around, and actually deleting it means we
+    // don't get a pesky warning from ROOT about a name collision. :-)
+    // Do you love root? I do!
+    //
+
     out->Add(c);
     out->Write();
+    delete c;
   }
 
   ///

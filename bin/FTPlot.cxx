@@ -7,6 +7,7 @@
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/Plots.h"
+#include "Combination/AtlasStyle.h"
 
 #include <TFile.h>
 
@@ -36,6 +37,7 @@ int main (int argc, char **argv)
 
     TFile *f = new TFile ("plots.root", "RECREATE");
 
+    SetAtlasStyle();
     DumpPlots (f, calibs);
 
     f->Write();
