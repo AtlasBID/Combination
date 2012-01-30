@@ -20,7 +20,6 @@ class CombinationContextTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( CombinationContextTest );
 
-#ifdef notyet
   CPPUNIT_TEST ( testCTor );
   CPPUNIT_TEST ( testAddMeasurement );
 
@@ -36,16 +35,14 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
 
-  // Generates lots and lots of error messages
-  //CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
-  //CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys );
-  //CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys3 );
-  //CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys4 );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys );
+  CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys3 );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys4 );
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys2 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys5 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys6 );
-#endif
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -135,8 +132,8 @@ class CombinationContextTest : public CppUnit::TestFixture
     double w2 = 1.0/(e2*e2);
 
     double expected = (w1*1.0 + w2*0.0)/(w1+w2);
-    double wtExpected =sqrt(w1*w1 + w2*w2);
-    double errExpected = sqrt(1.0/wtExpected);
+    //double wtExpected =sqrt(w1*w1 + w2*w2);
+    //double errExpected = sqrt(1.0/wtExpected);
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (expected, fr["average"].centralValue, 0.01);
     // Fix this up to make it analytical! Problem could be fit is not compatible!
@@ -292,8 +289,8 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a1"].statisticalError, 0.01);
 
     CPPUNIT_ASSERT_EQUAL((size_t)2, fr["a1"].sysErrors.size());
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["a1"].sysErrors["s1"], 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["a1"].sysErrors["s2"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2748, fr["a1"].sysErrors["s1"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2748, fr["a1"].sysErrors["s2"], 0.01);
     cout << "Finishing testFitOneDataTwoMeasurementSys" << endl;
   }
 
@@ -322,10 +319,10 @@ class CombinationContextTest : public CppUnit::TestFixture
     double expected = (w1*1.0 + w2*0.0)/(w1+w2);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (expected, fr["a1"].centralValue, 0.01);
 
-    double w1stat = 1.0/(e1*e1);
-    double w2stat = 1.0/(e2*e2);
-    double wtExpectedStat =sqrt(w1stat+w2stat);
-    double errExpectedStat = sqrt(1.0/wtExpectedStat);
+    //double w1stat = 1.0/(e1*e1);
+    //double w2stat = 1.0/(e2*e2);
+    //double wtExpectedStat =sqrt(w1stat+w2stat);
+    //double errExpectedStat = sqrt(1.0/wtExpectedStat);
     // Fix up so analytical (this is .5 sqrt or similar).One's below this have to be fixed too.
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0707, fr["a1"].statisticalError, 0.01);
 
@@ -352,8 +349,8 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a1"].statisticalError, 0.01);
 
     CPPUNIT_ASSERT_EQUAL((size_t)2, fr["a1"].sysErrors.size());
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a1"].sysErrors["s1"], 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["a1"].sysErrors["s2"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1708, fr["a1"].sysErrors["s1"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.174, fr["a1"].sysErrors["s2"], 0.01);
     cout << "Finishing testFitOneDataTwoMeasurementSys2" << endl;
   }
 
@@ -374,8 +371,8 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL((size_t)2, fr["a1"].sysErrors.size());
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a1"].sysErrors["s1"], 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["a1"].sysErrors["s2"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1708, fr["a1"].sysErrors["s1"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.174, fr["a1"].sysErrors["s2"], 0.01);
     cout << "Finishing testFitOneDataTwoMeasurementSys2" << endl;
   }
 

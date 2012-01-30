@@ -286,8 +286,9 @@ namespace BTagCombination {
       for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
 	const string item (allMeasureNames[i_mn]);
 	RooRealVar *m = _whatMeasurements.FindRooVar(item);
-	RooCmdArg plotrange (SigmaRange(*m, 10.0));
+	RooCmdArg plotrange (SigmaRange(*m, 5.0));
 
+	cout << "Doing the plot of NLL for " << item << "." << endl;
 	RooPlot *nllplot = m->frame(plotrange);
 	nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
 	nllplot->SetName((string(m->GetName()) + "_nll").c_str());
@@ -299,6 +300,7 @@ namespace BTagCombination {
 	/// Make the profile plot for all the various errors allowed to float
 	///
 
+	cout << "Doing the plot profile for " << item << endl;
 	RooPlot *profilePlot = m->frame(plotrange);
 	profilePlot->SetTitle((string("Profile of ") + m->GetTitle()).c_str());
 	profilePlot->SetName((string(m->GetName()) + "_profile").c_str());
@@ -317,6 +319,7 @@ namespace BTagCombination {
 	}
 	allRooVars.add(*m);
 
+	cout << "Doing the nnl plot for stat error " << endl;
 	RooAbsReal *profileStat = nll->createProfile(allRooVars);
 	profileStat->plotOn(profilePlot, RooFit::LineColor(kRed));
 	profilePlot->Write();
@@ -338,6 +341,7 @@ namespace BTagCombination {
 	    }
 	  }
 
+	  cout << "Doing plot for sys error " << excludeSysErrorName << endl;
 	  RooPlot *allButProfilePlot = m->frame(plotrange);
 	  allButProfilePlot->SetTitle((string("Profile of ") + m->GetTitle() + " (" + excludeSysErrorName + ")").c_str() );
 	  allButProfilePlot->SetName((string(m->GetName()) + "_profile_" + excludeSysErrorName).c_str());
