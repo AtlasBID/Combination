@@ -70,7 +70,9 @@ namespace {
 				    const t_BBSet &specifiedBins,
 				    const t_BBSet &axisBins)
   {
-    cout << "**Starting on bin " << axisBins.begin()->variable << "(# bins " << axisBins.size() << ")" << endl;
+    // Some setup and defs that make life simpler below.
+    string binName (axisBins.begin()->variable);
+
     // Extract all the results.
 
     typedef map<string, CalibrationBin> t_CBMap;
@@ -135,9 +137,18 @@ namespace {
 
 	// Fill in the axis labels if this is our first time through.
 	if (ia == 0) {
-	  ostringstream buf;
-	  buf << CalibrationBinFormat(CalibrationBin::kBinInfoOnly | CalibrationBin::kROOTFormatted) << cb;
-	  binlabels.push_back(buf.str());
+
+	  // Grab the bin specification for this bin we are looping over
+	  for (unsigned int i_bs = 0; i_bs < cb.binSpec.size(); i_bs++) {
+	    if (cb.binSpec[i_bs].variable == binName) {
+
+	      ostringstream buf;
+	      buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
+		  << cb.binSpec[i_bs];
+	      binlabels.push_back(buf.str());
+	      break;
+	    }
+	  }
 	}
 
 	ibin++;
