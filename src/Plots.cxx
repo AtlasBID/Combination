@@ -66,6 +66,20 @@ namespace {
       }
     }
 
+    //
+    // We need to put each analysis at a point along the x-axis, and have it at
+    // different places along the x-axis. This calc is a bit messy, as a result.
+    //
+
+    double x_InitialCoordinate = 0.5;
+    double x_DeltaCoordinate = 0.0;
+    if (anas.size() > 1) {
+      x_DeltaCoordinate = 0.7 / ((double)anas.size());
+      if (x_DeltaCoordinate > 0.1)
+	x_DeltaCoordinate = 0.1;
+      x_InitialCoordinate = 0.5 - x_DeltaCoordinate * anas.size() / 2.0;
+    }
+
     // For each analysis make a graf. We assume copy symantics for the values
     // we pass to the TGraph.
     vector<TGraphErrors*> plots;
@@ -77,9 +91,10 @@ namespace {
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
       const string &anaName (anas[ia].name);
       cout << "** Doing analysis " << anaName << endl;
+      cout << "   Initial coordinate: " << x_InitialCoordinate << endl;
       int ibin = 0;
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
-	v_bin[ibin] = 0.5 + ibin;
+	v_bin[ibin] = x_InitialCoordinate + ibin;
 	v_binError[ibin] = 0; // No error along x-axis!!
 	const CalibrationBin &cb(i_c->second.find(anaName)->second);
 	v_central[ibin] = cb.centralValue;
@@ -95,6 +110,8 @@ namespace {
       g->SetName(anaName.c_str());
       g->SetTitle(anaName.c_str());
       plots.push_back(g);
+
+      x_InitialCoordinate += x_DeltaCoordinate;
     }
 
     delete[] v_bin;
@@ -105,8 +122,17 @@ namespace {
 
     // Now build the canvas that we are going to store.
     TCanvas *c = new TCanvas ("EffInfo");
+    string opt = "AP";
+    int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34};
+    int colorID[] =  { 1,  2,  3,  4,  5,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
     for (unsigned int i_p = 0; i_p < plots.size(); i_p++) {
-      plots[i_p]->Draw("A*");
+      int markerIndex = i_p % 15;
+      plots[i_p]->SetMarkerStyle(markerID[markerIndex]);
+      plots[i_p]->SetMarkerColor(colorID[markerIndex]);
+      plots[i_p]->SetLineColor(colorID[markerIndex]);
+
+      plots[i_p]->Draw(opt.c_str());
+      opt = "P";
     }
     out->Add(c);
     out->Write();
