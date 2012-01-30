@@ -25,6 +25,9 @@ namespace BTagCombination {
   std::string OPFullName (const CalibrationAnalysis &ana);
   std::string OPBinName (const CalibrationBin &bin);
   std::string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
+  
+  // Returns a name that is how we partition everything (flavor, tagger, jet, op, etc.).
+  std::string OPIndependentName (const CalibrationAnalysis &ana);
 }
 
 #endif

@@ -24,6 +24,9 @@ apply_pattern application_alias FTDump
 application FTCombine ../bin/FTCombine.cxx
 apply_pattern application_alias FTCombine
 
+application FTPlot ../bin/FTPlot.cxx
+apply_pattern application_alias FTPlot
+
 apply_pattern installed_library
 
 private
@@ -41,6 +44,7 @@ use AtlasBoost                  AtlasBoost-*             External
 use AtlasROOT			AtlasROOT-*		 External
 
 apply_tag ROOTRooFitLibs
+apply_tag ROOTGraphicsLibs
 
 #
 # Use "make CppUnit" to run the unit tests for this

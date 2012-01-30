@@ -153,6 +153,20 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  // Returns a well formed name for the analysis that ignores the actual
+  // analysis name. This is text only,
+  // and is what a person can use to talk to us. And can be used to sort things
+  // by strings into how they should be combined.
+  string OPIndependentName (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.jetAlgorithm;
+    return msg.str();
+  }
+
   // return name of a bin (in a command-line friendly way)
   string OPBinName (const CalibrationBin &bin)
   {

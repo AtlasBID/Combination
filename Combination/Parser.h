@@ -31,11 +31,28 @@ namespace BTagCombination
 	double highvalue;
   };
 
- inline std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundary &b)
-	{
-	  out << b.lowvalue << " < " << b.variable << " < " << b.highvalue;
-	  return out;
-	}
+  inline bool operator< (const CalibrationBinBoundary &x,
+			 const CalibrationBinBoundary &y)
+    {
+      if (x.variable != y.variable)
+	return x.variable < y.variable;
+      if (x.lowvalue != y.lowvalue)
+	return x.lowvalue < y.lowvalue;
+      return x.highvalue < y.highvalue;
+    }
+
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationBinBoundary &b) {
+    out << b.lowvalue << " < " << b.variable << " < " << b.highvalue;
+    return out;
+  }
+
+  inline bool operator== (const CalibrationBinBoundary &x,
+			  const CalibrationBinBoundary &y) {
+    return x.variable == y.variable
+      && x.lowvalue == y.lowvalue
+      && x.highvalue == x.highvalue;
+  }
+
 
 //
 // Systematic error. Always stored as an absolute error.
