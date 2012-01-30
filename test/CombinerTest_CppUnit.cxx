@@ -7,6 +7,8 @@
 
 #include "Combination/Combiner.h"
 
+#include <RooMsgService.h>
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>
 
@@ -41,10 +43,18 @@ class CombinerTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST_SUITE_END();
 
+  void setupRoo()
+  {
+    RooMsgService::instance().setSilentMode(true);
+    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+  }
+
   void testOBZeroBinIn()
   {
     // Fail if no bins input - nothing to combine!
     vector<CalibrationBin> bins;
+    
+    setupRoo();
     CalibrationBin b = CombineBin(bins);
   }
 
@@ -62,6 +72,7 @@ class CombinerTest : public CppUnit::TestFixture
     
     vector<CalibrationBin> bins;
     bins.push_back(b);
+    setupRoo();
     CalibrationBin result = CombineBin(bins);
 
     CPPUNIT_ASSERT(result.centralValue == 0.5);
@@ -93,6 +104,7 @@ class CombinerTest : public CppUnit::TestFixture
     bins.push_back(b1);
     bins.push_back(b2);
 
+    setupRoo();
     CalibrationBin result = CombineBin(bins);
   }
 
@@ -122,6 +134,7 @@ class CombinerTest : public CppUnit::TestFixture
     bins.push_back(b1);
     bins.push_back(b1);
 
+    setupRoo();
     CalibrationBin result = CombineBin(bins);
 
     CPPUNIT_ASSERT(result.binSpec.size() == 1);
@@ -151,6 +164,7 @@ class CombinerTest : public CppUnit::TestFixture
     bins.push_back(b1);
     bins.push_back(b1);
 
+    setupRoo();
     CalibrationBin result = CombineBin(bins);
 
     CPPUNIT_ASSERT(result.binSpec.size() == 1);
@@ -195,6 +209,7 @@ class CombinerTest : public CppUnit::TestFixture
     bins.push_back(b1);
     bins.push_back(b2);
 
+    setupRoo();
     CalibrationBin result = CombineBin(bins);
   }
 
@@ -225,6 +240,7 @@ class CombinerTest : public CppUnit::TestFixture
     vector<CalibrationAnalysis> inputs;
     inputs.push_back (ana);
 
+    setupRoo();
     CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
     CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
@@ -271,6 +287,7 @@ class CombinerTest : public CppUnit::TestFixture
     inputs.push_back (ana1);
     inputs.push_back (ana2);
 
+    setupRoo();
     CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
     CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
@@ -320,6 +337,7 @@ class CombinerTest : public CppUnit::TestFixture
     inputs.push_back (ana1);
     inputs.push_back (ana2);
 
+    setupRoo();
     CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
     CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
@@ -363,6 +381,7 @@ class CombinerTest : public CppUnit::TestFixture
     vector<CalibrationAnalysis> inputs;
     inputs.push_back (ana);
 
+    setupRoo();
     vector<CalibrationAnalysis> results (CombineAnalyses(inputs));
     CPPUNIT_ASSERT_EQUAL (size_t(1), results.size());
     const CalibrationAnalysis &result(results[0]);

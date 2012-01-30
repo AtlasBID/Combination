@@ -6,6 +6,7 @@
 #include "Combination/Measurement.h"
 
 #include <RooRealVar.h>
+#include <RooMsgService.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>
@@ -58,11 +59,19 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
   }
 
+  void setupRoo()
+  {
+    RooMsgService::instance().setSilentMode(true);
+    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+  }
+
   void testFitOneMeasurement()
   {
     // Garbage in, garbage out.
     CombinationContext c;
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, fr["average"].centralValue, 0.01);
@@ -73,6 +82,8 @@ class CombinationContextTest : public CppUnit::TestFixture
     // Garbage in, garbage out.
     CombinationContext c;
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["average"].centralValue, 0.01);
@@ -84,6 +95,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     // Garbage in, garbage out.
     CombinationContext c;
     c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.5);
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, fr["average"].centralValue, 0.01);
@@ -97,6 +109,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
 
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["average"].centralValue, 0.01);
@@ -110,6 +123,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
 
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["average"].centralValue, 0.01);
@@ -125,6 +139,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     double e2 = 0.2;
     c.AddMeasurement ("average", -10.0, 10.0, 0.0, e2);
 
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     // Weighted average:
@@ -147,6 +162,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
     c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
 
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
@@ -165,6 +181,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("a2", -10.0, 10.0, 1.0, 0.1);
     c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
 
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a1"].centralValue, 0.01);
@@ -183,6 +200,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a2", -10.0, 10.0, 1.0, 0.1);
     m2->addSystematicAbs("s1", 0.2);
 
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
@@ -206,6 +224,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.1);
     m->addSystematicAbs("s1", 0.1);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, fr["average"].centralValue, 0.01);
@@ -243,6 +262,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 0.0, 0.1);
     m2->addSystematicAbs("s1", 0.4);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a1"].centralValue, 0.01);
@@ -263,6 +283,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 0.5, 0.1);
     m2->addSystematicAbs("s1", 0.4);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a1"].centralValue, 0.01);
@@ -283,6 +304,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 0.5, 0.1);
     m2->addSystematicAbs("s2", 0.4);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a1"].centralValue, 0.01);
@@ -308,6 +330,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     double s2 = 0.4;
     m2->addSystematicAbs("s2", s2);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     // The sys errors are not correlated since they have
@@ -343,6 +366,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 2.0, 0.1);
     m2->addSystematicAbs("s2", 0.4);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.22, fr["a1"].centralValue, 0.01);
@@ -364,6 +388,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 0.0, 0.1);
     m2->addSystematicAbs("s2", 0.4);
     
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.772, fr["a1"].centralValue, 0.01);

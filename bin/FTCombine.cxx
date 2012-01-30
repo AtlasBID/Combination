@@ -7,6 +7,7 @@
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/Combiner.h"
+#include <RooMsgService.h>
 
 #include <iostream>
 #include <fstream>
@@ -28,6 +29,10 @@ int main (int argc, char **argv)
       usage();
       return 1;
     }
+
+    // Turn off all those fitting messages!
+    RooMsgService::instance().setSilentMode(true);
+    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
 
     // Now that we have the calibrations, just combine them!
     vector<CalibrationAnalysis> result (CombineAnalyses(calibs));
