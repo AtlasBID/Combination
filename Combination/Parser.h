@@ -60,17 +60,27 @@ namespace BTagCombination
 	std::vector<SystematicError> systematicErrors;	
   };
 
+  inline double relativeErrorCalc (double central, double err) {
+    return err / central * 100.0;
+  }
+
   inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
-    out << "bin{";
+    out << "bin(";
     for (unsigned int i = 0; i < b.binSpec.size(); i++) {
       if (i != 0)
 	out << ",";
       out << b.binSpec[i];
     }
-    out << std::endl;
-    out << "    value (" << b.centralValue << ", " << b.centralValueStatisticalError << ")";
+    out << ") {" << std::endl;
+    out << "    central_value (" << b.centralValue
+	<< ", " << relativeErrorCalc(b.centralValue, b.centralValueStatisticalError)
+	<< "%)";
+
     for (size_t i = 0; i < b.systematicErrors.size(); i++) {
-      out << std::endl << "    sys (" << b.systematicErrors[i].name << ", " << b.systematicErrors[i].value << ")";
+      out << std::endl
+	  << "    sys (" << b.systematicErrors[i].name
+	  << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
+	  << "%)";
     }
     out << std::endl << "  }";
     
@@ -97,14 +107,17 @@ namespace BTagCombination
   // Dump out a full analysis.
   //
   inline std::ostream &operator<< (std::ostream &out, const CalibrationAnalysis &ana) {
-    out << ana.name
-	<< "-" << ana.flavor
-	<< "-" << ana.tagger
-	<< "-" << ana.operatingPoint
-	<< "-" << ana.jetAlgorithm
+    out	<< "Analysis("
+	<< ana.name
+	<< ", " << ana.flavor
+	<< ", " << ana.tagger
+	<< ", " << ana.operatingPoint
+	<< ", " << ana.jetAlgorithm
+      << ") {"
 	<< std::endl;
     for (unsigned int i = 0; i < ana.bins.size(); i++)
       out << "  " << ana.bins[i] << std::endl;
+    out << "}" << std::endl;
     return out;
   }
 

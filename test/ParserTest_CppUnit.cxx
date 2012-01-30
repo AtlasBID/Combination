@@ -36,6 +36,8 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testParseTwoAnalyses );
   //CPPUNIT_TEST( testParseSimpleAnalysisBadFlavor );
   CPPUNIT_TEST(testParseSimpleAnalysisWithSys);
+  CPPUNIT_TEST(testParseRoundTrip);
+  CPPUNIT_TEST(testParseRoundTrip2);
   CPPUNIT_TEST_SUITE_END();
 
   void testSourceComments()
@@ -153,6 +155,50 @@ class ParserTest : public CppUnit::TestFixture
     SystematicError e(bin0.systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("dude"), e.name);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
+  }
+
+  void testParseRoundTrip()
+  {
+    cout << "Test testParseRoundTrip" << endl;
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    
+    ostringstream buffer;
+    cout << result[0] << endl;
+    buffer << result[0] << endl;
+
+    vector<CalibrationAnalysis> result2 (Parse(buffer.str()));
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result2.size());
+    CalibrationAnalysis ana = result2[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.bins.size());
+    CalibrationBin bin0 = ana.bins[0];
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, bin0.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.01, bin0.centralValueStatisticalError, 0.001);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.binSpec.size());
+    CalibrationBinBoundary bb = bin0.binSpec[0];
+    CPPUNIT_ASSERT(bb.lowvalue == 20);
+    CPPUNIT_ASSERT(bb.variable == "pt");
+    CPPUNIT_ASSERT(bb.highvalue == 30);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.systematicErrors.size());
+    SystematicError e(bin0.systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("dude"), e.name);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
+  }
+
+  void testParseRoundTrip2()
+  {
+    cout << "Test testParseRoundTrip2" << endl;
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}} Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    
+    ostringstream buffer;
+    cout << result[0] << result[1] << endl;
+    buffer << result[0] << result[1] << endl;
+
+    vector<CalibrationAnalysis> result2 (Parse(buffer.str()));
+
+    CPPUNIT_ASSERT_EQUAL((size_t)2, result2.size());
   }
 
 };
