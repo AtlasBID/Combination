@@ -49,8 +49,7 @@ apply_tag ROOTRooFitLibs
 
 use TestPolicy			TestPolicy-00-*
 use TestTools			TestTools-*		AtlasTest
-#apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx BinBoundaryUtilsTest_CppUnit.cxx"
-apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinationContextTest_CppUnit.cxx"
+apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx BinBoundaryUtilsTest_CppUnit.cxx"
 
 #
 # Turn on debugging if it is needed!!
