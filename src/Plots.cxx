@@ -7,8 +7,10 @@
 
 #include "TGraphErrors.h"
 #include "TCanvas.h"
+#include "TH1F.h"
 
 #include <map>
+#include <cmath>
 #include <set>
 #include <vector>
 #include <sstream>
@@ -42,6 +44,22 @@ namespace {
 	return cb;
     }
     return CalibrationBin();
+  }
+
+  //
+  // Calc the total error for this bin.
+  //
+  double CalcTotalError (const CalibrationBin &b)
+  {
+    double acc = b.centralValueStatisticalError;
+    acc = acc*acc;
+
+    for (unsigned int i = 0; i < b.systematicErrors.size(); i++) {
+      double s = b.systematicErrors[i].value;
+      acc += s*s;
+    }
+
+    return sqrt(acc);
   }
 
   ///
@@ -82,24 +100,45 @@ namespace {
 
     // For each analysis make a graf. We assume copy symantics for the values
     // we pass to the TGraph.
-    vector<TGraphErrors*> plots;
+
+    vector<TGraphErrors*> plots, plotsSys;
+    vector<string> binlabels;
     Double_t *v_bin = new Double_t[axisBins.size()];
     Double_t *v_binError = new Double_t[axisBins.size()];
     Double_t *v_central = new Double_t[axisBins.size()];
     Double_t *v_centralStatError = new Double_t[axisBins.size()];
     Double_t *v_centralTotError = new Double_t[axisBins.size()];
+
+    double yCentralTotMin = 10.0;
+    double yCentralTotMax = 0.0;
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
       const string &anaName (anas[ia].name);
       cout << "** Doing analysis " << anaName << endl;
       cout << "   Initial coordinate: " << x_InitialCoordinate << endl;
       int ibin = 0;
+
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
 	v_bin[ibin] = x_InitialCoordinate + ibin;
 	v_binError[ibin] = 0; // No error along x-axis!!
 	const CalibrationBin &cb(i_c->second.find(anaName)->second);
 	v_central[ibin] = cb.centralValue;
 	v_centralStatError[ibin] = cb.centralValueStatisticalError;
-	v_centralTotError[ibin] = cb.centralValueStatisticalError;
+	v_centralTotError[ibin] = CalcTotalError(cb);
+
+	// Record min and max for later use with limit setting
+	double t = v_central[ibin] - v_centralTotError[ibin];
+	if (t != 0.0 && yCentralTotMin > t)
+	  yCentralTotMin = t;
+	t = v_central[ibin] + v_centralTotError[ibin];
+	if (t != 0.0 && yCentralTotMax < t)
+	  yCentralTotMax = t;
+
+	// Fill in the axis labels if this is our first time through.
+	if (ia == 0) {
+	  ostringstream buf;
+	  buf << cb;
+	  binlabels.push_back(buf.str());
+	}
 
 	ibin++;
       }
@@ -111,6 +150,13 @@ namespace {
       g->SetTitle(anaName.c_str());
       plots.push_back(g);
 
+      g = new TGraphErrors (axisBins.size(),
+			    v_bin, v_central,
+			    v_binError, v_centralTotError);
+      g->SetName((anaName + "TotError").c_str());
+      g->SetTitle((anaName + " Total Error").c_str());
+      plotsSys.push_back(g);
+
       x_InitialCoordinate += x_DeltaCoordinate;
     }
 
@@ -120,9 +166,25 @@ namespace {
     delete[] v_centralStatError;
     delete[] v_centralTotError;
 
-    // Now build the canvas that we are going to store.
+    // Now build the canvas that we are going to store. Do do special axis labels we have
+    // to fake the whole TGraph guy out.
+
     TCanvas *c = new TCanvas ("EffInfo");
-    string opt = "AP";
+    TH1F *h = new TH1F("SF", "",
+		       binlabels.size(), 0.0, binlabels.size());
+
+    h->SetMinimum (yCentralTotMin * 0.9);
+    h->SetMaximum (yCentralTotMax * 1.1);
+    h->SetStats(false);
+
+    TAxis *a = h->GetXaxis();
+    for (unsigned int i = 0; i < binlabels.size(); i++) {
+      a->SetBinLabel(i+1, binlabels[i].c_str());
+    }
+
+    h->Draw();
+    h->SetDirectory(0);
+
     int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34};
     int colorID[] =  { 1,  2,  3,  4,  5,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
     for (unsigned int i_p = 0; i_p < plots.size(); i_p++) {
@@ -131,8 +193,10 @@ namespace {
       plots[i_p]->SetMarkerColor(colorID[markerIndex]);
       plots[i_p]->SetLineColor(colorID[markerIndex]);
 
-      plots[i_p]->Draw(opt.c_str());
-      opt = "P";
+      plots[i_p]->Draw("P");
+
+      plotsSys[i_p]->SetLineColor(colorID[markerIndex]);
+      plotsSys[i_p]->Draw("[]");
     }
     out->Add(c);
     out->Write();
