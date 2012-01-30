@@ -18,7 +18,6 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
-#include <iostream>
 
 using namespace std;
 
@@ -125,8 +124,6 @@ namespace {
     double yCentralTotMax = 0.0;
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
       const string &anaName (anas[ia].name);
-      cout << "** Doing analysis " << anaName << endl;
-      cout << "   Initial coordinate: " << x_InitialCoordinate << endl;
       int ibin = 0;
 
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
@@ -269,14 +266,11 @@ namespace {
 				    const t_BinSet &binSet,
 				    const t_BBSet &otherBins = t_BBSet())
   {
-    cout << "Looking to do bin " << binName << "(already done " << otherBins.size() << ")" << endl;
-
     //
     // Are we at the last variable - which will be the axis of a plot?
     //
 
     if (otherBins.size() + 1 == binSet.size()) {
-      cout << "  -> time to plot" << endl;
       GenerateCommonAnalysisPlots (out, anas,
 				   otherBins,
 				   binSet.find(binName)->second);
