@@ -9,6 +9,8 @@
 #include "Combination/Combiner.h"
 
 #include <iostream>
+#include <fstream>
+
 using namespace std;
 using namespace BTagCombination;
 
@@ -30,10 +32,13 @@ int main (int argc, char **argv)
     // Now that we have the calibrations, just combine them!
     vector<CalibrationAnalysis> result (CombineAnalyses(calibs));
     
-    // Dump them out - this will get fixed, obviously
+    // Dump them out to an output file.
+    ofstream out ("combined.txt");
     for (unsigned int i = 0; i < result.size(); i++) {
       cout << result[i] << endl;
+      out << result[i] << endl;
     }
+    out.close();
 
   } catch (exception &e) {
     cerr << "Error while doing the combination: " << e.what() << endl;
