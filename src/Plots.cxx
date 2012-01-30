@@ -78,6 +78,10 @@ namespace {
     double legendYDelta = 0.05;
     double legendXPos = 0.65;
 
+    string flavorName (anas[0].flavor);
+    string taggerName (anas[0].tagger);
+    string opName (anas[0].operatingPoint);
+
     // Extract all the results.
 
     typedef map<string, CalibrationBin> t_CBMap;
@@ -195,6 +199,12 @@ namespace {
     h->SetMinimum (yCentralTotMin * 0.9);
     h->SetMaximum (yCentralTotMax * 1.1);
     h->SetStats(false);
+
+    {
+      ostringstream buf;
+      buf << "SF for " << flavorName << " jets (" << taggerName << " " << opName << ")";
+      h->GetYaxis()->SetTitle(buf.str().c_str());
+    }
 
     TAxis *a = h->GetXaxis();
     for (unsigned int i = 0; i < binlabels.size(); i++) {
