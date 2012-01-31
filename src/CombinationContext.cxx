@@ -224,7 +224,9 @@ namespace BTagCombination {
     /// And do the fit
     ///
 
+    cout << "Starting the master fit..." << endl;
     finalPDF.fitTo(measuredPoints);
+    cout << "Master fit is finished..." << endl;
 
     ///
     /// Extract the central values
@@ -285,6 +287,7 @@ namespace BTagCombination {
       vector<string> allMeasureNames = _whatMeasurements.GetAllVars();
       for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
 	const string item (allMeasureNames[i_mn]);
+	cout << "Starting plots for " << item << endl;
 	RooRealVar *m = _whatMeasurements.FindRooVar(item);
 	RooCmdArg plotrange (SigmaRange(*m, 5.0));
 
@@ -354,7 +357,7 @@ namespace BTagCombination {
 
 	map<string, double> errorMap;
 
-	/// Do each stasticial error by running the total.
+	/// Do each systematic error by running the total.
 	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
 	  const string sysErrorName(allVars[i_av]);
 
@@ -366,6 +369,7 @@ namespace BTagCombination {
 	  sysErr->setVal(0.0);
 	  sysErr->setError(0.0);
 
+	  cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
 	  finalPDF.fitTo(measuredPoints);
 
 	  double centralError = totalError[item];
@@ -388,6 +392,7 @@ namespace BTagCombination {
 	  sysErr->setError(0.0);
 	}
 
+	cout << "  Finding the statistical error" << endl;
 	finalPDF.fitTo(measuredPoints);
 	errorMap["statistical"] = m->getError();
 	result[item].statisticalError = m->getError();
@@ -425,6 +430,7 @@ namespace BTagCombination {
       /// Since we've been futzing with all of this, we had better return the fit to be "normal".
       ///
 
+      cout << "  Refit to restore the state." << endl;
       finalPDF.fitTo(measuredPoints);
       
     }

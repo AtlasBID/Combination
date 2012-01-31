@@ -234,6 +234,7 @@ namespace BTagCombination
 		   << "-" << n_tagger
 		   << "-" << n_OP;
 	    // Now we can actually build the fit context
+	    cout << "Fitting " << prefix.str() << endl;
 	    binByBinMap[prefix.str()] = FillContextWithCommonAnaInfo(ctx, i_jet->second, prefix.str());
 	  }
 	}
