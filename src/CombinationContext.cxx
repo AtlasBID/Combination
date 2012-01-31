@@ -221,6 +221,12 @@ namespace BTagCombination {
     measuredPoints.add(varValues);
 
     ///
+    /// Dump out the graph-viz tree
+    ///
+    
+    finalPDF.graphVizTree("combined.dot");
+
+    ///
     /// And do the fit
     ///
 
