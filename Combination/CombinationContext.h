@@ -47,6 +47,9 @@ namespace BTagCombination {
     /// Fit all the measurements that we've asked for, and return results for each measurement done.
     std::map<std::string, FitResult> Fit(void);
 
+    /// Turn on/off production of plots. Plots are expensive!
+    inline void setDoPlots(bool v = false) { _doPlots = v;}
+
   private:
     /// Keep track of all the measurements.
     RooRealVarCache _whatMeasurements;
@@ -56,6 +59,9 @@ namespace BTagCombination {
 
     /// Keep a list of all measurements
     std::vector<Measurement*> _measurements;
+
+    /// Should we make plots as a diagnostic output?
+    bool _doPlots;
   };
 }
 

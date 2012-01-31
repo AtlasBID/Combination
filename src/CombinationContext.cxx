@@ -36,7 +36,9 @@ namespace BTagCombination {
   ///
   /// Creates a new combination context.
   ///
-  CombinationContext::CombinationContext(void) {
+  CombinationContext::CombinationContext(void)
+    : _doPlots (false)
+  {
   }
 
   ///
@@ -297,63 +299,65 @@ namespace BTagCombination {
 	RooRealVar *m = _whatMeasurements.FindRooVar(item);
 	RooCmdArg plotrange (SigmaRange(*m, 5.0));
 
-	RooPlot *nllplot = m->frame(plotrange);
-	nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
-	nllplot->SetName((string(m->GetName()) + "_nll").c_str());
-	RooAbsReal *nll = finalPDF.createNLL(measuredPoints);
-	nll->plotOn(nllplot);
-	nllplot->Write();
+	if (_doPlots) {
+	  RooPlot *nllplot = m->frame(plotrange);
+	  nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
+	  nllplot->SetName((string(m->GetName()) + "_nll").c_str());
+	  RooAbsReal *nll = finalPDF.createNLL(measuredPoints);
+	  nll->plotOn(nllplot);
+	  nllplot->Write();
 
-	///
-	/// Make the profile plot for all the various errors allowed to float
-	///
+	  ///
+	  /// Make the profile plot for all the various errors allowed to float
+	  ///
 
-	RooPlot *profilePlot = m->frame(plotrange);
-	profilePlot->SetTitle((string("Profile of ") + m->GetTitle()).c_str());
-	profilePlot->SetName((string(m->GetName()) + "_profile").c_str());
-	RooAbsReal *profile = nll->createProfile(*m);
-	profile->plotOn(profilePlot);
+	  RooPlot *profilePlot = m->frame(plotrange);
+	  profilePlot->SetTitle((string("Profile of ") + m->GetTitle()).c_str());
+	  profilePlot->SetName((string(m->GetName()) + "_profile").c_str());
+	  RooAbsReal *profile = nll->createProfile(*m);
+	  profile->plotOn(profilePlot);
 
-	///
-	/// Next, make the plot for just the statistical error
-	///
+	  ///
+	  /// Next, make the plot for just the statistical error
+	  ///
 
-	RooArgSet allRooVars;
-	for (unsigned int i_av=0; i_av < allVars.size(); i_av++) {
-	  const string sysErrName(allVars[i_av]);
-	  RooRealVar *sysVar = _systematicErrors.FindRooVar(sysErrName);
-	  allRooVars.add(*sysVar);
-	}
-	allRooVars.add(*m);
-
-	RooAbsReal *profileStat = nll->createProfile(allRooVars);
-	profileStat->plotOn(profilePlot, RooFit::LineColor(kRed));
-	profilePlot->Write();
-
-	///
-	/// Next, do an extra plot alloweing everything but one systematic error to
-	/// float.
-	///
-
-	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
-	  const string excludeSysErrorName(allVars[i_av]);
-	  RooArgSet allButRooVars;
-	  allButRooVars.add(*m);
-
-	  for (unsigned int i_av2 = 0; i_av2 < allVars.size(); i_av2++) {
-	    const string sysError(allVars[i_av2]);
-	    if (sysError != excludeSysErrorName) {
-	      allButRooVars.add(*(_systematicErrors.FindRooVar(sysError)));
-	    }
+	  RooArgSet allRooVars;
+	  for (unsigned int i_av=0; i_av < allVars.size(); i_av++) {
+	    const string sysErrName(allVars[i_av]);
+	    RooRealVar *sysVar = _systematicErrors.FindRooVar(sysErrName);
+	    allRooVars.add(*sysVar);
 	  }
+	  allRooVars.add(*m);
 
-	  RooPlot *allButProfilePlot = m->frame(plotrange);
-	  allButProfilePlot->SetTitle((string("Profile of ") + m->GetTitle() + " (" + excludeSysErrorName + ")").c_str() );
-	  allButProfilePlot->SetName((string(m->GetName()) + "_profile_" + excludeSysErrorName).c_str());
-	  RooAbsReal *allButProfile = nll->createProfile(allButRooVars);
-	  allButProfile->plotOn(allButProfilePlot, RooFit::LineColor(kRed));
-	  profile->plotOn(allButProfilePlot);
-	  allButProfilePlot->Write();				
+	  RooAbsReal *profileStat = nll->createProfile(allRooVars);
+	  profileStat->plotOn(profilePlot, RooFit::LineColor(kRed));
+	  profilePlot->Write();
+
+	  ///
+	  /// Next, do an extra plot alloweing everything but one systematic error to
+	  /// float.
+	  ///
+
+	  for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	    const string excludeSysErrorName(allVars[i_av]);
+	    RooArgSet allButRooVars;
+	    allButRooVars.add(*m);
+
+	    for (unsigned int i_av2 = 0; i_av2 < allVars.size(); i_av2++) {
+	      const string sysError(allVars[i_av2]);
+	      if (sysError != excludeSysErrorName) {
+		allButRooVars.add(*(_systematicErrors.FindRooVar(sysError)));
+	      }
+	    }
+
+	    RooPlot *allButProfilePlot = m->frame(plotrange);
+	    allButProfilePlot->SetTitle((string("Profile of ") + m->GetTitle() + " (" + excludeSysErrorName + ")").c_str() );
+	    allButProfilePlot->SetName((string(m->GetName()) + "_profile_" + excludeSysErrorName).c_str());
+	    RooAbsReal *allButProfile = nll->createProfile(allButRooVars);
+	    allButProfile->plotOn(allButProfilePlot, RooFit::LineColor(kRed));
+	    profile->plotOn(allButProfilePlot);
+	    allButProfilePlot->Write();				
+	  }
 	}
 	
 	///
