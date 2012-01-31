@@ -385,6 +385,8 @@ namespace BTagCombination {
 	  double centralError = totalError[item];
 	  double delta = centralError*centralError - m->getError()*m->getError();
 	  double errDiff = sqrt(fabs(delta));
+	  if (delta < 0.0)
+	    errDiff = -errDiff;
 	  errorMap[sysErrorName] = errDiff;
 	  result[item].sysErrors[sysErrorName] = errDiff;
 
