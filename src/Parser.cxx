@@ -186,7 +186,7 @@ struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_
 	name_string %= lexeme[+(char_ - ',' - '"')];
 	name_string.name("Systematic Error Name");
 
-	start = lit("sys") > '('
+	start = (lit("sys")|lit("usys")) > '('
 	  > name_string[boost::phoenix::bind(&ErrorValue::SetName, _val, _1)] > ','
 	  > errParser[boost::phoenix::bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
 	  > ')';
