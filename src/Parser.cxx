@@ -127,6 +127,8 @@ struct ErrorValue
 	void SetName (const std::string &n)
 	{
 		name = n;
+		const size_t endStr = n.find_last_not_of(" \t");
+		name = name.substr(0, endStr+1);
 	}
 
 	void CopyErrorAndRelative(const ErrorValue &cp)

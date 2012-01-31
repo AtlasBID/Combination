@@ -38,6 +38,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseSimpleAnalysisWithSys);
   CPPUNIT_TEST(testParseSimpleAnalysisWithUSys);
   CPPUNIT_TEST(testParseSimpleAnalysisWithNSys);
+  CPPUNIT_TEST(testParseSimpleAnalysisWithSpaceSys);
   CPPUNIT_TEST(testParseRoundTrip);
   CPPUNIT_TEST(testParseRoundTrip2);
   CPPUNIT_TEST_SUITE_END();
@@ -162,6 +163,20 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSimpleAnalysisWithNSys()
   {
     vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, -0.1%)}}"));
+    
+
+    CalibrationAnalysis ana = result[0];
+    CalibrationBin bin0 = ana.bins[0];
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.systematicErrors.size());
+    SystematicError e(bin0.systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("dude"), e.name);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (-0.05*0.1/100.0, e.value, 0.001);
+  }
+
+  void testParseSimpleAnalysisWithSpaceSys()
+  {
+    vector<CalibrationAnalysis> result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude , -0.1%)}}"));
     
 
     CalibrationAnalysis ana = result[0];
