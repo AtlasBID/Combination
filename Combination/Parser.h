@@ -92,11 +92,11 @@ namespace BTagCombination
 //
 // Systematic error. Always stored as an absolute error.
 //
-  struct SystematicError
-{
-	std::string name;
-	double value;
-};
+  struct SystematicError {
+    std::string name;
+    double value;
+    bool uncorrelated;
+  };
 
   // Data for a single bin (central value, stat error, sys errors, etc.)
   struct CalibrationBin
@@ -154,7 +154,13 @@ namespace BTagCombination
       
       for (size_t i = 0; i < b.systematicErrors.size(); i++) {
 	out << std::endl
-	    << "    sys (" << b.systematicErrors[i].name
+	  << "    ";
+	if (b.systematicErrors[i].uncorrelated) {
+	  out << "usys";
+	} else {
+	  out << "sys";
+	}
+	out << " (" << b.systematicErrors[i].name
 	    << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
 	    << "%)";
       }

@@ -113,33 +113,45 @@ struct CalibrationBinBoundaryParser :
 //
 struct ErrorValue
 {
-	ErrorValue(double err = 0.0)
-	{
-		error = err;
-		relative = false;
-	}
+  ErrorValue(double err = 0.0)
+  {
+    error = err;
+    relative = false;
+    uncorrelated = false;
+  }
 
-	void MakeRelative (void)
-	{
-		relative = true;
-	}
+  void MakeRelative (void)
+  {
+    relative = true;
+  }
 
-	void SetName (const std::string &n)
-	{
-		name = n;
-		const size_t endStr = n.find_last_not_of(" \t");
-		name = name.substr(0, endStr+1);
-	}
+  void MakeUncorrelated (void)
+  {
+    uncorrelated = true;
+  }
 
-	void CopyErrorAndRelative(const ErrorValue &cp)
-	{
-		error = cp.error;
-		relative = cp.relative;
-	}
+  void MakeCorrelated (void)
+  {
+    uncorrelated = false;
+  }
 
-	string name;
-	double error;
-	bool relative;
+  void SetName (const std::string &n)
+  {
+    name = n;
+    const size_t endStr = n.find_last_not_of(" \t");
+    name = name.substr(0, endStr+1);
+  }
+
+  void CopyErrorAndRelative(const ErrorValue &cp)
+  {
+    error = cp.error;
+    relative = cp.relative;
+  }
+
+  string name;
+  double error;
+  bool relative;
+  bool uncorrelated;
 };
 
 ErrorValue EV_relative (const ErrorValue &ev)
@@ -188,7 +200,11 @@ struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_
 	name_string %= lexeme[+(char_ - ',' - '"')];
 	name_string.name("Systematic Error Name");
 
-	start = (lit("sys")|lit("usys")) > '('
+	start = (
+		 lit("sys")[boost::phoenix::bind(&ErrorValue::MakeCorrelated, _val)]
+		 |lit("usys")[boost::phoenix::bind(&ErrorValue::MakeUncorrelated, _val)]
+		 )
+	  > '('
 	  > name_string[boost::phoenix::bind(&ErrorValue::SetName, _val, _1)] > ','
 	  > errParser[boost::phoenix::bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
 	  > ')';
@@ -272,6 +288,7 @@ struct localCalibBin
 			SystematicError e;
 			e.name = sysErrors[i].name;
 			e.value = sysErrors[i].error;
+			e.uncorrelated = sysErrors[i].uncorrelated;
 			if (sysErrors[i].relative)
 			{
 				e.value *= result.centralValue / 100.0;
