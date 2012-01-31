@@ -157,6 +157,7 @@ namespace {
     const string &_name;
   };
 
+
   // Returns a list of all systematic errors used in this analysis
   set<string> sys_error_names (const CalibrationAnalysis &ana)
   {
@@ -168,6 +169,21 @@ namespace {
 		 bind<const string&>(&SystematicError::name, _1));
     }
     return result;
+  }
+
+  // sees if this error is uncorrelated or not.
+  bool is_uncorrelated (const CalibrationAnalysis &ana, const string &ename)
+  {
+    for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
+      const CalibrationBin &bin (ana.bins[ibin]);
+      for (int i_sys = 0; i_sys < bin.systematicErrors.size(); i_sys++) {
+	const SystematicError &e(bin.systematicErrors[i_sys]);
+	if (e.name == ename) {
+	  return e.uncorrelated;
+	}
+      }
+    }
+    return false;
   }
 }
 
@@ -197,6 +213,10 @@ namespace BTagCombination {
     for (set<string>::const_iterator e_name = error_names.begin(); e_name != error_names.end(); e_name++) {
       TH2 *errors = set_bin_values(bins, eff, *e_name, get_sys_error(*e_name));
       result->setUncertainty(e_name->c_str(), errors);
+
+      if (is_uncorrelated(eff, *e_name))
+	result->setUncorrelated(e_name->c_str());
+
     }
 
     return result;
