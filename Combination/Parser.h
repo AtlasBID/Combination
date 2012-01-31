@@ -96,6 +96,9 @@ namespace BTagCombination
     std::string name;
     double value;
     bool uncorrelated;
+    inline SystematicError()
+      : value (0.0), uncorrelated (false)
+    {}
   };
 
   // Data for a single bin (central value, stat error, sys errors, etc.)

@@ -39,7 +39,13 @@ namespace {
       Measurement *m = ctx.AddMeasurement (binName, -1.0, 2.0, b.centralValue, b.centralValueStatisticalError);
       for (unsigned int i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {
 	const SystematicError &err(b.systematicErrors[i_sys]);
-	m->addSystematicAbs(err.name, err.value);
+	
+	string ename(err.name);
+	if (err.uncorrelated) {
+	  ename = string("UNCORBIN-") + ename + "-**" + binName;
+	}
+
+	m->addSystematicAbs(ename, err.value);
       }
     }
   }
@@ -85,6 +91,17 @@ namespace {
       SystematicError e;
       e.name = i_sys->first;
       e.value = i_sys->second;
+      e.uncorrelated = false;
+
+      if (e.name.substr(0,8) == "UNCORBIN") {
+	string name = e.name.substr(9);
+	size_t nend = name.find("-**");
+	if (nend != string::npos) {
+	  e.name = name.substr(0, nend);
+	  e.uncorrelated = true;
+	}
+      }
+
       result.systematicErrors.push_back(e);
     }
 
