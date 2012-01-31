@@ -149,7 +149,6 @@ namespace {
   bool spans_bins (const vector<pair<double, double> > &blist, const pair<double, double> &bin)
   {
     for (unsigned int i = 0; i < blist.size(); i++) {
-      cout << "Comparing (" << blist[i].first << ", " << blist[i].second << ") with (" << bin.first << ", " << bin.second << ")" << endl;
       bool inf = is_in_bin(blist[i], bin.first);
       bool ins = is_in_bin(blist[i], bin.second);
 

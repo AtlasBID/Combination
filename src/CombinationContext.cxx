@@ -142,12 +142,12 @@ namespace BTagCombination {
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
 
 	varAddition.add(*weight);
-	weight->Print();
+	//weight->Print();
       }
       
       string internalName = "InternalAddition" + m->Name();
       RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
-      varSumed->Print();
+      //varSumed->Print();
       //string internal1Mult = "InternalAdditionMult" + m->Name();
       //RooArgList forMult;
       //forMult.add(*varSumedP);
@@ -173,7 +173,7 @@ namespace BTagCombination {
       RooGaussian *g = new RooGaussian(gName.c_str(), gName.c_str(),
 				       *actualValue, *varSumed, *statValue);
 
-      g->Print();
+      //g->Print();
       measurementGaussians.push_back(g);
     }
 
@@ -185,7 +185,7 @@ namespace BTagCombination {
     RooArgList products;
     for (vector<RooAbsPdf*>::iterator itr = measurementGaussians.begin(); itr != measurementGaussians.end(); itr++) {
       products.add(**itr);
-      (*itr)->Print();
+      //(*itr)->Print();
     }
 
     RooConstVar *zero = new RooConstVar("zero", "zero", 0.0);
@@ -197,11 +197,11 @@ namespace BTagCombination {
       RooRealVar *c = _systematicErrors.FindRooVar(*iVar);
       RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
       products.add(*constraint);
-      constraint->Print();
+      //constraint->Print();
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
-    finalPDF.Print();
+    //finalPDF.Print();
 
     ///
     /// Next, we need to fit to a dataset. It will have a single data point - the
@@ -288,7 +288,6 @@ namespace BTagCombination {
 	RooRealVar *m = _whatMeasurements.FindRooVar(item);
 	RooCmdArg plotrange (SigmaRange(*m, 5.0));
 
-	cout << "Doing the plot of NLL for " << item << "." << endl;
 	RooPlot *nllplot = m->frame(plotrange);
 	nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
 	nllplot->SetName((string(m->GetName()) + "_nll").c_str());
@@ -300,7 +299,6 @@ namespace BTagCombination {
 	/// Make the profile plot for all the various errors allowed to float
 	///
 
-	cout << "Doing the plot profile for " << item << endl;
 	RooPlot *profilePlot = m->frame(plotrange);
 	profilePlot->SetTitle((string("Profile of ") + m->GetTitle()).c_str());
 	profilePlot->SetName((string(m->GetName()) + "_profile").c_str());
@@ -319,7 +317,6 @@ namespace BTagCombination {
 	}
 	allRooVars.add(*m);
 
-	cout << "Doing the nnl plot for stat error " << endl;
 	RooAbsReal *profileStat = nll->createProfile(allRooVars);
 	profileStat->plotOn(profilePlot, RooFit::LineColor(kRed));
 	profilePlot->Write();
@@ -341,7 +338,6 @@ namespace BTagCombination {
 	    }
 	  }
 
-	  cout << "Doing plot for sys error " << excludeSysErrorName << endl;
 	  RooPlot *allButProfilePlot = m->frame(plotrange);
 	  allButProfilePlot->SetTitle((string("Profile of ") + m->GetTitle() + " (" + excludeSysErrorName + ")").c_str() );
 	  allButProfilePlot->SetName((string(m->GetName()) + "_profile_" + excludeSysErrorName).c_str());
@@ -360,13 +356,9 @@ namespace BTagCombination {
 
 	/// Do each stasticial error by running the total.
 	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
-	  cout << "Doing sys error index " << i_av << endl;
 	  const string sysErrorName(allVars[i_av]);
-	  cout << "  Name (for " << item << "): " << sysErrorName << endl;
 
 	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
-	  cout << "  Pointer: " << sysErr << endl;
-	  cout << "  Orginal value for error is " << sysErr->getVal() << " +- " << sysErr->getError() << endl;
 
 	  double sysErrOldVal = sysErr->getVal();
 	  double sysErrOldError = sysErr->getError();
@@ -377,11 +369,8 @@ namespace BTagCombination {
 	  finalPDF.fitTo(measuredPoints);
 
 	  double centralError = totalError[item];
-	  cout << "  Central error - total - for this meausrement is " << centralError << endl;
 	  double delta = centralError*centralError - m->getError()*m->getError();
 	  double errDiff = sqrt(fabs(delta));
-	  cout << "  Error " << sysErrorName << " is (bf sqrt) " << delta << endl;
-	  cout << "  Post const fit value for error is " << sysErr->getVal() << " +- " << sysErr->getError() << endl;
 	  errorMap[sysErrorName] = errDiff;
 	  result[item].sysErrors[sysErrorName] = errDiff;
 
