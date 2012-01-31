@@ -186,4 +186,18 @@ namespace BTagCombination {
   {
     return OPFullName(ana) + ":" + OPBinName(bin);
   }
+
+  //
+  // Split analyzes into lists. These lists are generally what we need when dealing
+  // with the combination.
+  //
+  map<string, vector<CalibrationAnalysis> > BinAnalysesByJetTagFlavOp (const vector<CalibrationAnalysis> &anas)
+  {
+    map<string, vector<CalibrationAnalysis> > result;
+    for (int i = 0; i < anas.size(); i++) {
+      result[OPIndependentName(anas[i])].push_back(anas[i]);
+    }
+    return result;
+  }
+
 }

@@ -172,6 +172,12 @@ void CheckEverything (vector<CalibrationAnalysis> &calibs)
   //
   
   checkForConsitentBoundaries(bb);
+
+  //
+  // See if the various calibratoins are consistent for other reasons...
+  //
+
+  checkForConsistentAnalyses(calibs);
 }
 
 void PrintNames (vector<CalibrationAnalysis> &calibs)

@@ -321,5 +321,40 @@ namespace BTagCombination {
     }
   }
 
+  //
+  // Look at the analyses and make sure they are "consistent" accross
+  // the various analyses and ok to combine.
+  //
+  // THings we look for:
+  //  - If a systematic is uncorrelated in one analysis it must be uncorrelated in
+  //    all analyses.
+  //
+  void checkForConsistentAnalyses (const std::vector<CalibrationAnalysis> &anas)
+  {
+    // First job is to sort things by "combination" group.
+    typedef map<string, vector<CalibrationAnalysis> > t_cmap;
+    t_cmap binned (BinAnalysesByJetTagFlavOp(anas));
+
+    map<string, bool> sysCorrelatedTracker; // Are they consistent?
+    for (t_cmap::const_iterator itr = binned.begin(); itr != binned.end(); itr++) {
+      for (unsigned int i_ana = 0; i_ana < itr->second.size(); i_ana++) {
+	for (unsigned int i_b = 0; i_b < itr->second[i_ana].bins.size(); i_b++) {
+	  const CalibrationBin &b(itr->second[i_ana].bins[i_b]);
+	  for (unsigned int i_s = 0; i_s < b.systematicErrors.size(); i_s++) {
+	    const SystematicError &e (b.systematicErrors[i_s]);
+	    map<string,bool>::const_iterator i_sys = sysCorrelatedTracker.find(e.name);
+	    if (i_sys == sysCorrelatedTracker.end()) {
+	      sysCorrelatedTracker[e.name] = e.uncorrelated;
+	    } else if (e.uncorrelated != i_sys->second) {
+	      ostringstream msg;
+	      msg << "Systematic error '" << i_sys->first << "' marked as correlated in some analyses and uncorrelated in others! It must be consistent.";
+	      throw runtime_error (msg.str().c_str());
+	    }
+	  }
+	}
+      }
+    }
+  }
+
 
 }

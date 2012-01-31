@@ -34,6 +34,10 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testIgnoreFlagFile );
   CPPUNIT_TEST ( testIgnoreAnalysis );
 
+  CPPUNIT_TEST ( testSplitAnalysis );
+  CPPUNIT_TEST ( testSplitAnalysis2 );
+  CPPUNIT_TEST ( testSplitAnalysis3 );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testEmptyCommandLine()
@@ -166,6 +170,63 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("2 bin boundary", string("0-eta-2.5:0-pt-95"), OPBinName(bin));
   }
+
+  void testSplitAnalysis()
+  {
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "sv0";
+    ana.operatingPoint = "0.55";
+    ana.jetAlgorithm = "AntiKt";
+    
+    vector<CalibrationAnalysis> list;
+    list.push_back(ana);
+    map<string, vector<CalibrationAnalysis> > r (BinAnalysesByJetTagFlavOp(list));
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, r.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, r.begin()->second.size());
+  }
+
+  void testSplitAnalysis2()
+  {
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "sv0";
+    ana.operatingPoint = "0.55";
+    ana.jetAlgorithm = "AntiKt";
+    
+    CalibrationAnalysis ana2 (ana);
+    ana2.name = "fork";
+
+    vector<CalibrationAnalysis> list;
+    list.push_back(ana);
+    list.push_back(ana2);
+    map<string, vector<CalibrationAnalysis> > r (BinAnalysesByJetTagFlavOp(list));
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, r.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, r.begin()->second.size());
+  }
+
+  void testSplitAnalysis3()
+  {
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "sv0";
+    ana.operatingPoint = "0.55";
+    ana.jetAlgorithm = "AntiKt";
+    
+    CalibrationAnalysis ana2 (ana);
+    ana2.tagger = "fork";
+
+    vector<CalibrationAnalysis> list;
+    list.push_back(ana);
+    list.push_back(ana2);
+    map<string, vector<CalibrationAnalysis> > r (BinAnalysesByJetTagFlavOp(list));
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, r.size());
+  }
+
+
 
 };
 

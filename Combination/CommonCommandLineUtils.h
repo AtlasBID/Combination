@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace BTagCombination {
 
@@ -28,6 +29,10 @@ namespace BTagCombination {
   
   // Returns a name that is how we partition everything (flavor, tagger, jet, op, etc.).
   std::string OPIndependentName (const CalibrationAnalysis &ana);
+
+  // Split a list of analyses by the bins we often use for doing the combination.
+  // Useful utility. :-)
+  std::map<std::string, std::vector<CalibrationAnalysis> > BinAnalysesByJetTagFlavOp (const std::vector<CalibrationAnalysis> &anas);
 }
 
 #endif

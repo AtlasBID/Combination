@@ -39,6 +39,9 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( TestBBMissingAxes1D, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestBBMissingAxes1D2, std::runtime_error );
 
+  CPPUNIT_TEST_EXCEPTION ( TestSystematicErrorsInconsistent, std::runtime_error );
+  CPPUNIT_TEST ( TestSystematicErrorsMatching);
+
   CPPUNIT_TEST_SUITE_END();
 
   void testSimpleOneBins()
@@ -357,6 +360,63 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
     bb.push_back(b2);
 
     checkForConsitentBoundaries(bb);
+  }
+
+  void TestSystematicErrorsInconsistent()
+  {
+    CalibrationAnalysis ana1;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "eta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e1;
+    e1.name = "hi";
+    e1.value = 1.0;
+    e1.uncorrelated = true;
+    b1.systematicErrors.push_back(e1);
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2;
+    b1.systematicErrors[0].uncorrelated = false;
+    ana2.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> list;
+    list.push_back(ana1);
+    list.push_back(ana2);
+
+    checkForConsistentAnalyses(list);
+  }
+
+  void TestSystematicErrorsMatching()
+  {
+    CalibrationAnalysis ana1;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "eta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e1;
+    e1.name = "hi";
+    e1.value = 1.0;
+    e1.uncorrelated = true;
+    b1.systematicErrors.push_back(e1);
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2;
+    ana2.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> list;
+    list.push_back(ana1);
+    list.push_back(ana2);
+
+    checkForConsistentAnalyses(list);
   }
 };
 

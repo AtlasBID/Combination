@@ -80,6 +80,9 @@ namespace BTagCombination {
   // Check that this list of bin boundaries is consistent
   // with each other
   void checkForConsitentBoundaries (const std::vector<bin_boundaries> &boundaries);
+
+  // Check that analyses are consistent cross-analysis
+  void checkForConsistentAnalyses (const std::vector<CalibrationAnalysis> &anas);
 }
 
 #endif
