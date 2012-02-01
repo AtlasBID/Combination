@@ -48,6 +48,18 @@ namespace BTagCombination {
   }
 
   ///
+  /// Do we know about this sys error?
+  ///
+  bool Measurement::hasSysError (const string &name) const
+  {
+    for(vector<pair<string,double> >::const_iterator itr = _sysErrors.begin(); itr != _sysErrors.end(); itr++) {
+      if (itr->first == name)
+	return true;
+    }
+    return false;
+  }
+
+  ///
   /// Fetch back the w*s weighting. Keep the objects around so we can
   /// deal with Roo's funny ownership rules.
   ///

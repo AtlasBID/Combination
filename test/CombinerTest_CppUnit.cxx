@@ -460,8 +460,8 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(true, e1.uncorrelated);
     CPPUNIT_ASSERT_EQUAL(true, e2.uncorrelated);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e1.value, 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e1.value, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.01);
   }
 
   void testAnaTwoDifBins()

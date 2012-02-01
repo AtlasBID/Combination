@@ -293,13 +293,13 @@ namespace BTagCombination {
       ///
 
       vector<string> allMeasureNames = _whatMeasurements.GetAllVars();
-      for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
-	const string item (allMeasureNames[i_mn]);
-	cout << "Starting plots for " << item << endl;
-	RooRealVar *m = _whatMeasurements.FindRooVar(item);
-	RooCmdArg plotrange (SigmaRange(*m, 5.0));
+      if (_doPlots) {
+	for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
+	  const string item (allMeasureNames[i_mn]);
+	  cout << "Starting plots for " << item << endl;
+	  RooRealVar *m = _whatMeasurements.FindRooVar(item);
+	  RooCmdArg plotrange (SigmaRange(*m, 5.0));
 
-	if (_doPlots) {
 	  RooPlot *nllplot = m->frame(plotrange);
 	  nllplot->SetTitle((string("NLL of ") + m->GetTitle()).c_str());
 	  nllplot->SetName((string(m->GetName()) + "_nll").c_str());
@@ -359,81 +359,84 @@ namespace BTagCombination {
 	    allButProfilePlot->Write();				
 	  }
 	}
+      }
 	
-	///
-	/// Next, we need to re-run the fit, freezing each variable in turn, and extract the 
-	/// fit values from there.
-	///
+      ///
+      /// Next, we need to re-run the fit,
+      /// freezing each systematic error in turn, and extract the 
+      /// errors so we can decide how large each error is.
+      ///
 
-	map<string, double> errorMap;
+      for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	const string sysErrorName(allVars[i_av]);
 
-	/// Do each systematic error by running the total.
-	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
-	  const string sysErrorName(allVars[i_av]);
+	RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
 
-	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	double sysErrOldVal = sysErr->getVal();
+	double sysErrOldError = sysErr->getError();
+	sysErr->setConstant(true);
+	sysErr->setVal(0.0);
+	sysErr->setError(0.0);
 
-	  double sysErrOldVal = sysErr->getVal();
-	  double sysErrOldError = sysErr->getError();
-	  sysErr->setConstant(true);
-	  sysErr->setVal(0.0);
-	  sysErr->setError(0.0);
-
-	  cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
-	  finalPDF.fitTo(measuredPoints);
-
-	  double centralError = totalError[item];
-	  double delta = centralError*centralError - m->getError()*m->getError();
-	  double errDiff = sqrt(fabs(delta));
-	  cout << "  centralError = " << centralError << endl
-	       << "  fit result = " << m->getError() << endl
-	       << "  delta = " << delta << endl;
-
-	  // If this error is really small, reset to zero (less than 0.1%).
-	  {
-	    double cv = result[item].centralValue;
-	    if (cv == 0) {
-	      if (errDiff < 0.0001)
-		errDiff = 0;
-	    } else {
-	      if ((errDiff/cv)*100 < 0.1)
-		errDiff = 0.0;
-	    }
-	  }
-
-	  // Propagate the sign
-	  if (delta < 0.0)
-	    errDiff = -errDiff;
-
-	  // Save for later use!
-	  errorMap[sysErrorName] = errDiff;
-	  result[item].sysErrors[sysErrorName] = errDiff;
-
-	  sysErr->setConstant(false);
-	  sysErr->setVal(sysErrOldVal);
-	  sysErr->setError(sysErrOldError);
-	}
-
-	/// And the statistical error
-	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
-	  const string sysErrorName (allVars[i_av]);
-	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
-	  sysErr->setConstant(true);
-	  sysErr->setVal(0.0);
-	  sysErr->setError(0.0);
-	}
-
-	cout << "  Finding the statistical error" << endl;
+	cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
 	finalPDF.fitTo(measuredPoints);
-	errorMap["statistical"] = m->getError();
-	result[item].statisticalError = m->getError();
 
-	for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
-	  const string sysErrorName (allVars[i_av]);
-	  RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
-	  sysErr->setConstant(false);
+	// Loop over all measurements. If the measurement knows about
+	// this systematic error, then extract a number from it.
+	//
+
+	for (size_t i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
+	  const string &item(allMeasureNames[i_mn]);
+	  RooRealVar *m = _whatMeasurements.FindRooVar(item);
+
+	  if (sysErrorUsedBy(sysErrorName, item)) {
+
+	    double centralError = totalError[item];
+	    double delta = centralError*centralError - m->getError()*m->getError();
+	    double errDiff = sqrt(fabs(delta));
+	    //cout << "  centralError = " << centralError << endl
+	    //<< "  fit result = " << m->getError() << endl
+	    //<< "  delta = " << delta << endl;
+
+	    // Propagate the sign
+	    if (delta < 0.0)
+	      errDiff = -errDiff;
+
+	    // Save for later use!
+	    result[item].sysErrors[sysErrorName] = errDiff;
+
+	    sysErr->setConstant(false);
+	    sysErr->setVal(sysErrOldVal);
+	    sysErr->setError(sysErrOldError);
+	  }
 	}
+      }
 
+      /// And the statistical error
+      for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	const string sysErrorName (allVars[i_av]);
+	RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	sysErr->setConstant(true);
+	sysErr->setVal(0.0);
+	sysErr->setError(0.0);
+      }
+
+      cout << "  Finding the statistical error" << endl;
+      finalPDF.fitTo(measuredPoints);
+
+      for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
+	const string item (allMeasureNames[i_mn]);
+	RooRealVar *m = _whatMeasurements.FindRooVar(item);
+	result[item].statisticalError = m->getError();
+      }
+
+      for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
+	const string sysErrorName (allVars[i_av]);
+	RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
+	sysErr->setConstant(false);
+      }
+
+#ifdef false
 	/// Put them in a nice plot so we can read them out.
 	TH1F *errorSummary = new TH1F((string(m->GetName()) + "_error_summary_absolute").c_str(),
 				      (string(m->GetTitle()) + " Absolute Error Summary").c_str(),
@@ -455,16 +458,16 @@ namespace BTagCombination {
 	hRel->SetTitle((string(m->GetTitle()) + " Percent Error Summary").c_str());
 	hRel->Scale(1.0/m->getVal()*100.0);
 	hRel->Write();
-      }
-
-      ///
-      /// Since we've been futzing with all of this, we had better return the fit to be "normal".
-      ///
-
-      cout << "  Refit to restore the state." << endl;
-      finalPDF.fitTo(measuredPoints);
-      
+#endif
     }
+  
+
+    ///
+    /// Since we've been futzing with all of this, we had better return the fit to be "normal".
+    ///
+
+    cout << "  Refit to restore the state." << endl;
+    finalPDF.fitTo(measuredPoints);
 
     ///
     /// Done. We need to clean up the measurement Gaussian
@@ -479,4 +482,19 @@ namespace BTagCombination {
 
     return result;
   }
+
+  // Is this sys error valid for this particular measurement?
+  bool CombinationContext::sysErrorUsedBy (const std::string &sysErrName, const std::string &whatVariable)
+  {
+    for (size_t i = 0; i < _measurements.size(); i++) {
+      const Measurement *m (_measurements[i]);
+      if (whatVariable == m->What()) {
+	if (m->hasSysError(sysErrName))
+	  return true;
+      }
+    }
+
+    return false;
+  }
+
 }

@@ -28,11 +28,13 @@ namespace BTagCombination {
     void addSystematicRel (const std::string &errorName, const double oneSigmaSizeRelativeFractional);
     void addSystematicPer (const std::string &errorName, const double oneSigmaSizePercent);
 
-  private:
     inline const std::string &Name(void) const
       { return _name; }
     inline const std::string &What(void) const
       { return _what; }
+    bool hasSysError (const std::string &name) const;
+
+  private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
     RooConstVar *GetStatisticalError() {return &_statError;}

@@ -54,11 +54,14 @@ namespace BTagCombination {
     /// Keep track of all the measurements.
     RooRealVarCache _whatMeasurements;
 
+    /// Is this sys error connected by this measurement?
+    bool sysErrorUsedBy(const std::string &sysErrName, const std::string &what);
     /// Keep track fo all the systematic errors between the various measurements.
     RooRealVarCache _systematicErrors;
 
     /// Keep a list of all measurements
     std::vector<Measurement*> _measurements;
+
 
     /// Should we make plots as a diagnostic output?
     bool _doPlots;
