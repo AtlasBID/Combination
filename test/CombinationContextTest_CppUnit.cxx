@@ -49,6 +49,9 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys5 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys6 );
 
+  CPPUNIT_TEST ( testFitCorrelatedResults );
+  CPPUNIT_TEST ( testFitCorrelatedResults2 );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testCTor()
@@ -467,6 +470,44 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1708, fr["a1"].sysErrors["s1"], 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.174, fr["a1"].sysErrors["s2"], 0.01);
     cout << "Finishing testFitOneDataTwoMeasurementSys5" << endl;
+  }
+
+  void testFitCorrelatedResults()
+  {
+    // one data pont, two measurements, with their statistical error 100% correlated.
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    c.AddCorrelation ("statistical", m1, m2, 1.0); // 100%
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    cout << "Correated results:" << endl;
+    DumpFitResult (fr["average"]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].statisticalError, 0.01);
+  }
+
+  void testFitCorrelatedResults2()
+  {
+    // one data pont, two measurements, with their statistical error 100% correlated.
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    c.AddCorrelation ("statistical", m1, m2, 0.0); // 100%
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    cout << "Correated results:" << endl;
+    DumpFitResult (fr["average"]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1*sqrt(1.0/2.0), fr["average"].statisticalError, 0.01);
   }
 
 };

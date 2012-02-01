@@ -50,6 +50,69 @@ namespace BTagCombination {
     }
   }
 
+  //
+  // establish a correlation between two measurements for one of the
+  // errors.
+  //
+  void CombinationContext::AddCorrelation (const std::string &errorName,
+					   Measurement *m1,
+					   Measurement *m2,
+					   double correlation)
+  {
+    if (errorName != "statistical") {
+      throw runtime_error ("Can only deal with correlations for statsical errors!");
+    }
+
+    // Handel a statistical error.
+    // We can have only one statistical error correlation for each measurement!
+
+    string statSysErrorName (string("Correlated-") + m1->What() + "-" + m1->Name() + "-" + m2->Name());
+    if (m1->hasSysError(statSysErrorName)
+	|| m2->hasSysError(statSysErrorName)) {
+      ostringstream err;
+      err << "Only a single correlation can be established between two measurements: "
+	  << m1->What()
+	  << " (" << m1->Name() << ", " << m2->Name() << ")";
+      throw runtime_error (err.str().c_str());
+    }
+
+    //
+    // We assume that m1 has the full statistical error and m2 shares the correlated
+    // and uncorrelated. To decompose we assume that each statistical error is composed
+    // in part of a correlated and uncorrelated part. You end up with 4 unknowns and 3
+    // knowns - so you can't solve it. So we assume that the m1's statistical error is zero.
+    // In the end, if the correlation coeff is 0, you'll end up with a new systeamtic that
+    // is valid for one side. So it works... just non-intuitive.
+    //
+
+    double m1_uncor = 0.0;
+    double m1_corr = m1->GetStatisticalError()->getVal();
+
+    double m2_uncor = sqrt(1-correlation)*m2->GetStatisticalError()->getVal();
+    double m2_corr = correlation*m2->GetStatisticalError()->getVal();
+
+    if (m1_uncor == 0.0)
+      m1_uncor = 0.001;
+    if (m2_uncor == 0.0)
+      m2_uncor = 0.001;
+
+    cout << "m1 = " << m1_uncor << " - " << m1_corr << endl;
+    cout << "m2 = " << m2_uncor << " - " << m2_corr << endl;
+
+    m1->ResetStatisticalError(m1_uncor);
+    m2->ResetStatisticalError(m2_uncor);
+
+    m1->addSystematicAbs(statSysErrorName, m1_corr);
+    m2->addSystematicAbs(statSysErrorName, m2_corr);
+
+    CorrInfo c;
+    c._m1 = m1;
+    c._m2 = m2;
+    c._errorName = errorName;
+    c._sharedSysName = statSysErrorName;
+    _correlations.push_back(c);
+  }
+
   namespace {
     /// When we don't have a measurement name, generate it!
     static string NewMeasurementName(const string &name) {
@@ -134,28 +197,19 @@ namespace BTagCombination {
       RooRealVar *var = _whatMeasurements.FindRooVar(m->What());
 
       RooArgList varAddition;
-      //RooConstVar *one = new RooConstVar("one", "one", 1.0);
-      //varAddition.add(*one);
       varAddition.add(*var);
 
       vector<string> errorNames (m->GetSystematicErrorNames());
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &errName(*isyserr);
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
+	cout << "Sys error " << errName << " - " << m->GetSystematicErrorWidth(errName) << endl;
 
 	varAddition.add(*weight);
-	//weight->Print();
       }
       
       string internalName = "InternalAddition" + m->Name();
       RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
-      //varSumed->Print();
-      //string internal1Mult = "InternalAdditionMult" + m->Name();
-      //RooArgList forMult;
-      //forMult.add(*varSumedP);
-      //forMult.add(*var);
-      //RooProduct *varSumed = new RooProduct(internal1Mult.c_str(), internal1Mult.c_str(), forMult);
-      //varSumed->Print();
 
       ///
       /// The actual variable and th esystematic error are also inputs into this
@@ -476,6 +530,33 @@ namespace BTagCombination {
     for(vector<RooAbsPdf*>::iterator item = measurementGaussians.begin(); item!=measurementGaussians.end(); item++)
       delete *item;
     
+    //
+    // One last thing to take care of - if there were any correlations that were
+    // put in we need to "take them out", as it were.
+    //
+
+    for (size_t i_c = 0; i_c < _correlations.size(); i_c++) {
+      const CorrInfo &ci (_correlations[i_c]);
+      if (ci._errorName == "statistical") {
+	for (map<string, FitResult>::const_iterator i_fr = result.begin(); i_fr != result.end(); i_fr++) {
+	  FitResult fr(i_fr->second);
+	  string fr_name(i_fr->first);
+	  map<string,double>::iterator s_value = fr.sysErrors.find(ci._sharedSysName);
+	  if (s_value != fr.sysErrors.end()) {
+	    cout << "Combining stat sn sys for "
+		 << fr_name 
+		 << " stat: " << fr.statisticalError
+		 << " sys: " << s_value->second
+		 << endl;
+	    fr.statisticalError = sqrt(fr.statisticalError*fr.statisticalError
+				       + s_value->second*s_value->second);
+	    fr.sysErrors.erase(s_value);
+	    result[fr_name] = fr;
+	  }
+	}
+      }
+    }
+
     //
     // Return all the final results.
     //

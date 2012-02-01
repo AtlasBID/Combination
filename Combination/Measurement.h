@@ -28,6 +28,8 @@ namespace BTagCombination {
     void addSystematicRel (const std::string &errorName, const double oneSigmaSizeRelativeFractional);
     void addSystematicPer (const std::string &errorName, const double oneSigmaSizePercent);
 
+    void ResetStatisticalError (double statErr);
+
     inline const std::string &Name(void) const
       { return _name; }
     inline const std::string &What(void) const
@@ -37,7 +39,7 @@ namespace BTagCombination {
   private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
-    RooConstVar *GetStatisticalError() {return &_statError;}
+    RooConstVar *GetStatisticalError() {return _statError;}
 
   private:
     /// The context is allowed access to everything.
@@ -56,7 +58,7 @@ namespace BTagCombination {
 
     /// Variables we'll need later
     RooRealVar _actualValue;
-    RooConstVar _statError;
+    RooConstVar *_statError;
 
     inline std::string NameStat(void) const
       { return Name() + "StatError";}

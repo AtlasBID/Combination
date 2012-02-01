@@ -30,9 +30,19 @@ namespace BTagCombination {
   Measurement::Measurement(const string &measurementName, const string &what, const double val, const double statError)
     : _name(measurementName), _what(what),
       _actualValue(_name.c_str(), _name.c_str(), val),
-      _statError((_name + "StatError").c_str(), (_name + "StatError").c_str(), statError)
+      _statError(new RooConstVar((_name + "StatError").c_str(), (_name + "StatError").c_str(), statError))
   {
     _actualValue.setConstant(true);
+  }
+
+  //
+  // Reset the statistical error
+  //
+  void Measurement::ResetStatisticalError (double statErr)
+  {
+    _statError = new RooConstVar((_name + "StatError").c_str(),
+			     (_name + "StatError").c_str(),
+			     statErr);
   }
 
   ///

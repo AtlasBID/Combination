@@ -44,6 +44,10 @@ namespace BTagCombination {
     Measurement *AddMeasurement (const std::string &what, const double minValue, const double maxValue,
 				 const double value, const double statError);
 
+    /// Add a correlation between two measurements for a particular error. If errorName is
+    /// "statistical" then the statistical error is what is "marked".
+    void AddCorrelation(const std::string &errorName, Measurement *m1, Measurement *m2, double correlation);
+
     /// Fit all the measurements that we've asked for, and return results for each measurement done.
     std::map<std::string, FitResult> Fit(void);
 
@@ -62,6 +66,15 @@ namespace BTagCombination {
     /// Keep a list of all measurements
     std::vector<Measurement*> _measurements;
 
+    // Keep a list of the correlations we are dealing with so we can put them back
+    // together after a fit!
+    struct CorrInfo {
+      Measurement *_m1;
+      Measurement *_m2;
+      std::string _errorName;
+      std::string _sharedSysName;
+    };
+    std::vector<CorrInfo> _correlations;
 
     /// Should we make plots as a diagnostic output?
     bool _doPlots;
