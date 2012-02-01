@@ -44,6 +44,7 @@ class CombinerTest : public CppUnit::TestFixture
   //CPPUNIT_TEST ( testAnaDifTwoDifAndSameBins );
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor );
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor2 );
+  CPPUNIT_TEST ( testAnaTwoSameBinsUnCor3 );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -460,8 +461,70 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(true, e1.uncorrelated);
     CPPUNIT_ASSERT_EQUAL(true, e2.uncorrelated);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e1.value, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e1.value, 0.05);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.05);
+  }
+
+  void testAnaTwoSameBinsUnCor3()
+  {
+    // Same as the UnCor2 test, but we do different systeatmic errors...
+    // Make sure it gives teh same result.
+
+    CalibrationBin b1;
+    b1.centralValue = 1.0;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.2;
+    s1.uncorrelated = false;
+    b1.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.40";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+    ana2.bins[0].binSpec[0].variable = "pt";
+    ana2.bins[0].systematicErrors[0].value = 0.5;
+    ana2.bins[0].systematicErrors[0].name = "s2";
+
+    cout << "ana1:" << endl << ana1;
+    cout << "ana2:" << endl << ana2;
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana1);
+    inputs.push_back (ana2);
+
+    setupRooTurnOn();
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
+    cout << "Result: " << endl << result;
+
+    CPPUNIT_ASSERT_EQUAL(size_t(2), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CalibrationBin b_2 (result.bins[1]);
+
+    CPPUNIT_ASSERT_EQUAL(size_t(1), b_1.systematicErrors.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), b_2.systematicErrors.size());
+
+    SystematicError e1(b_1.systematicErrors[0]);
+    SystematicError e2(b_2.systematicErrors[0]);
+
+    CPPUNIT_ASSERT_EQUAL(false, e1.uncorrelated);
+    CPPUNIT_ASSERT_EQUAL(false, e2.uncorrelated);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e1.value, 0.05);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.05);
   }
 
   void testAnaTwoDifBins()

@@ -483,9 +483,6 @@ class CombinationContextTest : public CppUnit::TestFixture
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
-    cout << "Correated results:" << endl;
-    DumpFitResult (fr["average"]);
-
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].statisticalError, 0.01);
@@ -501,9 +498,6 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
-
-    cout << "Correated results:" << endl;
-    DumpFitResult (fr["average"]);
 
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);

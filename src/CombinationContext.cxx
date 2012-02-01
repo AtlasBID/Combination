@@ -96,9 +96,6 @@ namespace BTagCombination {
     if (m2_uncor == 0.0)
       m2_uncor = 0.001;
 
-    cout << "m1 = " << m1_uncor << " - " << m1_corr << endl;
-    cout << "m2 = " << m2_uncor << " - " << m2_corr << endl;
-
     m1->ResetStatisticalError(m1_uncor);
     m2->ResetStatisticalError(m2_uncor);
 
@@ -203,7 +200,6 @@ namespace BTagCombination {
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &errName(*isyserr);
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
-	cout << "Sys error " << errName << " - " << m->GetSystematicErrorWidth(errName) << endl;
 
 	varAddition.add(*weight);
       }
@@ -543,11 +539,6 @@ namespace BTagCombination {
 	  string fr_name(i_fr->first);
 	  map<string,double>::iterator s_value = fr.sysErrors.find(ci._sharedSysName);
 	  if (s_value != fr.sysErrors.end()) {
-	    cout << "Combining stat sn sys for "
-		 << fr_name 
-		 << " stat: " << fr.statisticalError
-		 << " sys: " << s_value->second
-		 << endl;
 	    fr.statisticalError = sqrt(fr.statisticalError*fr.statisticalError
 				       + s_value->second*s_value->second);
 	    fr.sysErrors.erase(s_value);
