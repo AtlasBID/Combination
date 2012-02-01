@@ -102,7 +102,8 @@ namespace {
 	}
       }
 
-      result.systematicErrors.push_back(e);
+      if (e.value != 0.0)
+	result.systematicErrors.push_back(e);
     }
 
     return result;

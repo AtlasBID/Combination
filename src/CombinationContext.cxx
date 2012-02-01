@@ -385,8 +385,27 @@ namespace BTagCombination {
 	  double centralError = totalError[item];
 	  double delta = centralError*centralError - m->getError()*m->getError();
 	  double errDiff = sqrt(fabs(delta));
+	  cout << "  centralError = " << centralError << endl
+	       << "  fit result = " << m->getError() << endl
+	       << "  delta = " << delta << endl;
+
+	  // If this error is really small, reset to zero (less than 0.1%).
+	  {
+	    double cv = result[item].centralValue;
+	    if (cv == 0) {
+	      if (errDiff < 0.0001)
+		errDiff = 0;
+	    } else {
+	      if ((errDiff/cv)*100 < 0.1)
+		errDiff = 0.0;
+	    }
+	  }
+
+	  // Propagate the sign
 	  if (delta < 0.0)
 	    errDiff = -errDiff;
+
+	  // Save for later use!
 	  errorMap[sysErrorName] = errDiff;
 	  result[item].sysErrors[sysErrorName] = errDiff;
 

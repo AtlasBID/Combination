@@ -27,21 +27,25 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitOneZeroMeasurement );
   CPPUNIT_TEST ( testFitTwoZeroMeasurement );
   CPPUNIT_TEST ( testFitOneNonZeroMeasurement );
+
   CPPUNIT_TEST ( testFitTwoDataOneMeasurement );
   CPPUNIT_TEST ( testFitTwoDataOneMeasurement2 );
   CPPUNIT_TEST ( testFitTwoDataOneMeasurement3 );
 
-  CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
+  CPPUNIT_TEST ( testFitTwoDataOneMeasurement4 );
+  CPPUNIT_TEST ( testFitTwoDataOneMeasurementSys );
+
   CPPUNIT_TEST ( testFitTwoDataTwoMeasurement );
 
+
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
+  CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys );
-  CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys2 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys3 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys4 );
-
-  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys2 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys5 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys6 );
 
@@ -63,6 +67,12 @@ class CombinationContextTest : public CppUnit::TestFixture
   {
     RooMsgService::instance().setSilentMode(true);
     RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+  }
+
+  void setupRooTurnOn()
+  {
+    RooMsgService::instance().setSilentMode(false);
+    RooMsgService::instance().setGlobalKillBelow(RooFit::INFO);
   }
 
   void testFitOneMeasurement()
@@ -191,6 +201,64 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["a2"].statisticalError, 0.01);
   }
 
+  void testFitTwoDataOneMeasurement4()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["a2"].centralValue, 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a1"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a2"].statisticalError, 0.01);
+  }
+
+  void DumpFitResult (const CombinationContext::FitResult &f)
+  {
+    cout << "Central value " << f.centralValue
+	 << " +- " << f.statisticalError << endl;
+    for (map<string, double>::const_iterator itr = f.sysErrors.begin(); itr != f.sysErrors.end(); itr++) {
+      cout << "  Sys " << itr->first << " +- " << itr->second << endl;
+    }
+  }
+
+  void testFitTwoDataOneMeasurementSys()
+  {
+    // Two different measurements.
+    // With two unconnected systematic errors.
+
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.2);
+
+    m1->addSystematicAbs("s1", 0.2);
+    m2->addSystematicAbs("s2", 0.4);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["a2"].centralValue, 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a1"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a2"].statisticalError, 0.01);
+
+    //DumpFitResult (fr["a1"]);
+    //DumpFitResult (fr["a2"]);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a1"].sysErrors["s1"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["a2"].sysErrors["s2"], 0.001);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), fr["a1"].sysErrors.size());
+    CPPUNIT_ASSERT_EQUAL (size_t(1), fr["a2"].sysErrors.size());
+
+  }
+
   void testFitTwoDataOneMeasurement2()
   {
     // Two measurements, common systematic error.
@@ -275,7 +343,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   void testFitOneDataTwoMeasurementSys3()
   {
-    cout << "Starting testFitOneDataTwoMeasurementSys" << endl;
+    cout << "Starting testFitOneDataTwoMeasurementSys3" << endl;
     // Garbage in, garbage out.
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 0.5, 0.1);
@@ -291,12 +359,12 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL((size_t)1, fr["a1"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["a1"].sysErrors["s1"], 0.01);
-    cout << "Finishing testFitOneDataTwoMeasurementSys" << endl;
+    cout << "Finishing testFitOneDataTwoMeasurementSys3" << endl;
   }
 
   void testFitOneDataTwoMeasurementSys4()
   {
-    cout << "Starting testFitOneDataTwoMeasurementSys" << endl;
+    cout << "Starting testFitOneDataTwoMeasurementSys4" << endl;
     // Garbage in, garbage out.
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 0.5, 0.1);
@@ -313,7 +381,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL((size_t)2, fr["a1"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2748, fr["a1"].sysErrors["s1"], 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2748, fr["a1"].sysErrors["s2"], 0.01);
-    cout << "Finishing testFitOneDataTwoMeasurementSys" << endl;
+    cout << "Finishing testFitOneDataTwoMeasurementSy4" << endl;
   }
 
   void testFitOneDataTwoMeasurementSys2()
@@ -380,7 +448,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   void testFitOneDataTwoMeasurementSys5()
   {
-    cout << "Starting testFitOneDataTwoMeasurementSys2" << endl;
+    cout << "Starting testFitOneDataTwoMeasurementSys5" << endl;
     // Garbage in, garbage out.
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
@@ -398,7 +466,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1708, fr["a1"].sysErrors["s1"], 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.174, fr["a1"].sysErrors["s2"], 0.01);
-    cout << "Finishing testFitOneDataTwoMeasurementSys2" << endl;
+    cout << "Finishing testFitOneDataTwoMeasurementSys5" << endl;
   }
 
 };
