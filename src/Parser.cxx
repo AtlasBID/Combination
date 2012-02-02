@@ -15,9 +15,6 @@
 // Suggestions/Specific Warnings:
 //  - When changing the grammar try to modify only one line at a time so you can pinpoint what
 //    is causing the error messages.
-//  - There are some rules for the bind predicate - sometimes I have to fully namespace
-//    qualify it, other times I do not. No clue. If it doesn't work the simple way, try
-//    the hard way.
 //  - To deal with the "|" make holder objects and use the bind - look at CIHolder for example.
 //  - run the tests ("make CppUnit") frequently - there are a bunch, and write more too - and it
 //    gives you a lot of confidence you aren't trashing the system.
@@ -416,20 +413,76 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
     CalibrationBinParser<Iterator> binParser;
 };
 
+//
+// Parse the top level correlation information
+//
+#ifdef later
+			  (std::string, name)
+			  (std::vector<CalibrationBin>, bins)
+#endif
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::AnalysisCorrelation,
+			  (std::string, analysis1Name)
+			  (std::string, analysis2Name)
+			  (std::string, flavor)
+			  (std::string, tagger)
+			  (std::string, operatingPoint)
+			  (std::string, jetAlgorithm)
+			  )
+template <typename Iterator>
+struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), ascii::space_type>
+{
+  AnalysisCorrelationParser() : AnalysisCorrelationParser::base_type(start, "Analysis") {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+
+    name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
+
+    start %= lit("Correlation") 
+      > '(' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ')'
+      > '{'
+      > '}';
+#ifdef later
+
+    start %= lit("Analysis") > lit('(') > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ')'
+      > '{'
+      > *binParser
+      > '}';
+#endif
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, AnalysisCorrelation(), ascii::space_type> start;
+};
+
 // 
 // Helper struct for the parsing.
 struct CIHolder
 {
   vector<CalibrationAnalysis> Anas;
+  vector<AnalysisCorrelation> Cors;
 
   inline void AddAnalysis (const CalibrationAnalysis &ana)
   {
     Anas.push_back(ana);
   }
 
+  inline void AddCorrelation (const AnalysisCorrelation &cor)
+  {
+    Cors.push_back(cor);
+  }
+
   inline void Convert(CalibrationInfo &holder)
   {
     holder.Analyses = Anas;
+    holder.Correlations = Cors;
   }
 };
 
@@ -445,6 +498,7 @@ struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::s
 
       localCIHolder = *(
 			analysisParser[bind(&CIHolder::AddAnalysis, _val, _1)]
+			| correlationParser[bind(&CIHolder::AddCorrelation, _val, _1)]
 			);
 
       converter = localCIHolder[bind(&CIHolder::Convert, _1, _val)];
@@ -454,6 +508,7 @@ struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::s
     qi::rule<Iterator, CalibrationInfo(), ascii::space_type> converter;
     qi::rule<Iterator, CIHolder(), ascii::space_type> localCIHolder;
     CalibrationAnalysisParser<Iterator> analysisParser;
+    AnalysisCorrelationParser<Iterator> correlationParser;
 };
 
 //

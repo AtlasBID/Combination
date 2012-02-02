@@ -26,13 +26,12 @@ namespace BTagCombination
   // The binning boundaries
   struct CalibrationBinBoundary
   {
-	double lowvalue;
-	std::string variable;
-	double highvalue;
+    double lowvalue;
+    std::string variable;
+    double highvalue;
 
     enum BinBoundaryFormatEnum { kNormal, kROOTFormatted };
     static BinBoundaryFormatEnum gFormatForNextBoundary;
-
   };
 
   class CalibrationBinBoundaryFormat {
@@ -217,15 +216,49 @@ namespace BTagCombination
     return out;
   }
 
+  // Contains the correlations for a single bin.
+  struct BinCorrelation
+  {
+    vector<CalibrationBinBoundary> binSpec;
+  };
+
+  // The correlation between two analyses
+  struct AnalysisCorrelation {
+    std::string analysis1Name;
+    std::string analysis2Name;
+    std::string flavor;
+    std::string tagger;
+    std::string operatingPoint;
+    std::string jetAlgorithm;
+
+    vector<BinCorrelation> bins;
+  };
+
+  inline std::ostream &operator<< (std::ostream &out, const AnalysisCorrelation &cor) {
+    out << "Correlation (" 
+	<< cor.analysis1Name
+	<< ", " << cor.analysis2Name 
+	<< ", " << cor.flavor
+	<< ", " << cor.tagger
+	<< ", " << cor.operatingPoint
+	<< ", " << cor.jetAlgorithm
+	<< ") {}" << std::endl;
+    return out;
+  }
+
   // A list of everything that we might be reading in
   struct CalibrationInfo
   {
     std::vector<CalibrationAnalysis> Analyses;
+    std::vector<AnalysisCorrelation> Correlations;
   };
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {
     for (size_t i = 0; i < info.Analyses.size(); i++) {
       out << info.Analyses[i] << std::endl;
+    }
+    for (size_t i = 0; i < info.Correlations.size(); i++) {
+      out << info.Correlations[i] << std::endl;
     }
     return out;
   }
