@@ -443,7 +443,7 @@ class CombinerTest : public CppUnit::TestFixture
     inputs.push_back (ana1);
     inputs.push_back (ana2);
 
-    setupRooTurnOn();
+    setupRoo();
     CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     cout << "Result: " << endl << result;
 
@@ -505,7 +505,7 @@ class CombinerTest : public CppUnit::TestFixture
     inputs.push_back (ana1);
     inputs.push_back (ana2);
 
-    setupRooTurnOn();
+    setupRoo();
     CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
     cout << "Result: " << endl << result;
 

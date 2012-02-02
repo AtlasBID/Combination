@@ -3,6 +3,25 @@
 //
 // ATLAS - is currently using spirit 2.2
 //
+//  WARNING:
+// The Spirit parser is one of these very cool fluent based parser. It allows you to
+// specify a grammar in a nice easy way. BUT the second you want to do something a little
+// odd you end up in hell. It is *heavily* template based (this file can take a minute or more
+// to compile). And if you make the slightest mistake you'll end up with 100 error messages
+// all due to one line. However, it is very cool. So, before you want to modify the grammar
+// I suggest taking a shot of your favorite poison (or a large amount Dr. Pepper!), and then
+// dive in!
+//
+// Suggestions/Specific Warnings:
+//  - When changing the grammar try to modify only one line at a time so you can pinpoint what
+//    is causing the error messages.
+//  - There are some rules for the bind predicate - sometimes I have to fully namespace
+//    qualify it, other times I do not. No clue. If it doesn't work the simple way, try
+//    the hard way.
+//  - To deal with the "|" make holder objects and use the bind - look at CIHolder for example.
+//  - run the tests ("make CppUnit") frequently - there are a bunch, and write more too - and it
+//    gives you a lot of confidence you aren't trashing the system.
+//
 
 #include "Combination/Parser.h"
 
@@ -73,7 +92,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  (double, highvalue)
 			  )
 
-  template <typename Iterator>
+template <typename Iterator>
 struct CalibrationBinBoundaryParser :
   qi::grammar<Iterator, CalibrationBinBoundary(), ascii::space_type>
 {
@@ -103,6 +122,7 @@ struct CalibrationBinBoundaryParser :
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     qi::rule<Iterator, CalibrationBinBoundary(), ascii::space_type> start;
 };
+
 //
 // An error can be relative or not. If relative is true, it is relative w.r.t. some central value.
 // The central value can be found by looking up at whatever is holding onto this guy. Most errors
@@ -111,6 +131,7 @@ struct CalibrationBinBoundaryParser :
 //  a "0.83" is an aboslute number, and "0.83%" is a relative number. You can add a <space> between
 // the two.
 //
+
 struct ErrorValue
 {
   ErrorValue(double err = 0.0)
@@ -172,9 +193,10 @@ struct ErrorValueParser : qi::grammar<Iterator, ErrorValue(), ascii::space_type>
     using qi::double_;
     using qi::_val;
     using qi::_1;
+    using boost::phoenix::bind;
 
     start = double_[_val = _1]
-      >> -(lit("%")[boost::phoenix::bind(&ErrorValue::MakeRelative, _val)]);
+      >> -(lit("%")[bind(&ErrorValue::MakeRelative, _val)]);
 		
     start.name("error");
   }
@@ -196,17 +218,18 @@ struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_
     using qi::double_;
     using qi::_val;
     using qi::labels::_1;
+    using boost::phoenix::bind;
 
     name_string %= lexeme[+(char_ - ',' - '"')];
     name_string.name("Systematic Error Name");
 
     start = (
-	     lit("sys")[boost::phoenix::bind(&ErrorValue::MakeCorrelated, _val)]
-	     |lit("usys")[boost::phoenix::bind(&ErrorValue::MakeUncorrelated, _val)]
+	     lit("sys")[bind(&ErrorValue::MakeCorrelated, _val)]
+	     |lit("usys")[bind(&ErrorValue::MakeUncorrelated, _val)]
 	     )
       > '('
-      > name_string[boost::phoenix::bind(&ErrorValue::SetName, _val, _1)] > ','
-      > errParser[boost::phoenix::bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
+      > name_string[bind(&ErrorValue::SetName, _val, _1)] > ','
+      > errParser[bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
       > ')';
 
     start.name("Systematic Error");
@@ -246,12 +269,13 @@ struct CentralValueParser : qi::grammar<Iterator, centralvalue(), ascii::space_t
     using qi::double_;
     using qi::_val;
     using qi::labels::_1;
+    using boost::phoenix::bind;
 
     start = lit("central_value")
       > '('
-      > double_[boost::phoenix::bind(&centralvalue::SetValue, _val, _1)]
+      > double_[bind(&centralvalue::SetValue, _val, _1)]
       > ','
-      > errParser[boost::phoenix::bind(&centralvalue::SetError, _val, _1)]
+      > errParser[bind(&centralvalue::SetError, _val, _1)]
       > ')';
 
     start.name("Central Value");
@@ -261,7 +285,6 @@ struct CentralValueParser : qi::grammar<Iterator, centralvalue(), ascii::space_t
     ErrorValueParser<Iterator> errParser;
     qi::rule<Iterator, centralvalue(), ascii::space_type> start;
 };
-
 
 //
 // Parse the bin spec bin(30 < pt < 40, 2.5 < eta < 5.5) {xxx}. There should be only one central
@@ -319,7 +342,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  (std::vector<centralvalue>, centralvalues)
 			  )
 
-  template <typename Iterator>
+template <typename Iterator>
 struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::space_type>
 {
   CalibrationBinParser() : CalibrationBinParser::base_type(converter, "Bin")
@@ -337,7 +360,7 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
       localBinFinder.name("Bin finder");
 
       localBinFinder = lit("bin") 
-	> '(' > boundary_list [boost::phoenix::bind(&localCalibBin::SetBins, _val, _1)] > ')'
+	> '(' > boundary_list [bind(&localCalibBin::SetBins, _val, _1)] > ')'
 	> '{'
 	> *(sysErrors[bind(&localCalibBin::AddSysError, _val, _1)] | cvFinder[bind(&localCalibBin::AddCentralValue, _val, _1)])
 	> '}';
@@ -372,7 +395,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  (std::vector<CalibrationBin>, bins)
 			  )
 
-  template <typename Iterator>
+template <typename Iterator>
 struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), ascii::space_type>
 {
   CalibrationAnalysisParser() : CalibrationAnalysisParser::base_type(start, "Analysis") {
@@ -393,18 +416,58 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
     CalibrationBinParser<Iterator> binParser;
 };
 
+// 
+// Helper struct for the parsing.
+struct CIHolder
+{
+  vector<CalibrationAnalysis> Anas;
+
+  inline void AddAnalysis (const CalibrationAnalysis &ana)
+  {
+    Anas.push_back(ana);
+  }
+
+  inline void Convert(CalibrationInfo &holder)
+  {
+    holder.Analyses = Anas;
+  }
+};
+
+template<typename Iterator>
+struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::space_type>
+{
+  CalibrationInfoParser()
+    : CalibrationInfoParser::base_type(converter, "AnalysisInfo")
+    {
+      using qi::lit;
+      using namespace qi::labels;
+      using boost::phoenix::bind;
+
+      localCIHolder = *(
+			analysisParser[bind(&CIHolder::AddAnalysis, _val, _1)]
+			);
+
+      converter = localCIHolder[bind(&CIHolder::Convert, _1, _val)];
+
+    }
+
+    qi::rule<Iterator, CalibrationInfo(), ascii::space_type> converter;
+    qi::rule<Iterator, CIHolder(), ascii::space_type> localCIHolder;
+    CalibrationAnalysisParser<Iterator> analysisParser;
+};
+
 //
 // Parse a file - so this is a sequence of Analysis guys, with nothing
 // else in them.
 //
 template<typename Iterator>
-struct CalibrationAnalysisFileParser : qi::grammar<Iterator, vector<CalibrationAnalysis>(), ascii::space_type>
+struct CalibrationAnalysisFileParser : qi::grammar<Iterator, CalibrationInfo(), ascii::space_type>
 {
   CalibrationAnalysisFileParser() : CalibrationAnalysisFileParser::base_type(start, "Calibration Analysis File")
     {
       using boost::spirit::qi::eoi;
       anaParser.name("Analyis");
-      start %= *anaParser > eoi;
+      start %= anaParser > eoi;
 
       //
       // Error handling - This shoudl show the user exactly where it is that our parser got jammed up on their
@@ -430,83 +493,9 @@ struct CalibrationAnalysisFileParser : qi::grammar<Iterator, vector<CalibrationA
 	 );
     }
 
-    qi::rule<Iterator, vector<CalibrationAnalysis>(), ascii::space_type> start;
-    CalibrationAnalysisParser<Iterator> anaParser;
+    qi::rule<Iterator, CalibrationInfo(), ascii::space_type> start;
+    CalibrationInfoParser<Iterator> anaParser;
 };
-
-#ifdef notyet
-BOOST_FUSION_ADAPT_STRUCT(
-			  SystematicError,
-			  (std::string, name)
-			  (double, val)
-			  )
-
-  BOOST_FUSION_ADAPT_STRUCT(
-			    CentralValue,
-			    (double, Value)
-			    (double, Error)
-			    )
-
-#endif
-
-//
-//
-#ifdef notyet
-
-/////////////////
-// Parser primiatives. They parse combo info things
-////////////////
-
-// Parse  the central value "(central_value(0.9, 0.1%)".
-  template <typename Iterator>
-struct CentralValueParser : qi::grammar<Iterator, CentralValue(), ascii::space_type>
-{
-  CentralValueParser() : CentralValueParser::base_type(start) {
-    using ascii::char_;
-    using qi::lexeme;
-    using qi::lit;
-    using qi::double_;
-
-    name_string %= lexeme[+(char_ - ',' - '"')];
-
-    start %= lit("central_value")
-      >> '('
-      >> double_ >> ","
-      >> double_
-      >> ')'
-      ;
-  }
-
-    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
-    qi::rule<Iterator, CentralValue(), ascii::space_type> start;
-};
-
-// Some debugging code incase we need it again...
-vector<CalibrationBinBoundary> bb;
-	
-CalibrationBinBoundaryParser<string::const_iterator> boundary;
-qi::rule<string::const_iterator, vector<CalibrationBinBoundary>(), ascii::space_type>  boundary_list;
-string input = "20 < pt < 25";
-boundary_list %= boundary % ",";
-auto bogus = boundary % ",";
-bool r1 = phrase_parse(input.begin(), input.end(),
-		       boundary_list,
-		       ascii::space,
-		       bb);
-
-string input = "sys (JES, 0.55)";
-SystematicErrorParser<string::const_iterator> errParser;
-ErrorValue mr;
-bool r1 = phrase_parse(input.begin(), input.end(),
-		       errParser,
-		       ascii::space,
-		       mr);
-
-
-#endif
-
-///////////////////////////////////////
-
 
 namespace BTagCombination
 {
@@ -521,12 +510,12 @@ namespace BTagCombination
   //
   // Parse the input text as a list of calibration inputs
   //
-  vector<CalibrationAnalysis> Parse(const string &inputText)
+  CalibrationInfo Parse(const string &inputText)
   {
     string::const_iterator iter = inputText.begin();
     string::const_iterator end = inputText.end();
 
-    vector<CalibrationAnalysis> result;
+    CalibrationInfo result;
     CalibrationAnalysisFileParser<string::const_iterator> caParser;
     bool didit = phrase_parse(iter, end,
 			      caParser,
@@ -545,9 +534,8 @@ namespace BTagCombination
   //
   // Parse an input file
   //
-  vector<CalibrationAnalysis> Parse (istream &input)
+  CalibrationInfo Parse (istream &input)
   {
-
     ostringstream text;
     while (!input.eof()) {
       string line;
@@ -557,71 +545,4 @@ namespace BTagCombination
 
     return Parse(text.str());
   }
-  
-#ifdef notyet
-
-  namespace client
-  {
-    namespace qi = boost::spirit::qi;
-    namespace ascii = boost::spirit::ascii;
-
-    ///////////////////////////////////////////////////////////////////////////
-    //  Our number list parser
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Iterator>
-    bool parse_numbers(Iterator first, Iterator last)
-    {
-      using qi::double_;
-      using qi::phrase_parse;
-      using ascii::space;
-
-      bool r = phrase_parse(
-			    first,                          /*< start iterator >*/
-			    last,                           /*< end iterator >*/
-			    double_ >> *(',' >> double_),   /*< the parser >*/
-			    space                           /*< the skip-parser >*/
-			    );
-      if (first != last) // fail if we did not get a full match
-	return false;
-      return r;
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  //  Main program
-  ////////////////////////////////////////////////////////////////////////////
-  int
-  main()
-  {
-    std::cout << "/////////////////////////////////////////////////////////\n\n";
-    std::cout << "\t\tA comma separated list parser for Spirit...\n\n";
-    std::cout << "/////////////////////////////////////////////////////////\n\n";
-
-    std::cout << "Give me a comma separated list of numbers.\n";
-    std::cout << "Type [q or Q] to quit\n\n";
-
-    std::string str;
-    while (getline(std::cin, str))
-      {
-	if (str.empty() || str[0] == 'q' || str[0] == 'Q')
-	  break;
-
-	if (client::parse_numbers(str.begin(), str.end()))
-	  {
-	    std::cout << "-------------------------\n";
-	    std::cout << "Parsing succeeded\n";
-	    std::cout << str << " Parses OK: " << std::endl;
-	  }
-	else
-	  {
-	    std::cout << "-------------------------\n";
-	    std::cout << "Parsing failed\n";
-	    std::cout << "-------------------------\n";
-	  }
-      }
-
-    std::cout << "Bye... :-) \n\n";
-    return 0;
-  }
-#endif
 }

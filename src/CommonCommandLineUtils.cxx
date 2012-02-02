@@ -33,9 +33,9 @@ namespace {
     // Load it up!
     try {
       ifstream input(fname.c_str());
-      vector<CalibrationAnalysis> calib = Parse(input);
+      CalibrationInfo calib = Parse(input);
       input.close();
-      list.insert(list.end(), calib.begin(), calib.end());
+      list.insert(list.end(), calib.Analyses.begin(), calib.Analyses.end());
     } catch (exception &e) {
       ostringstream msg;
       msg << "Caught error parsing file '" << fname << "': " << e.what();
@@ -194,7 +194,7 @@ namespace BTagCombination {
   map<string, vector<CalibrationAnalysis> > BinAnalysesByJetTagFlavOp (const vector<CalibrationAnalysis> &anas)
   {
     map<string, vector<CalibrationAnalysis> > result;
-    for (int i = 0; i < anas.size(); i++) {
+    for (size_t i = 0; i < anas.size(); i++) {
       result[OPIndependentName(anas[i])].push_back(anas[i]);
     }
     return result;

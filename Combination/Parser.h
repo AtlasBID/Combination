@@ -209,7 +209,7 @@ namespace BTagCombination
 	<< ", " << ana.tagger
 	<< ", " << ana.operatingPoint
 	<< ", " << ana.jetAlgorithm
-      << ") {"
+	<< ") {"
 	<< std::endl;
     for (unsigned int i = 0; i < ana.bins.size(); i++)
       out << "  " << ana.bins[i] << std::endl;
@@ -217,13 +217,26 @@ namespace BTagCombination
     return out;
   }
 
+  // A list of everything that we might be reading in
+  struct CalibrationInfo
+  {
+    std::vector<CalibrationAnalysis> Analyses;
+  };
+
+  inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {
+    for (size_t i = 0; i < info.Analyses.size(); i++) {
+      out << info.Analyses[i] << std::endl;
+    }
+    return out;
+  }
+
   //////
 
   // Returns a list of analyses given an input string.
-  std::vector<CalibrationAnalysis> Parse(const std::string &inputText);
+  CalibrationInfo Parse(const std::string &inputText);
 
   // Returns a list of analyses given an input text file (reads the complete text file)
-  std::vector<CalibrationAnalysis> Parse(std::istream &input);
+  CalibrationInfo Parse(std::istream &input);
 }
 
 #endif

@@ -5,6 +5,7 @@
 //
 
 #include "Combination/Parser.h"
+#include "Combination/CommonCommandLineUtils.h"
 
 #include <iostream>
 #include <sstream>
@@ -16,13 +17,12 @@
 using namespace std;
 using namespace BTagCombination;
 
-string LoadFromFile (const string &fname);
-
-int main()
+int main(int argc, char **argv)
 {
-  string filename = "input.txt";
-  
-  vector<CalibrationAnalysis> items = BTagCombination::Parse(LoadFromFile(filename));
+  // Parse the input arguments
+  vector<CalibrationAnalysis> items;
+  vector<string> otherFlags;
+  ParseOPInputArgs ((const char**)&(argv[1]), argc-1, items, otherFlags);
 
   cout << "See " << items.size() << " analyses" << endl;
   for (unsigned int iana = 0; iana < items.size(); iana++) {
@@ -47,20 +47,3 @@ int main()
   return 0;
 }
 
-//
-// Load a file into memory
-//
-string LoadFromFile (const string &fname)
-{
-  ifstream input(fname.c_str());
-  ostringstream result;
-
-  while (!input.eof())
-    {
-      string line;
-      getline(input, line);
-      result << line << endl;
-    }
-
-  return result.str();
-}
