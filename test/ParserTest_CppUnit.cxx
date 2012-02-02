@@ -296,7 +296,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseCorrelation()
   {
     cout << "Test testParseCorrelation" << endl;
-    CalibrationInfo result (Parse("Correlation (ptrel, s8, bottom, MV1, 0.9, AntiKt) {}"));
+    CalibrationInfo result (Parse("Correlation (ptrel, s8, bottom, MV1, 0.9, AntiKt) { bin (0 < pt < 5) {}}"));
     CPPUNIT_ASSERT_EQUAL(size_t(1), result.Correlations.size());
 
     AnalysisCorrelation c (result.Correlations[0]);
@@ -306,12 +306,21 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("MV1"), c.tagger);
     CPPUNIT_ASSERT_EQUAL(string("0.9"), c.operatingPoint);
     CPPUNIT_ASSERT_EQUAL(string("AntiKt"), c.jetAlgorithm);
+
+    CPPUNIT_ASSERT_EQUAL(size_t(1), c.bins.size());
+    BinCorrelation b(c.bins[0]);
+    CPPUNIT_ASSERT_EQUAL(size_t(1), b.binSpec.size());
+    CalibrationBinBoundary bb(b.binSpec[0]);
+
+    CPPUNIT_ASSERT_EQUAL(string("pt"), bb.variable);
+    CPPUNIT_ASSERT_EQUAL(0.0, bb.lowvalue);
+    CPPUNIT_ASSERT_EQUAL(5.0, bb.highvalue);
   }
 
   void testParseRoundTrip4()
   {
     cout << "Test testParseRoundTrip4" << endl;
-    CalibrationInfo result (Parse("Correlation (ptrel, s8, bottom, MV1, 0.9, AntiKt) {}"));
+    CalibrationInfo result (Parse("Correlation (ptrel, s8, bottom, MV1, 0.9, AntiKt) {bin (0 < pt < 5) {}}"));
     
     ostringstream buffer;
     cout << result << endl;
@@ -328,6 +337,15 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("MV1"), c.tagger);
     CPPUNIT_ASSERT_EQUAL(string("0.9"), c.operatingPoint);
     CPPUNIT_ASSERT_EQUAL(string("AntiKt"), c.jetAlgorithm);
+    CPPUNIT_ASSERT_EQUAL(size_t(1), c.bins.size());
+
+    BinCorrelation b(c.bins[0]);
+    CPPUNIT_ASSERT_EQUAL(size_t(1), b.binSpec.size());
+    CalibrationBinBoundary bb(b.binSpec[0]);
+
+    CPPUNIT_ASSERT_EQUAL(string("pt"), bb.variable);
+    CPPUNIT_ASSERT_EQUAL(0.0, bb.lowvalue);
+    CPPUNIT_ASSERT_EQUAL(5.0, bb.highvalue);
   }
 };
 

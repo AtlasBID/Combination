@@ -18,6 +18,9 @@
 //  - To deal with the "|" make holder objects and use the bind - look at CIHolder for example.
 //  - run the tests ("make CppUnit") frequently - there are a bunch, and write more too - and it
 //    gives you a lot of confidence you aren't trashing the system.
+//  - When specifying structs in the BOOST_FUSION_ADEPT_STRUCT make sure to do fully
+//    namespace qualified - boost moves things around and w/out the namespace some of the stuff
+//    will no longer make sense.
 //
 
 #include "Combination/Parser.h"
@@ -416,10 +419,19 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
 //
 // Parse the top level correlation information
 //
-#ifdef later
-			  (std::string, name)
-			  (std::vector<CalibrationBin>, bins)
-#endif
+struct localCorBin
+{
+  std::vector<CalibrationBinBoundary> binSpec;
+  void Convert (BinCorrelation &result)
+  {
+    result.binSpec = binSpec;
+  }
+  void SetBins(const vector<CalibrationBinBoundary> &b)
+  {
+    binSpec = b;
+  }
+};
+
 BOOST_FUSION_ADAPT_STRUCT(
 			  BTagCombination::AnalysisCorrelation,
 			  (std::string, analysis1Name)
@@ -428,6 +440,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 			  (std::string, tagger)
 			  (std::string, operatingPoint)
 			  (std::string, jetAlgorithm)
+			  (std::vector<BTagCombination::BinCorrelation>, bins)
 			  )
 template <typename Iterator>
 struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), ascii::space_type>
@@ -436,8 +449,22 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
+    using qi::_val;
+    using qi::labels::_1;
+    using boost::phoenix::bind;
 
     name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
+
+    boundary_list %= (boundaryParser % ',');
+    boundary_list.name("List of Bin Boundaries");
+
+    localBinFinder =
+      lit("bin")
+      > '(' > boundary_list[bind(&localCorBin::SetBins, _val, _1)] > ')'
+      > '{'
+      > '}';
+
+    binFinder = localBinFinder[bind(&localCorBin::Convert, _1, _val)];
 
     start %= lit("Correlation") 
       > '(' > name_string 
@@ -448,6 +475,7 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
       > ',' > name_string 
       > ')'
       > '{'
+      > *binFinder
       > '}';
 #ifdef later
 
@@ -460,6 +488,11 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     qi::rule<Iterator, AnalysisCorrelation(), ascii::space_type> start;
+    qi::rule<Iterator, localCorBin(), ascii::space_type> localBinFinder;
+    qi::rule<Iterator, BinCorrelation(), ascii::space_type> binFinder;
+
+    CalibrationBinBoundaryParser<Iterator> boundaryParser;
+    qi::rule<Iterator, std::vector<BTagCombination::CalibrationBinBoundary>(), ascii::space_type>  boundary_list;
 };
 
 // 

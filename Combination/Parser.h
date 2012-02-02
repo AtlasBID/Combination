@@ -219,8 +219,20 @@ namespace BTagCombination
   // Contains the correlations for a single bin.
   struct BinCorrelation
   {
-    vector<CalibrationBinBoundary> binSpec;
+    std::vector<CalibrationBinBoundary> binSpec;
   };
+
+  inline std::ostream &operator<< (std::ostream &out, const BinCorrelation &cor) {
+    out << "bin (";
+    for (size_t i = 0; i < cor.binSpec.size(); i++) {
+      if (i != 0)
+	out << ",";
+      out << cor.binSpec[i];
+    }
+    out << ") {" << std::endl;
+    out << "}";
+    return out;
+  }
 
   // The correlation between two analyses
   struct AnalysisCorrelation {
@@ -231,7 +243,7 @@ namespace BTagCombination
     std::string operatingPoint;
     std::string jetAlgorithm;
 
-    vector<BinCorrelation> bins;
+    std::vector<BinCorrelation> bins;
   };
 
   inline std::ostream &operator<< (std::ostream &out, const AnalysisCorrelation &cor) {
@@ -242,7 +254,11 @@ namespace BTagCombination
 	<< ", " << cor.tagger
 	<< ", " << cor.operatingPoint
 	<< ", " << cor.jetAlgorithm
-	<< ") {}" << std::endl;
+	<< ") {";
+    for (size_t i = 0; i < cor.bins.size(); i++) {
+      out << cor.bins[i] << std::endl;
+    }
+    out << "}";
     return out;
   }
 
