@@ -20,10 +20,11 @@ using namespace BTagCombination;
 int main(int argc, char **argv)
 {
   // Parse the input arguments
-  vector<CalibrationAnalysis> items;
+  CalibrationInfo info;
   vector<string> otherFlags;
-  ParseOPInputArgs ((const char**)&(argv[1]), argc-1, items, otherFlags);
+  ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
+  const vector<CalibrationAnalysis> &items(info.Analyses);
   cout << "See " << items.size() << " analyses" << endl;
   for (unsigned int iana = 0; iana < items.size(); iana++) {
     const CalibrationAnalysis &ana (items[iana]);

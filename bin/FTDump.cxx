@@ -17,9 +17,9 @@ using namespace BTagCombination;
 
 // Helper routines forward defined.
 void Usage(void);
-void DumpEverything (vector<CalibrationAnalysis> &calibs);
-void CheckEverything (vector<CalibrationAnalysis> &calibs);
-void PrintNames (vector<CalibrationAnalysis> &calibs);
+void DumpEverything (const vector<CalibrationAnalysis> &calibs);
+void CheckEverything (const vector<CalibrationAnalysis> &calibs);
+void PrintNames (const vector<CalibrationAnalysis> &calibs);
 
 // Main program - run & control everything.
 int main (int argc, char **argv)
@@ -31,9 +31,9 @@ int main (int argc, char **argv)
 
   try {
     // Parse the input arguments
-    vector<CalibrationAnalysis> calibs;
+    CalibrationInfo info;
     vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, calibs, otherFlags);
+    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
     bool doCheck = false;
     bool doDump = true;
@@ -52,6 +52,8 @@ int main (int argc, char **argv)
 	return 1;
       }
     }
+
+    const vector<CalibrationAnalysis> &calibs(info.Analyses);
 
     // Dump out a list of comma seperated values
     if (doDump)
@@ -82,7 +84,7 @@ int main (int argc, char **argv)
 class holder
 {
 public:
-  holder (CalibrationAnalysis &ana, CalibrationBin &bin)
+  holder (const CalibrationAnalysis &ana, const CalibrationBin &bin)
     : _ana(ana), _bin(bin) {}
   
   inline string name() const {return OPFullName(_ana);}
@@ -116,7 +118,7 @@ private:
 //
 // Generate a comma seperated list of csv values.
 //
-void DumpEverything (vector<CalibrationAnalysis> &calibs)
+void DumpEverything (const vector<CalibrationAnalysis> &calibs)
 {
     vector<holder> held;
     for (unsigned int i = 0; i < calibs.size(); i++)
@@ -155,7 +157,7 @@ void DumpEverything (vector<CalibrationAnalysis> &calibs)
 // Make sure there are no overlapping bins, etc. for each
 // analysis.
 //
-void CheckEverything (vector<CalibrationAnalysis> &calibs)
+void CheckEverything (const vector<CalibrationAnalysis> &calibs)
 {
   //
   // Calculating boundaries will make sure each analysis
@@ -180,7 +182,7 @@ void CheckEverything (vector<CalibrationAnalysis> &calibs)
   checkForConsistentAnalyses(calibs);
 }
 
-void PrintNames (vector<CalibrationAnalysis> &calibs)
+void PrintNames (const vector<CalibrationAnalysis> &calibs)
 {
   for (unsigned int i = 0; i < calibs.size(); i++) {
     for (unsigned int b = 0; b < calibs[i].bins.size(); b++) {

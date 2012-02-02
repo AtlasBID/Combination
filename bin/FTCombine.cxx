@@ -21,9 +21,10 @@ int main (int argc, char **argv)
 {
   try {
     // Parse the input arguments
-    vector<CalibrationAnalysis> calibs;
+    CalibrationInfo info;
     vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, calibs, otherFlags);
+    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
+    vector<CalibrationAnalysis> &calibs(info.Analyses);
 
     if (otherFlags.size() != 0) {
       usage();

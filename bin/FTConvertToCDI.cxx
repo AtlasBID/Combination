@@ -35,11 +35,13 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  vector<CalibrationAnalysis> calib;
+  CalibrationInfo info;
   bool updateROOTFile = false;
+  vector<CalibrationAnalysis> calib;
   try {
     vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, calib, otherFlags);
+    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
+    calib = info.Analyses;
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "update") {
 	updateROOTFile = true;

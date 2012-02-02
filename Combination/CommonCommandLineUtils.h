@@ -18,7 +18,7 @@ namespace BTagCombination {
   // operating points and the flags that we didn't know how
   // to parse.
   void ParseOPInputArgs (const char **argv, int argc,
-			 std::vector<CalibrationAnalysis> &operatingPoints,
+			 CalibrationInfo &operatingPoints,
 			 std::vector<std::string> &unknownFlags);
 
   // Returns a common format name for teh analysis. Can be used in suppression

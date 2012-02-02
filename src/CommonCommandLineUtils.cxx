@@ -21,7 +21,7 @@ using namespace std;
 namespace {
   using namespace BTagCombination;
   // Load operating poitns from a text file on disk.
-  void loadOPsFromFile(vector<CalibrationAnalysis> &list, const string &fname)
+  void loadOPsFromFile(CalibrationInfo &list, const string &fname)
   {
     // See if the file exists - bomb if not!
     if (gSystem->AccessPathName(fname.c_str(), kFileExists)) {
@@ -35,7 +35,8 @@ namespace {
       ifstream input(fname.c_str());
       CalibrationInfo calib = Parse(input);
       input.close();
-      list.insert(list.end(), calib.Analyses.begin(), calib.Analyses.end());
+      list.Analyses.insert(list.Analyses.end(), calib.Analyses.begin(), calib.Analyses.end());
+      list.Correlations.insert(list.Correlations.end(), calib.Correlations.begin(), calib.Correlations.end());
     } catch (exception &e) {
       ostringstream msg;
       msg << "Caught error parsing file '" << fname << "': " << e.what();
@@ -70,14 +71,15 @@ namespace BTagCombination {
   // Parse a set of input arguments
   //
   void ParseOPInputArgs (const char **argv, int argc,
-			 vector<CalibrationAnalysis> &operatingPoints,
+			 CalibrationInfo &operatingPoints,
 			 vector<string> &unknownFlags)
   {
     //
     // Reset the intputs
     //
 
-    operatingPoints.clear();
+    operatingPoints.Analyses.clear();
+    operatingPoints.Correlations.clear();
     unknownFlags.clear();
 
     //
@@ -123,19 +125,20 @@ namespace BTagCombination {
     // If anything is to be ignored, better do that now.
     // Make sure to remove analyses that have nothing in them in the end...
     for (unsigned int i = 0; i < OPsToIgnore.size(); i++) {
-      for (unsigned int op = 0; op < operatingPoints.size(); op++) {
-	for (unsigned int b = 0; b < operatingPoints[op].bins.size(); b++) {
-	  if (OPsToIgnore[i] == OPIgnoreFormat(operatingPoints[op], operatingPoints[op].bins[b])) {
-	    operatingPoints[op].bins.erase(operatingPoints[op].bins.begin() + b);
+      vector<CalibrationAnalysis> &ops(operatingPoints.Analyses);
+      for (unsigned int op = 0; op < ops.size(); op++) {
+	for (unsigned int b = 0; b < ops[op].bins.size(); b++) {
+	  if (OPsToIgnore[i] == OPIgnoreFormat(ops[op], ops[op].bins[b])) {
+	    ops[op].bins.erase(ops[op].bins.begin() + b);
 	    break;
 	  }
 	}
       }
     }
 
-    for (size_t op = operatingPoints.size(); op > size_t(0); op--) {
-      if (operatingPoints[op-1].bins.size() == 0) {
-	operatingPoints.erase(operatingPoints.begin() + (op-1));
+    for (size_t op = operatingPoints.Analyses.size(); op > size_t(0); op--) {
+      if (operatingPoints.Analyses[op-1].bins.size() == 0) {
+	operatingPoints.Analyses.erase(operatingPoints.Analyses.begin() + (op-1));
       }
     }
   }
