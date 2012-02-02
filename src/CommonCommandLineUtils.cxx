@@ -155,6 +155,17 @@ namespace BTagCombination {
 	<< "-" << ana.jetAlgorithm;
     return msg.str();
   }
+  string OPFullName (const AnalysisCorrelation &ana)
+  {
+    ostringstream msg;
+    msg << ana.analysis1Name
+	<< "-" << ana.analysis2Name
+	<< "-" << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.jetAlgorithm;
+    return msg.str();
+  }
 
   // Returns a well formed name for the analysis that ignores the actual
   // analysis name. This is text only,
@@ -184,8 +195,27 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  string OPBinName (const BinCorrelation &bin)
+  {
+    ostringstream msg;
+    for (unsigned int i = 0; i < bin.binSpec.size(); i++) {
+      if (i > 0)
+	msg << ":";
+      msg << bin.binSpec[i].lowvalue
+	  << "-" << bin.binSpec[i].variable
+	  << "-" << bin.binSpec[i].highvalue;
+    }
+    return msg.str();
+  }
+
   // The format of the name used in the ignore command line option
   string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin)
+  {
+    return OPFullName(ana) + ":" + OPBinName(bin);
+  }
+
+  // The format of the name used in the ignore command line option
+  string OPIgnoreFormat(const AnalysisCorrelation &ana, const BinCorrelation &bin)
   {
     return OPFullName(ana) + ":" + OPBinName(bin);
   }

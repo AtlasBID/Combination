@@ -83,6 +83,9 @@ namespace BTagCombination {
 
   // Check that analyses are consistent cross-analysis
   void checkForConsistentAnalyses (const std::vector<CalibrationAnalysis> &anas);
+
+  // Check that the correlations are between things we know about.
+  void checkForValidCorrelations (const CalibrationInfo &info);
 }
 
 #endif

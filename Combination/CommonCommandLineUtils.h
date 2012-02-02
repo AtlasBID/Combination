@@ -24,8 +24,11 @@ namespace BTagCombination {
   // Returns a common format name for teh analysis. Can be used in suppression
   // files, etc.
   std::string OPFullName (const CalibrationAnalysis &ana);
+  std::string OPFullName (const AnalysisCorrelation &ana);
   std::string OPBinName (const CalibrationBin &bin);
+  std::string OPBinName (const BinCorrelation &bin);
   std::string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
+  std::string OPIgnoreFormat(const AnalysisCorrelation &ana, const BinCorrelation &bin);
   
   // Returns a name that is how we partition everything (flavor, tagger, jet, op, etc.).
   std::string OPIndependentName (const CalibrationAnalysis &ana);

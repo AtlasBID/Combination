@@ -356,5 +356,65 @@ namespace BTagCombination {
     }
   }
 
+  //
+  // Look for valid correlations - bomb if there is an invalid one.
+  //
+  void checkForValidCorrelations (const CalibrationInfo &info)
+  {
+    //
+    // Get the analysis names for all analyses...
+    //
+    set<string> goodBins;
+    for (unsigned int i = 0; i < info.Analyses.size(); i++) {
+      for (unsigned int b = 0; b < info.Analyses[i].bins.size(); b++) {
+	goodBins.insert(OPIgnoreFormat(info.Analyses[i], info.Analyses[i].bins[b]));
+      }
+    }
+
+    //
+    // Now, loop through the complete set of correlations and see if we can find
+    // what we need. Messy, but a good way to maintian th eformatting of these strings
+    // in only one place.
+    //
+
+    for (size_t i = 0; i < info.Correlations.size(); i++) {
+      const AnalysisCorrelation &ac(info.Correlations[i]);
+      for (size_t b = 0; b < ac.bins.size(); b++) {
+	const BinCorrelation &c(ac.bins[b]);
+	CalibrationAnalysis t_ana;
+	t_ana.name = ac.analysis1Name;
+	t_ana.flavor = ac.flavor;
+	t_ana.tagger = ac.tagger;
+	t_ana.operatingPoint = ac.operatingPoint;
+	t_ana.jetAlgorithm = ac.jetAlgorithm;
+
+	CalibrationBin t_bin;
+	t_bin.binSpec = c.binSpec;
+
+	string cname (OPIgnoreFormat(t_ana, t_bin));
+	if (goodBins.find(cname) == goodBins.end()) {
+	  ostringstream out;
+	  out << "The '" << t_ana.name << "' analysis for the correlation "
+	      << cname << " is not known.";
+	  throw runtime_error (out.str().c_str());
+	}
+
+	t_ana.name = ac.analysis2Name;
+	cname = OPIgnoreFormat(t_ana, t_bin);
+	if (goodBins.find(cname) == goodBins.end()) {
+	  ostringstream out;
+	  out << "The '" << t_ana.name << "' analysis for the correlation "
+	      << cname << " is not known.";
+	  throw runtime_error (out.str().c_str());
+	}
+
+	if (ac.analysis1Name == ac.analysis2Name) {
+	  ostringstream out;
+	  out << "Can't have a correlations between the same analyses: " << OPIgnoreFormat(ac, c);
+	  throw runtime_error (out.str().c_str());
+	}
+      }
+    }
+  }
 
 }

@@ -18,8 +18,8 @@ using namespace BTagCombination;
 // Helper routines forward defined.
 void Usage(void);
 void DumpEverything (const vector<CalibrationAnalysis> &calibs);
-void CheckEverything (const vector<CalibrationAnalysis> &calibs);
-void PrintNames (const vector<CalibrationAnalysis> &calibs);
+void CheckEverything (const CalibrationInfo &info);
+void PrintNames (const CalibrationInfo &info);
 
 // Main program - run & control everything.
 int main (int argc, char **argv)
@@ -61,10 +61,10 @@ int main (int argc, char **argv)
 
     // Check to see if there are overlapping bins
     if (doCheck)
-      CheckEverything(calibs);
+      CheckEverything(info);
 
     if (doNames)
-      PrintNames(calibs);
+      PrintNames(info);
 
     // Check to see if the bin specifications are consistent.
     return 0;
@@ -182,6 +182,12 @@ void CheckEverything (const vector<CalibrationAnalysis> &calibs)
   checkForConsistentAnalyses(calibs);
 }
 
+void CheckEverything (const CalibrationInfo &info)
+{
+  CheckEverything(info.Analyses);
+  checkForValidCorrelations(info);
+}
+
 void PrintNames (const vector<CalibrationAnalysis> &calibs)
 {
   for (unsigned int i = 0; i < calibs.size(); i++) {
@@ -189,6 +195,21 @@ void PrintNames (const vector<CalibrationAnalysis> &calibs)
       cout << OPIgnoreFormat(calibs[i], calibs[i].bins[b]) << endl;
     }
   }
+}
+
+void PrintNames (const vector<AnalysisCorrelation> &cors)
+{
+  for (size_t i = 0; i < cors.size(); i++) {
+    for (size_t b = 0; b < cors[i].bins.size(); b++) {
+      cout << OPIgnoreFormat(cors[i], cors[i].bins[b]) << endl;
+    }
+  }
+}
+
+void PrintNames (const CalibrationInfo &info)
+{
+  PrintNames(info.Analyses);
+  PrintNames(info.Correlations);
 }
 
 void Usage(void)

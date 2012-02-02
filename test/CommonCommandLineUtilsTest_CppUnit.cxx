@@ -42,46 +42,47 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
   void testEmptyCommandLine()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"hi", "there"};
     
     ParseOPInputArgs(argv, 0, results, unknown);
-    CPPUNIT_ASSERT_EQUAL((size_t)0, results.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, results.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, results.Correlations.size());
     CPPUNIT_ASSERT_EQUAL((size_t)0, unknown.size());
   }
 
   void testUnknownFlag()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"--doit"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
 
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("#results", (size_t)0, results.size());
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("#results", (size_t)0, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL_MESSAGE("#unknowns", (size_t)1, unknown.size());
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Unknown flag name", string("doit"), unknown[0]);
   }
 
   void testInputFromFile()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
-    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
 
-    CalibrationAnalysis ana = results[0];
+    CalibrationAnalysis ana = results.Analyses[0];
     CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 9, ana.bins.size());
   }
 
   void testIgnoreFlag()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
 			  "--ignore",
@@ -89,17 +90,17 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
-    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
 
-    CalibrationAnalysis ana = results[0];
+    CalibrationAnalysis ana = results.Analyses[0];
     CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 8, ana.bins.size());
   }
 
   void testIgnoreFlagFile()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
 			  "--ignore",
@@ -107,17 +108,17 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
-    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
 
-    CalibrationAnalysis ana = results[0];
+    CalibrationAnalysis ana = results.Analyses[0];
     CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 8, ana.bins.size());
   }
 
   void testIgnoreAnalysis()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
 			  "--ignore",
@@ -125,13 +126,13 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
-    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
   }
 
   void testInputFromBadFile()
   {
-    vector<CalibrationAnalysis> results;
+    CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"simpleInputBogus.txt"};
 

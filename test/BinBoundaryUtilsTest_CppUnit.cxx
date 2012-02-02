@@ -42,6 +42,11 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( TestSystematicErrorsInconsistent, std::runtime_error );
   CPPUNIT_TEST ( TestSystematicErrorsMatching);
 
+  CPPUNIT_TEST ( testCorrelations );
+  CPPUNIT_TEST_EXCEPTION ( testCorrelations2, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( testCorrelations3, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( testCorrelations4, std::runtime_error );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testSimpleOneBins()
@@ -418,6 +423,187 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
 
     checkForConsistentAnalyses(list);
   }
+
+  void testCorrelations()
+  {
+    CalibrationInfo info;
+    CalibrationAnalysis ana1, ana2;
+    ana1.name = "ptrel";
+    ana1.flavor = "bottom";
+    ana1.tagger = "MV1";
+    ana1.operatingPoint = "0.2";
+    ana1.jetAlgorithm = "antikt";
+    ana2.name = "s8";
+    ana2.flavor = "bottom";
+    ana2.tagger = "MV1";
+    ana2.operatingPoint = "0.2";
+    ana2.jetAlgorithm = "antikt";
+
+    CalibrationBin b;
+    CalibrationBinBoundary bb;
+    bb.variable = "pt";
+    bb.lowvalue = 0.0;
+    bb.highvalue = 2.5;
+    b.binSpec.push_back(bb);
+    ana1.bins.push_back(b);
+    ana2.bins.push_back(b);
+
+    info.Analyses.push_back(ana1);
+    info.Analyses.push_back(ana2);
+
+    AnalysisCorrelation cor;
+    cor.analysis1Name = "s8";
+    cor.analysis2Name = "ptrel";
+    cor.flavor = "bottom";
+    cor.tagger = "MV1";
+    cor.operatingPoint = "0.2";
+    cor.jetAlgorithm = "antikt";
+
+    BinCorrelation bc;
+    bc.binSpec.push_back(bb);
+    cor.bins.push_back(bc);
+    
+    info.Correlations.push_back(cor);
+
+    checkForValidCorrelations(info);
+  }
+
+  void testCorrelations2()
+  {
+    CalibrationInfo info;
+    CalibrationAnalysis ana1, ana2;
+    ana1.name = "ptrel";
+    ana1.flavor = "bottom";
+    ana1.tagger = "MV1";
+    ana1.operatingPoint = "0.2";
+    ana1.jetAlgorithm = "antikt";
+    ana2.name = "s8";
+    ana2.flavor = "bottom";
+    ana2.tagger = "MV1";
+    ana2.operatingPoint = "0.2";
+    ana2.jetAlgorithm = "antikt";
+
+    CalibrationBin b;
+    CalibrationBinBoundary bb;
+    bb.variable = "pt";
+    bb.lowvalue = 0.0;
+    bb.highvalue = 2.5;
+    b.binSpec.push_back(bb);
+    ana1.bins.push_back(b);
+
+    CalibrationBin b1;
+    bb.highvalue = 2.1;
+    b1.binSpec.push_back(bb);
+    ana1.bins.push_back(b1);
+
+    info.Analyses.push_back(ana1);
+    info.Analyses.push_back(ana2);
+
+    AnalysisCorrelation cor;
+    cor.analysis1Name = "s8";
+    cor.analysis2Name = "ptrel";
+    cor.flavor = "bottom";
+    cor.tagger = "MV1";
+    cor.operatingPoint = "0.2";
+    cor.jetAlgorithm = "antikt";
+
+    BinCorrelation bc;
+    bc.binSpec.push_back(bb);
+    cor.bins.push_back(bc);
+    
+    info.Correlations.push_back(cor);
+
+    checkForValidCorrelations(info);
+  }
+
+  void testCorrelations3()
+  {
+    CalibrationInfo info;
+    CalibrationAnalysis ana1, ana2;
+    ana1.name = "ptrel";
+    ana1.flavor = "bottom";
+    ana1.tagger = "MV1";
+    ana1.operatingPoint = "0.2";
+    ana1.jetAlgorithm = "antikt";
+    ana2.name = "s8";
+    ana2.flavor = "bottom";
+    ana2.tagger = "MV1";
+    ana2.operatingPoint = "0.2";
+    ana2.jetAlgorithm = "antikt";
+
+    CalibrationBin b;
+    CalibrationBinBoundary bb;
+    bb.variable = "pt";
+    bb.lowvalue = 0.0;
+    bb.highvalue = 2.5;
+    b.binSpec.push_back(bb);
+    ana1.bins.push_back(b);
+    ana1.bins.push_back(b);
+
+    info.Analyses.push_back(ana1);
+    info.Analyses.push_back(ana2);
+
+    AnalysisCorrelation cor;
+    cor.analysis1Name = "s8";
+    cor.analysis2Name = "ptr";
+    cor.flavor = "bottom";
+    cor.tagger = "MV1";
+    cor.operatingPoint = "0.2";
+    cor.jetAlgorithm = "antikt";
+
+    BinCorrelation bc;
+    bc.binSpec.push_back(bb);
+    cor.bins.push_back(bc);
+    
+    info.Correlations.push_back(cor);
+
+    checkForValidCorrelations(info);
+  }
+
+  void testCorrelations4()
+  {
+    CalibrationInfo info;
+    CalibrationAnalysis ana1, ana2;
+    ana1.name = "ptrel";
+    ana1.flavor = "bottom";
+    ana1.tagger = "MV1";
+    ana1.operatingPoint = "0.2";
+    ana1.jetAlgorithm = "antikt";
+    ana2.name = "s8";
+    ana2.flavor = "bottom";
+    ana2.tagger = "MV1";
+    ana2.operatingPoint = "0.2";
+    ana2.jetAlgorithm = "antikt";
+
+    CalibrationBin b;
+    CalibrationBinBoundary bb;
+    bb.variable = "pt";
+    bb.lowvalue = 0.0;
+    bb.highvalue = 2.5;
+    b.binSpec.push_back(bb);
+    ana1.bins.push_back(b);
+    ana1.bins.push_back(b);
+
+    info.Analyses.push_back(ana1);
+    info.Analyses.push_back(ana2);
+
+    AnalysisCorrelation cor;
+    cor.analysis1Name = "s8";
+    cor.analysis2Name = "s8";
+    cor.flavor = "bottom";
+    cor.tagger = "MV1";
+    cor.operatingPoint = "0.2";
+    cor.jetAlgorithm = "antikt";
+
+    BinCorrelation bc;
+    bc.binSpec.push_back(bb);
+    cor.bins.push_back(bc);
+    
+    info.Correlations.push_back(cor);
+
+    checkForValidCorrelations(info);
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(BinBoundaryUtilsTest);
