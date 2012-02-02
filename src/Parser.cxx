@@ -421,14 +421,30 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
 //
 struct localCorBin
 {
+  localCorBin()
+    : seenStat(false), statCoor(0.0)
+  {}
+
   std::vector<CalibrationBinBoundary> binSpec;
+  bool seenStat;
+  double statCoor;
+
   void Convert (BinCorrelation &result)
   {
     result.binSpec = binSpec;
+    result.hasStatCorrelation = seenStat;
+    result.statCorrelation = statCoor;
   }
+
   void SetBins(const vector<CalibrationBinBoundary> &b)
   {
     binSpec = b;
+  }
+
+  void StatCor (double v)
+  {
+    seenStat = true;
+    statCoor = v;
   }
 };
 
@@ -452,6 +468,7 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
     using qi::_val;
     using qi::labels::_1;
     using boost::phoenix::bind;
+    using qi::double_;
 
     name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
 
@@ -462,6 +479,7 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
       lit("bin")
       > '(' > boundary_list[bind(&localCorBin::SetBins, _val, _1)] > ')'
       > '{'
+      > *( lit("statistical") > '(' > double_[bind(&localCorBin::StatCor, _val, _1)] > ')' )
       > '}';
 
     binFinder = localBinFinder[bind(&localCorBin::Convert, _1, _val)];

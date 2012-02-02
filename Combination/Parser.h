@@ -220,6 +220,13 @@ namespace BTagCombination
   struct BinCorrelation
   {
     std::vector<CalibrationBinBoundary> binSpec;
+
+    bool hasStatCorrelation;
+    double statCorrelation;
+
+    BinCorrelation()
+      : hasStatCorrelation(false), statCorrelation(0.0)
+    {}
   };
 
   inline std::ostream &operator<< (std::ostream &out, const BinCorrelation &cor) {
@@ -230,6 +237,9 @@ namespace BTagCombination
       out << cor.binSpec[i];
     }
     out << ") {" << std::endl;
+    if (cor.hasStatCorrelation) {
+      out << "  statistical(" << cor.statCorrelation << ")" << std::endl;
+    }
     out << "}";
     return out;
   }
