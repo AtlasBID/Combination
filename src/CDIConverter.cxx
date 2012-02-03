@@ -176,7 +176,7 @@ namespace {
   {
     for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
       const CalibrationBin &bin (ana.bins[ibin]);
-      for (int i_sys = 0; i_sys < bin.systematicErrors.size(); i_sys++) {
+      for (size_t i_sys = 0; i_sys < bin.systematicErrors.size(); i_sys++) {
 	const SystematicError &e(bin.systematicErrors[i_sys]);
 	if (e.name == ename) {
 	  return e.uncorrelated;
