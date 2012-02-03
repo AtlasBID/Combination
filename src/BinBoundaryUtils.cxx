@@ -391,8 +391,9 @@ namespace BTagCombination {
 	CalibrationBin t_bin;
 	t_bin.binSpec = c.binSpec;
 
-	string cname (OPIgnoreFormat(t_ana, t_bin));
-	if (goodBins.find(cname) == goodBins.end()) {
+	string cname (OPIgnoreFormat(ac, c));
+	string aname (OPIgnoreFormat(t_ana, t_bin));
+	if (goodBins.find(aname) == goodBins.end()) {
 	  ostringstream out;
 	  out << "The '" << t_ana.name << "' analysis for the correlation "
 	      << cname << " is not known.";
@@ -400,8 +401,8 @@ namespace BTagCombination {
 	}
 
 	t_ana.name = ac.analysis2Name;
-	cname = OPIgnoreFormat(t_ana, t_bin);
-	if (goodBins.find(cname) == goodBins.end()) {
+	aname = OPIgnoreFormat(t_ana, t_bin);
+	if (goodBins.find(aname) == goodBins.end()) {
 	  ostringstream out;
 	  out << "The '" << t_ana.name << "' analysis for the correlation "
 	      << cname << " is not known.";
@@ -410,7 +411,7 @@ namespace BTagCombination {
 
 	if (ac.analysis1Name == ac.analysis2Name) {
 	  ostringstream out;
-	  out << "Can't have a correlations between the same analyses: " << OPIgnoreFormat(ac, c);
+	  out << "Can't have a correlations between the same analyses: " << cname;
 	  throw runtime_error (out.str().c_str());
 	}
       }

@@ -44,6 +44,9 @@ namespace BTagCombination {
     Measurement *AddMeasurement (const std::string &what, const double minValue, const double maxValue,
 				 const double value, const double statError);
 
+    // Return a measurement
+    Measurement *FindMeasurement (const std::string &measurementName);
+
     /// Add a correlation between two measurements for a particular error. If errorName is
     /// "statistical" then the statistical error is what is "marked".
     void AddCorrelation(const std::string &errorName, Measurement *m1, Measurement *m2, double correlation);

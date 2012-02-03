@@ -29,7 +29,11 @@ namespace BTagCombination {
   std::string OPBinName (const BinCorrelation &bin);
   std::string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
   std::string OPIgnoreFormat(const AnalysisCorrelation &ana, const BinCorrelation &bin);
-  
+
+  // Returns the OPIgnoreName for the two analyses involved in this guy.
+  std::pair<std::string, std::string> OPIgnoreCorrelatedFormat (const AnalysisCorrelation &ana,
+								const BinCorrelation &bin);
+
   // Returns a name that is how we partition everything (flavor, tagger, jet, op, etc.).
   std::string OPIndependentName (const CalibrationAnalysis &ana);
 

@@ -152,6 +152,18 @@ namespace BTagCombination {
     return AddMeasurement(NewMeasurementName(what), what, minValue, maxValue, value, statError);
   }
 
+  //
+  // Find the measurements if we can - otherwise blow this off and return null.
+  //
+  Measurement *CombinationContext::FindMeasurement(const string &measurementName)
+  {
+    for (size_t i = 0; i < _measurements.size(); i++) {
+      if (_measurements[i]->Name() == measurementName)
+	return _measurements[i];
+    }
+    return 0;
+  }
+
   RooCmdArg SigmaRange (const RooRealVar &v, const double sigma = 5.0)
   {
     double low = v.getVal() - sigma*v.getError();

@@ -19,6 +19,31 @@ using namespace std;
 namespace {
   using namespace BTagCombination;
 
+  // Fill the context info for a single bin.
+  void FillContextWithBinInfo (CombinationContext &ctx, const CalibrationBin &b, const string &prefix = "", const string &mname = "") {
+    
+    string binName (prefix + OPBinName(b));
+
+    Measurement *m;
+    if (mname.size() == 0) {
+      m = ctx.AddMeasurement (binName, -1.0, 2.0, b.centralValue, b.centralValueStatisticalError);
+    } else {
+      m = ctx.AddMeasurement (mname, binName, -1.0, 2.0, b.centralValue, b.centralValueStatisticalError);
+      cout << "--> Adding measurement called " << mname << endl;
+    }
+
+    for (unsigned int i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {
+      const SystematicError &err(b.systematicErrors[i_sys]);
+
+      string ename(err.name);
+      if (err.uncorrelated) {
+	ename = string("UNCORBIN-") + ename + "-**" + binName;
+      }
+
+      m->addSystematicAbs(ename, err.value);
+    }
+  }
+
   //
   // Add all the measurements for a particular bin into the context.
   //  - Assume everythign in the bins vector is the same bin! (no x-checking).
@@ -31,22 +56,10 @@ namespace {
     if (bins.size() == 0)
       return;
 
-    string binName (prefix + OPBinName(bins[0]));
-
     // For each bin, add the info
     for (unsigned int i = 0; i < bins.size(); i++) {
       const CalibrationBin &b(bins[i]);
-      Measurement *m = ctx.AddMeasurement (binName, -1.0, 2.0, b.centralValue, b.centralValueStatisticalError);
-      for (unsigned int i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {
-	const SystematicError &err(b.systematicErrors[i_sys]);
-	
-	string ename(err.name);
-	if (err.uncorrelated) {
-	  ename = string("UNCORBIN-") + ename + "-**" + binName;
-	}
-
-	m->addSystematicAbs(ename, err.value);
-      }
+      FillContextWithBinInfo (ctx, b, prefix);
     }
   }
 
@@ -60,16 +73,10 @@ namespace {
       const CalibrationAnalysis &a(ana[i_ana]);
       for (unsigned int i_bin = 0; i_bin < a.bins.size(); i_bin++) {
 	const CalibrationBin &b(a.bins[i_bin]);
-	bybins[prefix + OPBinName(b)].push_back(b);
+	string binName(OPBinName(b));
+	bybins[prefix + binName].push_back(b);
+	FillContextWithBinInfo(ctx, b, prefix, OPIgnoreFormat(a, b));
       }
-    }
-
-    //
-    // Now, build the context for the fit.
-    //
-
-    for (map<string, vector<CalibrationBin> >::const_iterator i_b = bybins.begin(); i_b != bybins.end(); i_b++) {
-      FillContextWithBinInfo (ctx, i_b->second, prefix);
     }
 
     return bybins;
@@ -207,12 +214,75 @@ namespace BTagCombination
 
   // Given a list of analyses, sort them, and combine everything, and return
   // all the new ones.
-  vector<CalibrationAnalysis> CombineAnalyses (vector<CalibrationAnalysis> &ana)
+  vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info)
   {
+    //
+    // First step, divide up the analyses by fittable catagory
+    //
+
+    typedef map<string, vector<CalibrationAnalysis> > t_anaMap;
+    t_anaMap binnedAnalyses (BinAnalysesByJetTagFlavOp(info.Analyses));
+
+    //
+    // in each bin, fit everything. one odd thing is we have to loop through all
+    // the correlations and extract any we need.
+    //
+
     vector<CalibrationAnalysis> result;
+    for(t_anaMap::const_iterator i_ana = binnedAnalyses.begin(); i_ana != binnedAnalyses.end(); i_ana++) {
+      CombinationContext ctx;
+      map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second);
+      
+      // Now, go look for any correlations that might apply here.
+      for (size_t i_cor = 0; i_cor < info.Correlations.size(); i_cor++) {
+	for (size_t i_cbin = 0; i_cbin < info.Correlations[i_cor].bins.size(); i_cbin++) {
+	  const BinCorrelation &bin(info.Correlations[i_cor].bins[i_cbin]);
+	  pair<string, string> aNames (OPIgnoreCorrelatedFormat(info.Correlations[i_cor],
+								bin));
+
+	  cout << "Looking at correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
+	       << std::endl;
+	  cout << "  name1 = " << aNames.first << endl;
+	  cout << "  name2 = " << aNames.second << endl;	  
+
+	  Measurement *m1 = ctx.FindMeasurement(aNames.first);
+	  Measurement *m2 = ctx.FindMeasurement(aNames.second);
+
+	  cout << "  m1 = " << m1 << " m2 = " << m2 << endl;
+
+	  if (m1 == 0 || m2 == 0) {
+	    if (!(m1 == 0 && m2 == 0)) {
+	      ostringstream out;
+	      out << "Both analyses not present for correlation " << OPFullName(info.Correlations[i_cor]) << " - but at least one is!";
+	      throw runtime_error (out.str());
+	    }
+	    continue;
+	  }
+
+	  //
+	  // Now, do the correlations
+	  //
+
+	  if (bin.hasStatCorrelation) {
+	    cout << "  Stat Correlation is " << bin.statCorrelation << endl;
+	    ctx.AddCorrelation("statistical", m1, m2, bin.statCorrelation);
+	  }
+	}
+      }
+      
+      // Do the fit.
+      map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+
+      // Dummy analysis that we will fill in with the results.
+      CalibrationAnalysis r(i_ana->second[0]);
+      r.name = "combined";
+      r.bins = ExtractBinsResult(bins, fitResult);
+      result.push_back(r);
+    }
+
+#ifdef notyet
 
     // First by jet algorithm
-    CombinationContext ctx;
     typedef map<string, vector<CalibrationAnalysis> > CalibMap;
     map<string, map<string, vector<CalibrationBin> > > binByBinMap;
     CalibMap byJetAlg;
@@ -253,7 +323,6 @@ namespace BTagCombination
 		   << "-" << n_OP;
 	    // Now we can actually build the fit context
 	    cout << "Fitting " << prefix.str() << endl;
-	    binByBinMap[prefix.str()] = FillContextWithCommonAnaInfo(ctx, i_jet->second, prefix.str());
 	  }
 	}
       }
@@ -311,6 +380,7 @@ namespace BTagCombination
 	}
       }
     }
+#endif
 
     return result;
   }

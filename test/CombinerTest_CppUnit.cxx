@@ -46,6 +46,8 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor2 );
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor3 );
 
+  CPPUNIT_TEST ( testAnaTwoSameBinsStatCor );
+
   CPPUNIT_TEST_SUITE_END();
 
   void setupRoo()
@@ -527,6 +529,66 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.05);
   }
 
+  void testAnaTwoSameBinsStatCor()
+  {
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 1.0;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    AnalysisCorrelation c1;
+    c1.analysis1Name = "s8";
+    c1.analysis2Name = "ptrel";
+    c1.flavor = "bottom";
+    c1.tagger = "comb";
+    c1.operatingPoint = "0.50";
+    c1.jetAlgorithm = "AntiKt4Topo";
+
+    BinCorrelation bc1;
+    bc1.hasStatCorrelation = true;
+    bc1.statCorrelation = 1.0;
+    bc1.binSpec.push_back(bound);
+    c1.bins.push_back(bc1);
+
+    CalibrationInfo info;
+    info.Analyses.push_back (ana1);
+    info.Analyses.push_back (ana2);
+    info.Correlations.push_back(c1);
+
+    setupRoo();
+    vector<CalibrationAnalysis> result (CombineAnalyses(info));
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.size());
+
+    CalibrationBin b (result[0].bins[0]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), b.binSpec.size());
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, b.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, b.centralValueStatisticalError, 0.001);
+
+    // Make sure the systematic errors that came back are "good" too.
+    CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());
+  }
+
   void testAnaTwoDifBins()
   {
     // Single analysis - test simple case!
@@ -687,8 +749,11 @@ class CombinerTest : public CppUnit::TestFixture
     vector<CalibrationAnalysis> inputs;
     inputs.push_back (ana);
 
+    CalibrationInfo info;
+    info.Analyses = inputs;
+
     setupRoo();
-    vector<CalibrationAnalysis> results (CombineAnalyses(inputs));
+    vector<CalibrationAnalysis> results (CombineAnalyses(info));
     CPPUNIT_ASSERT_EQUAL (size_t(1), results.size());
     const CalibrationAnalysis &result(results[0]);
     CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);

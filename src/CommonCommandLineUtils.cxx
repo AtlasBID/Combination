@@ -134,6 +134,16 @@ namespace BTagCombination {
 	  }
 	}
       }
+
+      vector<AnalysisCorrelation> &cors(operatingPoints.Correlations);
+      for (unsigned int ic = 0; ic < cors.size(); ic++) {
+	for (unsigned int b = 0; b < cors[ic].bins.size(); b++) {
+	  if (OPsToIgnore[i] == OPIgnoreFormat(cors[ic], cors[ic].bins[b])) {
+	    cors[ic].bins.erase(cors[ic].bins.begin() + b);
+	    break;
+	  }
+	}
+      }
     }
 
     for (size_t op = operatingPoints.Analyses.size(); op > size_t(0); op--) {
@@ -141,6 +151,7 @@ namespace BTagCombination {
 	operatingPoints.Analyses.erase(operatingPoints.Analyses.begin() + (op-1));
       }
     }
+
   }
 
   // Returns a well formed name for the analysis. This is text only,
@@ -218,6 +229,23 @@ namespace BTagCombination {
   string OPIgnoreFormat(const AnalysisCorrelation &ana, const BinCorrelation &bin)
   {
     return OPFullName(ana) + ":" + OPBinName(bin);
+  }
+
+  // Build the ignore format for the two analyses associated with ana
+  pair<string, string> OPIgnoreCorrelatedFormat(const AnalysisCorrelation &ana,
+						const BinCorrelation &bin)
+  {
+    CalibrationAnalysis ca;
+    ca.name = ana.analysis1Name;
+    ca.flavor = ana.flavor;
+    ca.tagger = ana.tagger;
+    ca.operatingPoint = ana.operatingPoint;
+    ca.jetAlgorithm = ana.jetAlgorithm;
+
+    string n1 = OPFullName(ca) + ":" + OPBinName(bin);
+    ca.name = ana.analysis2Name;
+    string n2 = OPFullName(ca) + ":" + OPBinName(bin);
+    return make_pair(n1, n2);
   }
 
   //
