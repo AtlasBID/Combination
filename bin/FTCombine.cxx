@@ -31,8 +31,8 @@ int main (int argc, char **argv)
     }
 
     // Turn off all those fitting messages!
-    //RooMsgService::instance().setSilentMode(true);
-    //RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+    RooMsgService::instance().setSilentMode(true);
+    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
 
     // Now that we have the calibrations, just combine them!
     vector<CalibrationAnalysis> result (CombineAnalyses(info));

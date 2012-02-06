@@ -77,37 +77,104 @@ namespace BTagCombination {
     }
 
     //
-    // We assume that m1 has the full statistical error and m2 shares the correlated
-    // and uncorrelated. To decompose we assume that each statistical error is composed
-    // in part of a correlated and uncorrelated part. You end up with 4 unknowns and 3
-    // knowns - so you can't solve it. So we assume that the m1's statistical error is zero.
-    // In the end, if the correlation coeff is 0, you'll end up with a new systeamtic that
-    // is valid for one side. So it works... just non-intuitive.
+    // We have to decide how to split the correlated and uncorelated errors between
+    // the two measurements. There is no unique solution. The simplest thing - make
+    // one of the uncorrelated errors zero - doesn't work with lots of measurements;
+    // roofit fails to converge sensibly when this happens.
+    //
+    // Instead, we choose it such that the uncorrelated errors are equal between the
+    // two measurements.
+    //
+    // The equns you solve for this a fairly trival - but the result below in code
+    // is unforutnately opaque.
     //
 
-    double m1_uncor = 0.0;
-    double m1_corr = m1->GetStatisticalError()->getVal();
+    // Stat errors of the two measurements
+    double s1 = m1->GetStatisticalError()->getVal();
+    double s2 = m2->GetStatisticalError()->getVal();
+    double rho = correlation;
 
-    double m2_uncor = sqrt(1-correlation)*m2->GetStatisticalError()->getVal();
-    double m2_corr = correlation*m2->GetStatisticalError()->getVal();
+    // Solve a quad eqn for s2c (s2, the correlated component)
+    double a = 1.0;
+    double b = s1*s1 - s2*s2;
+    double c = rho*s1*s2;
+    c = -c*c;
 
-    if (m1_uncor == 0.0)
-      m1_uncor = 0.001;
-    if (m2_uncor == 0.0)
-      m2_uncor = 0.001;
+    double radical = b*b - 4*a*c;
+    if (radical < 0) {
+      ostringstream err;
+      err << "Unable to solve for corelated error: s1 = " << s1
+	  << " s2 = " << s2 << " and rho = " << rho;
+      throw runtime_error(err.str().c_str());
+    }
+    radical = sqrt(radical);
 
-    m1->ResetStatisticalError(m1_uncor);
-    m2->ResetStatisticalError(m2_uncor);
+    double s2c_sol1 = (-b + radical) / 2.0;
+    double s2c_sol2 = (-b - radical) / 2.0;
 
-    m1->addSystematicAbs(statSysErrorName, m1_corr);
-    m2->addSystematicAbs(statSysErrorName, m2_corr);
+    double s2c_2 = 0;
+    if (s2c_sol1 >= 0) {
+      s2c_2 = s2c_sol1;
+    } else if (s2c_sol2 >= 0) {
+      s2c_2 = s2c_sol2;
+    } else {
+      ostringstream err;
+      err << "The Corelated error squared is less than zero: s1 = " << s1
+	  << " s2 = " << s2 << " and rho = " << rho;
+      throw runtime_error(err.str().c_str());
+    }
 
-    CorrInfo c;
-    c._m1 = m1;
-    c._m2 = m2;
-    c._errorName = errorName;
-    c._sharedSysName = statSysErrorName;
-    _correlations.push_back(c);
+    double s2c = sqrt(s2c_2);
+      
+    double s2_2 = s2*s2;
+
+    double s2u_2 = s2_2 - s2c_2;
+    if (s2u_2 < 0) {
+      ostringstream err;
+      err << "s2u_2 was less than zero: s1 = " << s1
+	  << " s2 = " << s2 << " and rho = " << rho;
+      throw runtime_error(err.str().c_str());
+    }
+    double s2u = sqrt(s2u_2);
+
+    double s1c = 0.0;
+    if (s2c == 0.0) {
+      if (rho == 0.0) {
+	s2c = 0.0;
+      } else {
+	ostringstream err;
+	err << "s2u is zero, but rho isn't: s1 = " << s1
+	    << " s2 = " << s2 << " and rho = " << rho;
+	throw runtime_error(err.str().c_str());
+      }
+    } else {
+      s1c = rho*s1*s2/s2c;
+    }
+
+    double s1u = s2u;
+
+    m1->ResetStatisticalError(s1u);
+    m2->ResetStatisticalError(s2u);
+
+    m1->addSystematicAbs(statSysErrorName, s1c);
+    m2->addSystematicAbs(statSysErrorName, s2c);
+
+    cout << "Stat Correlation Calc: " << endl
+	 << "  s1 = " << s1 << endl
+	 << "  s2 = " << s2 << endl
+	 << "  rho = " << rho << endl
+	 << "  s1u = " << s1u << endl
+	 << "  s2u = " << s2u << endl
+	 << "  s1c = " << s1c << endl
+	 << "  s2c = " << s2c << endl
+	 << "  a=" << a << " b=" << b << " c=" << c << endl;
+
+    CorrInfo cr;
+    cr._m1 = m1;
+    cr._m2 = m2;
+    cr._errorName = errorName;
+    cr._sharedSysName = statSysErrorName;
+    _correlations.push_back(cr);
   }
 
   namespace {
@@ -186,7 +253,7 @@ namespace BTagCombination {
       vector<string> errorNames (m->GetSystematicErrorNames());
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &sysErrorName(*isyserr);
-	_systematicErrors.FindOrCreateRooVar(sysErrorName, -5.0, 5.0);
+	_systematicErrors.FindOrCreateRooVar(sysErrorName, -10.0, 10.0);
       }
     }
 
@@ -200,7 +267,7 @@ namespace BTagCombination {
 
       ///
       /// The variable we are measureing is also balenced by the various
-      /// systematic errors for this measurement. eff*(1+m1*s1)*(1.m2*s2)*(1+m3*s3)...
+      /// systematic errors for this measurement. eff+m1*s1+m2*s2+m3*s3...
       ///
 
       RooRealVar *var = _whatMeasurements.FindRooVar(m->What());
@@ -259,7 +326,8 @@ namespace BTagCombination {
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
       string cName = *iVar + "ConstraintGaussian";
       RooRealVar *c = _systematicErrors.FindRooVar(*iVar);
-      RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
+      //RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
+      RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *c, *zero, *one);
       products.add(*constraint);
       //constraint->Print();
     }
@@ -551,6 +619,10 @@ namespace BTagCombination {
 	  string fr_name(i_fr->first);
 	  map<string,double>::iterator s_value = fr.sysErrors.find(ci._sharedSysName);
 	  if (s_value != fr.sysErrors.end()) {
+	    cout << "Dealing with stat error: " << endl
+		 << " uncor = " << fr.statisticalError << endl
+		 << " cor = " << s_value->second << endl;
+	      
 	    fr.statisticalError = sqrt(fr.statisticalError*fr.statisticalError
 				       + s_value->second*s_value->second);
 	    fr.sysErrors.erase(s_value);

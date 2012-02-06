@@ -490,11 +490,11 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   void testFitCorrelatedResults2()
   {
-    // one data pont, two measurements, with their statistical error 100% correlated.
+    // one data pont, two measurements, with their statistical error 0% correlated.
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    c.AddCorrelation ("statistical", m1, m2, 0.0); // 100%
+    c.AddCorrelation ("statistical", m1, m2, 0.0); // 0%
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
