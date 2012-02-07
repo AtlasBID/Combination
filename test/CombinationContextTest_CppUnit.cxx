@@ -51,6 +51,8 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitCorrelatedResults );
   CPPUNIT_TEST ( testFitCorrelatedResults2 );
+  CPPUNIT_TEST ( testFitCorrelatedResults3 );
+  CPPUNIT_TEST ( testFitCorrelatedResults4 );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -475,20 +477,80 @@ class CombinationContextTest : public CppUnit::TestFixture
   void testFitCorrelatedResults()
   {
     // one data pont, two measurements, with their statistical error 100% correlated.
+    cout << "Starting test testFitCorrelatedResults" << endl;
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    c.AddCorrelation ("statistical", m1, m2, 1.0); // 100%
+    c.AddCorrelation ("statistical", m1, m2, 0.50); // 100%
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].statisticalError, 0.01);
+    // Proper stat error calculated using the cov matrix method (see notes).
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.504975, fr["average"].statisticalError, 0.01);
+    cout << "Starting test testFitCorrelatedResults" << endl;
+  }
+
+  void testFitCorrelatedResults1()
+  {
+    // one data pont, two measurements, with their statistical error 100% correlated.
+    cout << "Starting test testFitCorrelatedResults" << endl;
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    c.AddCorrelation ("statistical", m1, m2, 0.25);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
+    // Proper stat error calculated using the cov matrix method (see notes).
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.36055, fr["average"].statisticalError, 0.01);
+    cout << "Starting test testFitCorrelatedResults" << endl;
   }
 
   void testFitCorrelatedResults2()
+  {
+    // one data pont, two measurements, with their statistical error 100% correlated.
+    cout << "Starting test testFitCorrelatedResults" << endl;
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    c.AddCorrelation ("statistical", m1, m2, 0.50); // 100%
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
+    // Proper stat error calculated using the cov matrix method (see notes).
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.504975, fr["average"].statisticalError, 0.01);
+    cout << "Starting test testFitCorrelatedResults" << endl;
+  }
+
+  void testFitCorrelatedResults3()
+  {
+    // one data pont, two measurements, with their statistical error 100% correlated.
+    cout << "Starting test testFitCorrelatedResults" << endl;
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
+    c.AddCorrelation ("statistical", m1, m2, 0.75); // 100%
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
+    // Proper stat error calculated using the cov matrix method (see notes).
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.616441, fr["average"].statisticalError, 0.01);
+    cout << "Starting test testFitCorrelatedResults" << endl;
+  }
+
+  void testFitCorrelatedResults4()
   {
     // one data pont, two measurements, with their statistical error 0% correlated.
     CombinationContext c;
