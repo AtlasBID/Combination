@@ -481,7 +481,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    c.AddCorrelation ("statistical", m1, m2, 0.50); // 100%
+    c.AddCorrelation ("statistical", m1, m2, 0);
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
@@ -489,7 +489,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
     // Proper stat error calculated using the cov matrix method (see notes).
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.504975, fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0707107, fr["average"].statisticalError, 0.01);
     cout << "Starting test testFitCorrelatedResults" << endl;
   }
 
@@ -508,7 +508,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
     // Proper stat error calculated using the cov matrix method (see notes).
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.36055, fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0790569, fr["average"].statisticalError, 0.01);
     cout << "Starting test testFitCorrelatedResults" << endl;
   }
 
@@ -519,7 +519,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    c.AddCorrelation ("statistical", m1, m2, 0.50); // 100%
+    c.AddCorrelation ("statistical", m1, m2, 0.50);
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
@@ -527,7 +527,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
     // Proper stat error calculated using the cov matrix method (see notes).
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.504975, fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0866025, fr["average"].statisticalError, 0.01);
     cout << "Starting test testFitCorrelatedResults" << endl;
   }
 
@@ -538,7 +538,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    c.AddCorrelation ("statistical", m1, m2, 0.75); // 100%
+    c.AddCorrelation ("statistical", m1, m2, 0.75);
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
@@ -546,7 +546,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
     // Proper stat error calculated using the cov matrix method (see notes).
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.616441, fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0935414, fr["average"].statisticalError, 0.01);
     cout << "Starting test testFitCorrelatedResults" << endl;
   }
 
@@ -556,16 +556,15 @@ class CombinationContextTest : public CppUnit::TestFixture
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
-    c.AddCorrelation ("statistical", m1, m2, 0.0); // 0%
+    c.AddCorrelation ("statistical", m1, m2, 1.0);
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1*sqrt(1.0/2.0), fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].statisticalError, 0.01);
   }
-
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);
