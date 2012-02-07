@@ -63,6 +63,21 @@ namespace BTagCombination {
       throw runtime_error ("Can only deal with correlations for statsical errors!");
     }
 
+    if (correlation == 1.0) {
+      cout << "WARNING: Can't deal with a correlation that is 1.0 - setting it to 0.99..." << endl
+	   << "  RooFit's fail to converge correctly in this case." << endl
+	   << "  The common variable is " << m1->What() << endl
+	   << "  m1 = " << m1->Name() << endl
+	   << "  m2 = " << m2->Name() << endl;
+      correlation = 0.99;
+    }
+
+    if (correlation == 0.0) {
+      // If there is no correlation then we really don't care and don't need
+      // to make the fitter do any extra work!
+      return;
+    }
+
     // Handel a statistical error.
     // We can have only one statistical error correlation for each measurement!
 
