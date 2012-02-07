@@ -34,6 +34,14 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testIgnoreFlagFile );
   CPPUNIT_TEST ( testIgnoreAnalysis );
 
+  CPPUNIT_TEST ( testUseOnlyFlags );
+  CPPUNIT_TEST ( testUseOnlyFlags2 );
+  CPPUNIT_TEST ( testUseOnlyFlags3 );
+  CPPUNIT_TEST ( testUseOnlyFlags4 );
+  CPPUNIT_TEST ( testUseOnlyFlags5 );
+  CPPUNIT_TEST ( testUseOnlyFlags6 );
+  CPPUNIT_TEST ( testUseOnlyFlags7 );
+
   CPPUNIT_TEST ( testSplitAnalysis );
   CPPUNIT_TEST ( testSplitAnalysis2 );
   CPPUNIT_TEST ( testSplitAnalysis3 );
@@ -227,8 +235,110 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL((size_t) 2, r.size());
   }
 
+  void testUseOnlyFlags()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--flavor",
+			  "top"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags1()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--flavor",
+			  "bottom"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
 
 
+  void testUseOnlyFlags2()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--tagger",
+			  "FORK"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags3()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--tagger",
+			  "JetTaggerCOMBNN"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags4()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--operatingPoint",
+			  "Dude"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags5()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--operatingPoint",
+			  "0.60"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags6()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--jetAlgorithm",
+			  "Dude"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags7()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--jetAlgorithm",
+			  "AntiKt4Topo"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommonCommandLineUtilsTest);

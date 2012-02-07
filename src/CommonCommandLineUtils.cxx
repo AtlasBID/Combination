@@ -60,6 +60,18 @@ namespace {
     }
     return result;
   }
+
+  // Return true if the list is empty or the match is in the lsit.
+  bool CheckInList (const vector<string> &l, const string &match)
+  {
+    if (l.size() == 0)
+      return true;
+    for (vector<string>::const_iterator itr = l.begin(); itr != l.end(); itr++) {
+      if (*itr == match)
+	return true;
+    }
+    return false;
+  }
 }
 
 //
@@ -94,6 +106,7 @@ namespace BTagCombination {
     //
 
     vector<string> OPsToIgnore;
+    vector<string> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm;
     for (int index = 0; index < argc; index++) {
       // is it a flag or a file containing operating points?
       string a (argv[index]);
@@ -112,6 +125,30 @@ namespace BTagCombination {
 	      vector<string> alltoignore (loadIgnoreFile(ignore.substr(1)));
 	      OPsToIgnore.insert(OPsToIgnore.end(), alltoignore.begin(), alltoignore.end());
 	    }
+	  } else if (flag == "flavor") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("every --flavor must have an analysis name");
+	    }
+	    index++;
+	    spOnlyFlavor.push_back(argv[index]);
+	  } else if (flag == "tagger") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("every --tagger must have an analysis name");
+	    }
+	    index++;
+	    spOnlyTagger.push_back(argv[index]);
+	  } else if (flag == "operatingPoint") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("every --operatingPoint must have an analysis name");
+	    }
+	    index++;
+	    spOnlyOP.push_back(argv[index]);
+	  } else if (flag == "jetAlgorithm") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("every --jetAlgorithm must have an analysis name");
+	    }
+	    index++;
+	    spOnlyJetAlgorithm.push_back(argv[index]);
 	  } else {
 	    unknownFlags.push_back(flag);
 	  }
@@ -122,8 +159,11 @@ namespace BTagCombination {
       }
     }
 
-    // If anything is to be ignored, better do that now.
-    // Make sure to remove analyses that have nothing in them in the end...
+    //
+    // Process the main ignore lists - anything fully matching these are
+    // dropped.
+    //
+
     for (unsigned int i = 0; i < OPsToIgnore.size(); i++) {
       vector<CalibrationAnalysis> &ops(operatingPoints.Analyses);
       for (unsigned int op = 0; op < ops.size(); op++) {
@@ -145,6 +185,25 @@ namespace BTagCombination {
 	}
       }
     }
+
+    //
+    // Next process the "only" lists. If the only list is empty, then treat that
+    // as a wild-card. Otherwise, demand an exact match.
+    //
+
+    for (size_t op = operatingPoints.Analyses.size(); op > size_t(0); op--) {
+      if (!CheckInList(spOnlyFlavor, operatingPoints.Analyses[op-1].flavor)
+	  || !CheckInList(spOnlyTagger, operatingPoints.Analyses[op-1].tagger)
+	  || !CheckInList(spOnlyOP, operatingPoints.Analyses[op-1].operatingPoint)
+	  || !CheckInList(spOnlyJetAlgorithm, operatingPoints.Analyses[op-1].jetAlgorithm)) {
+	operatingPoints.Analyses.erase(operatingPoints.Analyses.begin() + (op-1));
+      }
+    }    
+
+    //
+    // After that we may have some analyses which have zero bins in them. In that case
+    // we want to eliminate them.
+    //
 
     for (size_t op = operatingPoints.Analyses.size(); op > size_t(0); op--) {
       if (operatingPoints.Analyses[op-1].bins.size() == 0) {
