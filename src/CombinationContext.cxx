@@ -353,12 +353,6 @@ namespace BTagCombination {
     measuredPoints.add(varValues);
 
     ///
-    /// Dump out the graph-viz tree
-    ///
-    
-    finalPDF.graphVizTree("combined.dot");
-
-    ///
     /// And do the fit
     ///
 
@@ -367,16 +361,24 @@ namespace BTagCombination {
     cout << "Master fit is finished..." << endl;
 
     ///
+    /// Dump out the graph-viz tree
+    ///
+    
+    finalPDF.graphVizTree("combined.dot");
+
+    ///
     /// Extract the central values
     ///
 
     map<string, FitResult> result;
     map<string, double> totalError;
+    map<string, double> runningErrorXCheck;
     for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
       Measurement *m(*imeas);
       RooRealVar *v = _whatMeasurements.FindRooVar(m->What());
       result[m->What()].centralValue = v->getVal();
       totalError[m->What()] = v->getError();
+      runningErrorXCheck[m->What()] = 0.0;
     }
 
     ///
@@ -534,6 +536,7 @@ namespace BTagCombination {
 
 	    // Save for later use!
 	    result[item].sysErrors[sysErrorName] = errDiff;
+	    runningErrorXCheck[item] += errDiff*errDiff;
 
 	    sysErr->setConstant(false);
 	    sysErr->setVal(sysErrOldVal);
@@ -542,7 +545,9 @@ namespace BTagCombination {
 	}
       }
 
-      /// And the statistical error
+      //
+      // And the statistical error
+      //
       for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
 	const string sysErrorName (allVars[i_av]);
 	RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
@@ -558,6 +563,7 @@ namespace BTagCombination {
 	const string item (allMeasureNames[i_mn]);
 	RooRealVar *m = _whatMeasurements.FindRooVar(item);
 	result[item].statisticalError = m->getError();
+	runningErrorXCheck[item] += m->getError()*m->getError();
       }
 
       for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
@@ -598,6 +604,18 @@ namespace BTagCombination {
 
     cout << "  Refit to restore the state." << endl;
     finalPDF.fitTo(measuredPoints);
+
+    //
+    // How did the total errors work out?
+    //
+
+    for (map<string, double>::const_iterator itr = runningErrorXCheck.begin(); itr != runningErrorXCheck.end(); itr++) {
+      double terr = sqrt(itr->second);
+      cout << "Checking errors for measurement " << itr->first
+	   << "   total error: " << totalError[itr->first]
+	   << "   Summed Error: " << terr << endl
+	   << "   Delta Error: " << terr - totalError[itr->first] << endl;
+    }
 
     ///
     /// Done. We need to clean up the measurement Gaussian
