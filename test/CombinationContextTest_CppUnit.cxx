@@ -53,6 +53,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitCorrelatedResults2 );
   CPPUNIT_TEST ( testFitCorrelatedResults3 );
   CPPUNIT_TEST ( testFitCorrelatedResults4 );
+  CPPUNIT_TEST ( testFitCorrelatedResults5 );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -564,6 +565,24 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["average"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].statisticalError, 0.01);
+  }
+
+  void testFitCorrelatedResults5()
+  {
+    // This comes from the actual data, and the result was making
+    // no sense.
+
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+    c.AddCorrelation ("statistical", m1, m2, 0.717724);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.871953, fr["average"].centralValue, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0192838, fr["average"].statisticalError, 0.001);
   }
 };
 
