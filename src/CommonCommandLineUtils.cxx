@@ -214,6 +214,11 @@ namespace BTagCombination {
       }
     }
 
+    for (size_t cr = operatingPoints.Correlations.size(); cr > size_t(0); cr--) {
+      if (operatingPoints.Correlations[cr-1].bins.size() == 0) {
+	operatingPoints.Correlations.erase(operatingPoints.Correlations.begin() + (cr-1));
+      }
+    }
   }
 
   // Returns a well formed name for the analysis. This is text only,

@@ -25,6 +25,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testEmptyCommandLine );
   CPPUNIT_TEST( testUnknownFlag );
   CPPUNIT_TEST( testInputFromFile );
+  CPPUNIT_TEST( testCorrelation );
   CPPUNIT_TEST_EXCEPTION( testInputFromBadFile, std::runtime_error );
 
   CPPUNIT_TEST( testOPName );
@@ -34,6 +35,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testIgnoreFlagWildcard );
   CPPUNIT_TEST ( testIgnoreFlagFile );
   CPPUNIT_TEST ( testIgnoreAnalysis );
+  CPPUNIT_TEST ( testIgnoreCorrelation );
 
   CPPUNIT_TEST ( testUseOnlyFlags );
   CPPUNIT_TEST ( testUseOnlyFlags2 );
@@ -87,6 +89,33 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CalibrationAnalysis ana = results.Analyses[0];
     CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 9, ana.bins.size());
+  }
+
+  void testCorrelation()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/cor.txt"};
+
+    ParseOPInputArgs(argv, 1, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
+
+    AnalysisCorrelation ac = results.Correlations[0];
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("analysis1name", string("pTrel"), ac.analysis1Name);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("analysis2name", string("system8"), ac.analysis2Name);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("flavor", string("bottom"), ac.flavor);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("tagger", string("MV1"), ac.tagger);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("operatingpoint", string("0.905363"), ac.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("jetalgorithm", string("AntiKt4Topo"), ac.jetAlgorithm);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("n bins", size_t(1), ac.bins.size());
+    BinCorrelation b(ac.bins[0]);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.498885, b.statCorrelation, 0.0001);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("stat value good", true, b.hasStatCorrelation);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("# bin spec", size_t(2), b.binSpec.size());
   }
 
   void testIgnoreFlag()
@@ -155,6 +184,20 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
+  }
+
+  void testIgnoreCorrelation()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/cor.txt",
+			  "--ignore",
+			  "pTrel-system8-bottom-MV1-0.905363-AntiKt4Topo:110-pt-140:0-abseta-2.5"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
   }
 
   void testInputFromBadFile()
