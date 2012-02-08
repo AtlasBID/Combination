@@ -160,26 +160,36 @@ void DumpEverything (const vector<CalibrationAnalysis> &calibs)
 void CheckEverything (const vector<CalibrationAnalysis> &calibs)
 {
   //
-  // Calculating boundaries will make sure each analysis
-  // has a fully consitent set of bin boundaries
+  // Split up everything by the analysis we are going to be done
   //
 
-  vector<bin_boundaries> bb;
-  for (unsigned int i = 0; i < calibs.size(); i++) {
-    bb.push_back(calcBoundaries(calibs[i]));
+  typedef map<string, vector<CalibrationAnalysis> > t_CalibList;
+  t_CalibList byBin (BinAnalysesByJetTagFlavOp(calibs));
+  for (t_CalibList::const_iterator itr = byBin.begin(); itr != byBin.end(); itr++) {
+    const vector<CalibrationAnalysis> anas(itr->second);
+    
+    //
+    // Calculating boundaries will make sure each analysis
+    // has a fully consitent set of bin boundaries
+    //
+
+    vector<bin_boundaries> bb;
+    for (unsigned int i = 0; i < anas.size(); i++) {
+      bb.push_back(calcBoundaries(anas[i]));
+    }
+  
+    //
+    // Next we check different analysis have consistent bins.
+    //
+  
+    checkForConsitentBoundaries(bb);
+
+    //
+    // See if the various calibratoins are consistent for other reasons...
+    //
+
+    checkForConsistentAnalyses(anas);
   }
-  
-  //
-  // Next we check different analysis have consistent bins.
-  //
-  
-  checkForConsitentBoundaries(bb);
-
-  //
-  // See if the various calibratoins are consistent for other reasons...
-  //
-
-  checkForConsistentAnalyses(calibs);
 }
 
 void CheckEverything (const CalibrationInfo &info)
