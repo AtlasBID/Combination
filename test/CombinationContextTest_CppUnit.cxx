@@ -37,10 +37,11 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitTwoDataTwoMeasurement );
 
-
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
+
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
+  CPPUNIT_TEST ( testFitOneDataOneMeasurementSys3 );
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys2 );
@@ -324,6 +325,27 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL((size_t)2, fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["average"].sysErrors["s1"], 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["average"].sysErrors["s2"], 0.01);
+  }
+
+  void testFitOneDataOneMeasurementSys3()
+  {
+    cout << "Starting testFitOneDataOneMeasurementSys3" << endl;
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m = c.AddMeasurement ("average", -10.0, 10.0, 2.0, 0.4);
+    m->addSystematicAbs("s1", 0.5748);
+    m->addSystematicAbs("s2", 0.7322);
+    
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (2.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, fr["average"].statisticalError, 0.01);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)2, fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (2.0*0.2874, fr["average"].sysErrors["s1"], 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (2.0*0.3661, fr["average"].sysErrors["s2"], 0.01);
+    cout << "Finishing testFitOneDataOneMeasurementSys3" << endl;
   }
 
   void testFitOneDataTwoMeasurementSys()
