@@ -29,6 +29,7 @@ namespace {
       m = ctx.AddMeasurement (binName, -10.0, 10.0, b.centralValue, b.centralValueStatisticalError);
     } else {
       m = ctx.AddMeasurement (mname, binName, -10.0, 10.0, b.centralValue, b.centralValueStatisticalError);
+      cout << "--> Adding measurement called " << mname << endl;
     }
 
     for (unsigned int i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {

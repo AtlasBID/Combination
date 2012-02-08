@@ -627,7 +627,7 @@ namespace BTagCombination {
     for (map<string, double>::const_iterator itr = runningErrorXCheck.begin(); itr != runningErrorXCheck.end(); itr++) {
       double terr = sqrt(itr->second);
       double delta = fabs(terr - totalError[itr->first]);
-      if (delta > 0.001) {
+      if (delta > 0.01) {
 	cout << "WARNING Checking errors for measurement " << itr->first
 	     << "   total error: " << totalError[itr->first]
 	     << "   Summed Error: " << terr << endl
