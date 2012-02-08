@@ -29,7 +29,6 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST (TestBBOK1D);
   CPPUNIT_TEST (TestBBOK1D2);
-  CPPUNIT_TEST (TestBBOK1D3);
   CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D2, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestBBOverlap1D3, std::runtime_error );

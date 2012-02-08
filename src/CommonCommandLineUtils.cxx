@@ -7,6 +7,8 @@
 
 #include <TSystem.h>
 
+#include <boost/regex.hpp>
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -165,10 +167,11 @@ namespace BTagCombination {
     //
 
     for (unsigned int i = 0; i < OPsToIgnore.size(); i++) {
+      const boost::regex rIgnore (OPsToIgnore[i]);
       vector<CalibrationAnalysis> &ops(operatingPoints.Analyses);
       for (unsigned int op = 0; op < ops.size(); op++) {
 	for (unsigned int b = 0; b < ops[op].bins.size(); b++) {
-	  if (OPsToIgnore[i] == OPIgnoreFormat(ops[op], ops[op].bins[b])) {
+	  if (regex_match(OPIgnoreFormat(ops[op], ops[op].bins[b]), rIgnore)) {
 	    ops[op].bins.erase(ops[op].bins.begin() + b);
 	    break;
 	  }
@@ -178,7 +181,7 @@ namespace BTagCombination {
       vector<AnalysisCorrelation> &cors(operatingPoints.Correlations);
       for (unsigned int ic = 0; ic < cors.size(); ic++) {
 	for (unsigned int b = 0; b < cors[ic].bins.size(); b++) {
-	  if (OPsToIgnore[i] == OPIgnoreFormat(cors[ic], cors[ic].bins[b])) {
+	  if (regex_match(OPIgnoreFormat(cors[ic], cors[ic].bins[b]), rIgnore)) {
 	    cors[ic].bins.erase(cors[ic].bins.begin() + b);
 	    break;
 	  }
