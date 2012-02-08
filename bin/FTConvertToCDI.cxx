@@ -114,6 +114,8 @@ string convert_flavor (const string &flavor)
     return "C";
   if (flavor == "light" || flavor == "L" || flavor == "l")
     return "Light";
+  if (flavor == "tau" || flavor == "T" || flavor == 't')
+    return "Tau";
 
   throw runtime_error (("Do not know flavor '" + flavor + "' - please use 'bottom', 'charm', or 'light' in the input text file!").c_str());
 }
