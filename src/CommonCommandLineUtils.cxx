@@ -203,6 +203,15 @@ namespace BTagCombination {
       }
     }    
 
+    for (size_t op = operatingPoints.Correlations.size(); op > size_t(0); op--) {
+      if (!CheckInList(spOnlyFlavor, operatingPoints.Correlations[op-1].flavor)
+	  || !CheckInList(spOnlyTagger, operatingPoints.Correlations[op-1].tagger)
+	  || !CheckInList(spOnlyOP, operatingPoints.Correlations[op-1].operatingPoint)
+	  || !CheckInList(spOnlyJetAlgorithm, operatingPoints.Correlations[op-1].jetAlgorithm)) {
+	operatingPoints.Correlations.erase(operatingPoints.Correlations.begin() + (op-1));
+      }
+    }
+
     //
     // After that we may have some analyses which have zero bins in them. In that case
     // we want to eliminate them.

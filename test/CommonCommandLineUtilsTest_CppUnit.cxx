@@ -44,6 +44,8 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testUseOnlyFlags5 );
   CPPUNIT_TEST ( testUseOnlyFlags6 );
   CPPUNIT_TEST ( testUseOnlyFlags7 );
+  CPPUNIT_TEST ( testUseOnlyFlags8 );
+  CPPUNIT_TEST ( testUseOnlyFlags9 );
 
   CPPUNIT_TEST ( testSplitAnalysis );
   CPPUNIT_TEST ( testSplitAnalysis2 );
@@ -400,6 +402,32 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags8()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/cor.txt",
+			  "--jetAlgorithm",
+			  "AntiKt4Topo"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Correlations.size());
+  }
+
+  void testUseOnlyFlags9()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/cor.txt",
+			  "--jetAlgorithm",
+			  "freak"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
   }
 };
 
