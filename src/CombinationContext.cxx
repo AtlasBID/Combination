@@ -174,15 +174,15 @@ namespace BTagCombination {
     m1->addSystematicAbs(statSysErrorName, s1c);
     m2->addSystematicAbs(statSysErrorName, s2c);
 
-    cout << "Stat Correlation Calc: " << endl
-	 << "  s1 = " << s1 << endl
-	 << "  s2 = " << s2 << endl
-	 << "  rho = " << rho << endl
-	 << "  s1u = " << s1u << endl
-	 << "  s2u = " << s2u << endl
-	 << "  s1c = " << s1c << endl
-	 << "  s2c = " << s2c << endl
-	 << "  a=" << a << " b=" << b << " c=" << c << endl;
+    //cout << "Stat Correlation Calc: " << endl
+    //<< "  s1 = " << s1 << endl
+    //<< "  s2 = " << s2 << endl
+    //<< "  rho = " << rho << endl
+    //<< "  s1u = " << s1u << endl
+    //<< "  s2u = " << s2u << endl
+    //<< "  s1c = " << s1c << endl
+    //<< "  s2c = " << s2c << endl
+    //<< "  a=" << a << " b=" << b << " c=" << c << endl;
 
     CorrInfo cr;
     cr._m1 = m1;
@@ -626,10 +626,14 @@ namespace BTagCombination {
 
     for (map<string, double>::const_iterator itr = runningErrorXCheck.begin(); itr != runningErrorXCheck.end(); itr++) {
       double terr = sqrt(itr->second);
-      cout << "Checking errors for measurement " << itr->first
-	   << "   total error: " << totalError[itr->first]
-	   << "   Summed Error: " << terr << endl
-	   << "   Delta Error: " << terr - totalError[itr->first] << endl;
+      double delta = fabs(terr - totalError[itr->first]);
+      if (delta > 0.01) {
+	cout << "WARNING Checking errors for measurement " << itr->first
+	     << "   total error: " << totalError[itr->first]
+	     << "   Summed Error: " << terr << endl
+	     << "   Delta Error: " << delta << endl
+	     << "   somethign went wrong in how we calc errors" << endl;
+      }
     }
 
     ///
@@ -652,9 +656,9 @@ namespace BTagCombination {
 	  string fr_name(i_fr->first);
 	  map<string,double>::iterator s_value = fr.sysErrors.find(ci._sharedSysName);
 	  if (s_value != fr.sysErrors.end()) {
-	    cout << "Dealing with stat error: " << endl
-		 << " uncor = " << fr.statisticalError << endl
-		 << " cor = " << s_value->second << endl;
+	    //cout << "Dealing with stat error: " << endl
+	    //<< " uncor = " << fr.statisticalError << endl
+	    //<< " cor = " << s_value->second << endl;
 	      
 	    fr.statisticalError = sqrt(fr.statisticalError*fr.statisticalError
 				       + s_value->second*s_value->second);

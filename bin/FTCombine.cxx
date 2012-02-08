@@ -40,7 +40,6 @@ int main (int argc, char **argv)
     // Dump them out to an output file.
     ofstream out ("combined.txt");
     for (unsigned int i = 0; i < result.size(); i++) {
-      cout << result[i] << endl;
       out << result[i] << endl;
     }
     out.close();

@@ -240,15 +240,10 @@ namespace BTagCombination
 	  pair<string, string> aNames (OPIgnoreCorrelatedFormat(info.Correlations[i_cor],
 								bin));
 
-	  cout << "Looking at correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
-	       << std::endl;
-	  cout << "  name1 = " << aNames.first << endl;
-	  cout << "  name2 = " << aNames.second << endl;	  
-
 	  Measurement *m1 = ctx.FindMeasurement(aNames.first);
 	  Measurement *m2 = ctx.FindMeasurement(aNames.second);
 
-	  cout << "  m1 = " << m1 << " m2 = " << m2 << endl;
+	  //cout << "  m1 = " << m1 << " m2 = " << m2 << endl;
 
 	  if (m1 == 0 || m2 == 0) {
 	    if (!(m1 == 0 && m2 == 0)) {
@@ -259,12 +254,15 @@ namespace BTagCombination
 	    continue;
 	  }
 
+	  cout << "--> Adding correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
+	       << std::endl;
+
 	  //
 	  // Now, do the correlations
 	  //
 
 	  if (bin.hasStatCorrelation) {
-	    cout << "  Stat Correlation is " << bin.statCorrelation << endl;
+	    //cout << "  Stat Correlation is " << bin.statCorrelation << endl;
 	    ctx.AddCorrelation("statistical", m1, m2, bin.statCorrelation);
 	  }
 	}
@@ -322,7 +320,7 @@ namespace BTagCombination
 		   << "-" << n_tagger
 		   << "-" << n_OP;
 	    // Now we can actually build the fit context
-	    cout << "Fitting " << prefix.str() << endl;
+	    //cout << "Fitting " << prefix.str() << endl;
 	  }
 	}
       }
