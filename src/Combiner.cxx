@@ -230,155 +230,55 @@ namespace BTagCombination
 
     vector<CalibrationAnalysis> result;
     for(t_anaMap::const_iterator i_ana = binnedAnalyses.begin(); i_ana != binnedAnalyses.end(); i_ana++) {
-      CombinationContext ctx;
-      map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second);
+      if (i_ana->second.size() > 1) {
+	CombinationContext ctx;
+	map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second);
       
-      // Now, go look for any correlations that might apply here.
-      for (size_t i_cor = 0; i_cor < info.Correlations.size(); i_cor++) {
-	for (size_t i_cbin = 0; i_cbin < info.Correlations[i_cor].bins.size(); i_cbin++) {
-	  const BinCorrelation &bin(info.Correlations[i_cor].bins[i_cbin]);
-	  pair<string, string> aNames (OPIgnoreCorrelatedFormat(info.Correlations[i_cor],
-								bin));
+	// Now, go look for any correlations that might apply here.
+	for (size_t i_cor = 0; i_cor < info.Correlations.size(); i_cor++) {
+	  for (size_t i_cbin = 0; i_cbin < info.Correlations[i_cor].bins.size(); i_cbin++) {
+	    const BinCorrelation &bin(info.Correlations[i_cor].bins[i_cbin]);
+	    pair<string, string> aNames (OPIgnoreCorrelatedFormat(info.Correlations[i_cor],
+								  bin));
 
-	  Measurement *m1 = ctx.FindMeasurement(aNames.first);
-	  Measurement *m2 = ctx.FindMeasurement(aNames.second);
+	    Measurement *m1 = ctx.FindMeasurement(aNames.first);
+	    Measurement *m2 = ctx.FindMeasurement(aNames.second);
 
-	  //cout << "  m1 = " << m1 << " m2 = " << m2 << endl;
+	    //cout << "  m1 = " << m1 << " m2 = " << m2 << endl;
 
-	  if (m1 == 0 || m2 == 0) {
-	    if (!(m1 == 0 && m2 == 0)) {
-	      ostringstream out;
-	      out << "Both analyses not present for correlation " << OPFullName(info.Correlations[i_cor]) << " - but at least one is!";
-	      throw runtime_error (out.str());
+	    if (m1 == 0 || m2 == 0) {
+	      if (!(m1 == 0 && m2 == 0)) {
+		ostringstream out;
+		out << "Both analyses not present for correlation " << OPFullName(info.Correlations[i_cor]) << " - but at least one is!";
+		throw runtime_error (out.str());
+	      }
+	      continue;
 	    }
-	    continue;
-	  }
 
-	  cout << "--> Adding correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
-	       << std::endl;
+	    cout << "--> Adding correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
+		 << std::endl;
 
-	  //
-	  // Now, do the correlations
-	  //
+	    //
+	    // Now, do the correlations
+	    //
 
-	  if (bin.hasStatCorrelation) {
-	    //cout << "  Stat Correlation is " << bin.statCorrelation << endl;
-	    ctx.AddCorrelation("statistical", m1, m2, bin.statCorrelation);
-	  }
-	}
-      }
-      
-      // Do the fit.
-      map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
-
-      // Dummy analysis that we will fill in with the results.
-      CalibrationAnalysis r(i_ana->second[0]);
-      r.name = "combined";
-      r.bins = ExtractBinsResult(bins, fitResult);
-      result.push_back(r);
-    }
-
-#ifdef notyet
-
-    // First by jet algorithm
-    typedef map<string, vector<CalibrationAnalysis> > CalibMap;
-    map<string, map<string, vector<CalibrationBin> > > binByBinMap;
-    CalibMap byJetAlg;
-    for (unsigned int i = 0; i < ana.size(); i++) {
-      byJetAlg[ana[i].jetAlgorithm].push_back(ana[i]);
-    }
-
-    for (CalibMap::const_iterator i_jet = byJetAlg.begin(); i_jet != byJetAlg.end(); i_jet++) {
-      string n_jetalg = i_jet->first;
-      // Next, by flavor
-      CalibMap byFlavor;
-      for (unsigned int i = 0; i < i_jet->second.size(); i++) {
-	byFlavor[i_jet->second[i].flavor].push_back(i_jet->second[i]);
-      }
-      
-      for (CalibMap::const_iterator i_jet = byFlavor.begin(); i_jet != byFlavor.end(); i_jet++) {
-	string n_flavor = i_jet->first;
-	// Next, by tagger
-	CalibMap byTagger;
-	for (unsigned int i = 0; i < i_jet->second.size(); i++) {
-	  byTagger[i_jet->second[i].tagger].push_back(i_jet->second[i]);
-	}
-      
-	for (CalibMap::const_iterator i_jet = byTagger.begin(); i_jet != byTagger.end(); i_jet++) {
-	  string n_tagger = i_jet->first;
-	  // Next, by cut point
-	  CalibMap byOP;
-	  for (unsigned int i = 0; i < i_jet->second.size(); i++) {
-	    byOP[i_jet->second[i].operatingPoint].push_back(i_jet->second[i]);
-	  }
-      
-	  for (CalibMap::const_iterator i_jet = byOP.begin(); i_jet != byOP.end(); i_jet++) {
-	    string n_OP = i_jet->first;
-	    ostringstream prefix;
-	    prefix << n_jetalg
-		   << "-" << n_flavor
-		   << "-" << n_tagger
-		   << "-" << n_OP;
-	    // Now we can actually build the fit context
-	    //cout << "Fitting " << prefix.str() << endl;
+	    if (bin.hasStatCorrelation) {
+	      //cout << "  Stat Correlation is " << bin.statCorrelation << endl;
+	      ctx.AddCorrelation("statistical", m1, m2, bin.statCorrelation);
+	    }
 	  }
 	}
+      
+	// Do the fit.
+	map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+	
+	// Dummy analysis that we will fill in with the results.
+	CalibrationAnalysis r(i_ana->second[0]);
+	r.name = "combined";
+	r.bins = ExtractBinsResult(bins, fitResult);
+	result.push_back(r);
       }
     }
-
-    //
-    // Do the fit
-    //
-
-    map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
-
-    //
-    // Extract the results... Should be one per group of analyses we inserted.
-    //
-
-    for (CalibMap::const_iterator i_jet = byJetAlg.begin(); i_jet != byJetAlg.end(); i_jet++) {
-      string n_jetalg = i_jet->first;
-      // Next, by flavor
-      CalibMap byFlavor;
-      for (unsigned int i = 0; i < i_jet->second.size(); i++) {
-	byFlavor[i_jet->second[i].flavor].push_back(i_jet->second[i]);
-      }
-      
-      for (CalibMap::const_iterator i_jet = byFlavor.begin(); i_jet != byFlavor.end(); i_jet++) {
-	string n_flavor = i_jet->first;
-	// Next, by tagger
-	CalibMap byTagger;
-	for (unsigned int i = 0; i < i_jet->second.size(); i++) {
-	  byTagger[i_jet->second[i].tagger].push_back(i_jet->second[i]);
-	}
-      
-	for (CalibMap::const_iterator i_jet = byTagger.begin(); i_jet != byTagger.end(); i_jet++) {
-	  string n_tagger = i_jet->first;
-	  // Next, by cut point
-	  CalibMap byOP;
-	  for (unsigned int i = 0; i < i_jet->second.size(); i++) {
-	    byOP[i_jet->second[i].operatingPoint].push_back(i_jet->second[i]);
-	  }
-      
-	  for (CalibMap::const_iterator i_jet = byOP.begin(); i_jet != byOP.end(); i_jet++) {
-	    string n_OP = i_jet->first;
-	    ostringstream prefix;
-	    prefix << n_jetalg
-		   << "-" << n_flavor
-		   << "-" << n_tagger
-		   << "-" << n_OP;
-
-	    // Extract the result
-	    CalibrationAnalysis example (i_jet->second[0]);
-	    map<string, vector<CalibrationBin> > &byBin (binByBinMap[prefix.str()]);
-	    example.name = "combined";
-	    example.bins = ExtractBinsResult(byBin, fitResult);
-	    result.push_back(example);
-	  }
-	}
-      }
-    }
-#endif
 
     return result;
   }

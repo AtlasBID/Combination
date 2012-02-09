@@ -35,7 +35,6 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testOBTwoBinInWithUnCorSys );
 
   CPPUNIT_TEST ( testAnaOne );
-  CPPUNIT_TEST ( testAnaOneWithSys );
   CPPUNIT_TEST ( testAnaTwoDifBins );
   CPPUNIT_TEST ( testAnaTwoDifBinsDiffSys );
   //CPPUNIT_TEST_EXCPETION ( testAnaTwoBinsBad1, std::runtime_error );
@@ -49,6 +48,8 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor3 );
 
   CPPUNIT_TEST ( testAnaTwoSameBinsStatCor );
+
+  CPPUNIT_TEST ( testAnaTwoDifBinsNoFit );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -339,60 +340,6 @@ class CombinerTest : public CppUnit::TestFixture
     // We know a bit of how the code is tructured - if the bin came over, everything under it
     // came over otherwise other tests in this file would have failed.
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b.centralValue, 0.01);
-  }
-
-  void testAnaOneWithSys()
-  {
-    cout << "Starting testAnnOneWithSys" << endl;
-    // Single analysis - test simple case!
-    CalibrationBin b1;
-    b1.centralValue = 2.0;
-    b1.centralValueStatisticalError = 0.4;
-
-    CalibrationBinBoundary bound;
-    bound.variable = "eta";
-    bound.lowvalue = 0.0;
-    bound.highvalue = 2.5;
-    b1.binSpec.push_back(bound);
-    SystematicError s1;
-    s1.name = "s1";
-    s1.value = 0.5748;
-    s1.uncorrelated = false;
-    b1.systematicErrors.push_back(s1);
-    s1.value = 0.7322;
-    b1.systematicErrors.push_back(s1);
-
-    CalibrationAnalysis ana;
-    ana.name = "s8";
-    ana.flavor = "bottom";
-    ana.tagger = "comb";
-    ana.operatingPoint = "0.50";
-    ana.jetAlgorithm = "AntiKt4Topo";
-    ana.bins.push_back(b1);
-
-    vector<CalibrationAnalysis> inputs;
-    inputs.push_back (ana);
-
-    setupRoo();
-    CalibrationInfo info;
-    info.Analyses = inputs;
-    vector<CalibrationAnalysis> resultv (CombineAnalyses(info));
-    CPPUNIT_ASSERT_EQUAL (size_t(1), resultv.size());
-    const CalibrationAnalysis &result(resultv[0]);
-    CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
-    CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
-    CPPUNIT_ASSERT_EQUAL (string("comb"), result.tagger);
-    CPPUNIT_ASSERT_EQUAL (string("0.50"), result.operatingPoint);
-    CPPUNIT_ASSERT_EQUAL (string("AntiKt4Topo"), result.jetAlgorithm);
-    CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
-    CalibrationBin b (result.bins[0]);
-    CPPUNIT_ASSERT_EQUAL (size_t(1), b.binSpec.size());
-
-    // We know a bit of how the code is tructured - if the bin came over, everything under it
-    // came over otherwise other tests in this file would have failed.
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (2.0, b.centralValue, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.4, b.centralValueStatisticalError, 0.01);
-    cout << "Finishing testAnnOneWithSys" << endl;
   }
 
   void testAnaTwoSamBins()
@@ -841,20 +788,47 @@ class CombinerTest : public CppUnit::TestFixture
 
     setupRoo();
     vector<CalibrationAnalysis> results (CombineAnalyses(info));
-    CPPUNIT_ASSERT_EQUAL (size_t(1), results.size());
-    const CalibrationAnalysis &result(results[0]);
-    CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
-    CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
-    CPPUNIT_ASSERT_EQUAL (string("comb"), result.tagger);
-    CPPUNIT_ASSERT_EQUAL (string("0.50"), result.operatingPoint);
-    CPPUNIT_ASSERT_EQUAL (string("AntiKt4Topo"), result.jetAlgorithm);
-    CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
-    CalibrationBin b (result.bins[0]);
-    CPPUNIT_ASSERT_EQUAL (size_t(1), b.binSpec.size());
+    CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
+  }
 
-    // We know a bit of how the code is tructured - if the bin came over, everything under it
-    // came over otherwise other tests in this file would have failed.
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b.centralValue, 0.01);
+  void testAnaTwoDifBinsNoFit()
+  {
+    // Two analyese, different flavors, so they shouldn't be fit together,
+    // and thus no fitting should occur (i.e. no results).
+
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana;
+    ana.name = "s8";
+    ana.flavor = "bottom";
+    ana.tagger = "comb";
+    ana.operatingPoint = "0.50";
+    ana.jetAlgorithm = "AntiKt4Topo";
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana);
+    ana.flavor = "charm";
+    inputs.push_back (ana);
+
+    CalibrationInfo info;
+    info.Analyses = inputs;
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(info));
+    CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
   }
 
 };
