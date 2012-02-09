@@ -31,6 +31,12 @@ using std::transform;
 using std::back_inserter;
 using std::ostringstream;
 
+namespace {
+  // Max length of a parameter we allow into RooFit to prevent a crash.
+  // It does change with RooFit version number...
+  const size_t cMaxParameterNameLength = 100;
+}
+
 namespace BTagCombination {
 
   ///
@@ -78,10 +84,17 @@ namespace BTagCombination {
       return;
     }
 
-    // Handel a statistical error.
-    // We can have only one statistical error correlation for each measurement!
-
+    // The name we are going to use.
     string statSysErrorName (string("Correlated-") + m1->What() + "-" + m1->Name() + "-" + m2->Name());
+    if (statSysErrorName.size() > cMaxParameterNameLength) {
+      statSysErrorName = statSysErrorName.substr(0, cMaxParameterNameLength);
+    }
+
+    //
+    // Now do some detailed checks about the sys error
+    //  - Only one stat error correlation per two measruements, for example.
+    //
+
     if (m1->hasSysError(statSysErrorName)
 	|| m2->hasSysError(statSysErrorName)) {
       ostringstream err;
@@ -174,15 +187,15 @@ namespace BTagCombination {
     m1->addSystematicAbs(statSysErrorName, s1c);
     m2->addSystematicAbs(statSysErrorName, s2c);
 
-    //cout << "Stat Correlation Calc: " << endl
-    //<< "  s1 = " << s1 << endl
-    //<< "  s2 = " << s2 << endl
-    //<< "  rho = " << rho << endl
-    //<< "  s1u = " << s1u << endl
-    //<< "  s2u = " << s2u << endl
-    //<< "  s1c = " << s1c << endl
-    //<< "  s2c = " << s2c << endl
-    //<< "  a=" << a << " b=" << b << " c=" << c << endl;
+    cout << "Stat Correlation Calc: " << endl
+	 << "  s1 = " << s1 << endl
+	 << "  s2 = " << s2 << endl
+	 << "  rho = " << rho << endl
+	 << "  s1u = " << s1u << endl
+	 << "  s2u = " << s2u << endl
+	 << "  s1c = " << s1c << endl
+	 << "  s2c = " << s2c << endl
+	 << "  a=" << a << " b=" << b << " c=" << c << endl;
 
     CorrInfo cr;
     cr._m1 = m1;
@@ -220,6 +233,13 @@ namespace BTagCombination {
     ///
     /// Get the thing we are fitting to
     ///
+
+    if (measurementName.size() > cMaxParameterNameLength) {
+      ostringstream err;
+      err << "Parameter names is too long and will cause a crash in RooFit::migrad - "
+	  << "'" << measurementName << "'";
+      throw runtime_error (err.str().c_str());
+    }
 
     RooRealVar* whatVar = _whatMeasurements.FindOrCreateRooVar(what, minValue, maxValue);
     whatVar->setVal(value);

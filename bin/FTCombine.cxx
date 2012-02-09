@@ -25,14 +25,22 @@ int main (int argc, char **argv)
     vector<string> otherFlags;
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
-    if (otherFlags.size() != 0) {
-      usage();
-      return 1;
+    bool verbose = false;
+
+    for (int i = 0; i < otherFlags.size(); i++) {
+      if (otherFlags[i] == "verbose") {
+	verbose = true;
+      } else {
+	usage();
+	return 1;
+      }
     }
 
     // Turn off all those fitting messages!
-    RooMsgService::instance().setSilentMode(true);
-    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+    if (!verbose) {
+      RooMsgService::instance().setSilentMode(true);
+      RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+    }
 
     // Now that we have the calibrations, just combine them!
     vector<CalibrationAnalysis> result (CombineAnalyses(info));
@@ -53,5 +61,5 @@ int main (int argc, char **argv)
 
 void usage (void)
 {
-  cerr << "Usage: FTCombine <files, --ignore>" << endl;
+  cerr << "Usage: FTCombine <files, --ignore> --verbose" << endl;
 }

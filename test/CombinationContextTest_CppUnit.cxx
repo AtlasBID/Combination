@@ -56,6 +56,9 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitCorrelatedResults4 );
   CPPUNIT_TEST ( testFitCorrelatedResults5 );
 
+  CPPUNIT_TEST ( testFitParameterNameLength );
+  CPPUNIT_TEST_EXCEPTION ( testFitParameterNameLength1, std::runtime_error );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testCTor()
@@ -605,6 +608,54 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.871953, fr["average"].centralValue, 0.001);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0192838, fr["average"].statisticalError, 0.001);
+  }
+
+  void testFitParameterNameLength()
+  {
+    // This comes from the actual data, and the result was making
+    // no sense.
+
+    CombinationContext c;
+    string longname;
+    for (int i = 0; i < 70; i++){
+      longname += "h";
+    }
+
+    Measurement *m1 = c.AddMeasurement (longname, "average", -10.0, 10.0, 0.985215, 0.0351802);
+    longname += "1";
+    Measurement *m2 = c.AddMeasurement (longname, "average", -10.0, 10.0, 0.9367, 0.0178);
+    c.AddCorrelation ("statistical", m1, m2, 0.496615);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.871953, fr["average"].centralValue, 0.001);
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0192838, fr["average"].statisticalError, 0.001);
+  }
+
+  void testFitParameterNameLength1()
+  {
+    // This comes from the actual data, and the result was making
+    // no sense.
+
+    CombinationContext c;
+    string longname;
+    for (int i = 0; i < 100; i++){
+      longname += "h";
+    }
+
+    Measurement *m1 = c.AddMeasurement (longname, "average", -10.0, 10.0, 0.985215, 0.0351802);
+    longname += "1";
+    Measurement *m2 = c.AddMeasurement (longname, "average", -10.0, 10.0, 0.9367, 0.0178);
+    c.AddCorrelation ("statistical", m1, m2, 0.496615);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.871953, fr["average"].centralValue, 0.001);
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0192838, fr["average"].statisticalError, 0.001);
   }
 };
 
