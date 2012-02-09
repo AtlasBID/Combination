@@ -443,6 +443,11 @@ struct localCorBin
 
   void StatCor (double v)
   {
+    if (fabs(v) > 1.0) {
+      ostringstream err;
+      err << "The statistical correlation coeff '" << v << "' is larger than one! Not allowed!";
+      throw runtime_error (err.str().c_str());
+    }
     seenStat = true;
     statCoor = v;
   }
