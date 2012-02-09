@@ -187,15 +187,15 @@ namespace BTagCombination {
     m1->addSystematicAbs(statSysErrorName, s1c);
     m2->addSystematicAbs(statSysErrorName, s2c);
 
-    cout << "Stat Correlation Calc: " << endl
-	 << "  s1 = " << s1 << endl
-	 << "  s2 = " << s2 << endl
-	 << "  rho = " << rho << endl
-	 << "  s1u = " << s1u << endl
-	 << "  s2u = " << s2u << endl
-	 << "  s1c = " << s1c << endl
-	 << "  s2c = " << s2c << endl
-	 << "  a=" << a << " b=" << b << " c=" << c << endl;
+    //cout << "Stat Correlation Calc: " << endl
+    //<< "  s1 = " << s1 << endl
+    //<< "  s2 = " << s2 << endl
+    //<< "  rho = " << rho << endl
+    //<< "  s1u = " << s1u << endl
+    //<< "  s2u = " << s2u << endl
+    //<< "  s1c = " << s1c << endl
+    //<< "  s2c = " << s2c << endl
+    //<< "  a=" << a << " b=" << b << " c=" << c << endl;
 
     CorrInfo cr;
     cr._m1 = m1;
