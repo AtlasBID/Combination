@@ -34,7 +34,7 @@ using std::ostringstream;
 namespace {
   // Max length of a parameter we allow into RooFit to prevent a crash.
   // It does change with RooFit version number...
-  const size_t cMaxParameterNameLength = 100;
+  const size_t cMaxParameterNameLength = 90;
 }
 
 namespace BTagCombination {
@@ -121,6 +121,31 @@ namespace BTagCombination {
     double s1 = m1->GetStatisticalError()->getVal();
     double s2 = m2->GetStatisticalError()->getVal();
     double rho = correlation;
+
+    //
+    // first, check to see if this is going to drive us into a "bad" region - where
+    // the combination weights would be less than zero or greater than one.
+    // We test this by doing a straight combination and calculating the weight. If it's
+    // range is ok, then we can do the fit. Otherwise, no!
+    //
+
+    double wt = (s2*s2 - rho*s1*s2)/(s1*s1 + s2*s2 - 2*rho*s1*s2);
+    if (wt > 1.0 || wt < 0.0) {
+      cout << "WARNING: Correlation coefficient leads to impossible region of phase space." << endl
+	   << "  Cannot combine measurements!" << endl
+	   << "  #1: " << m1->Name() << endl
+	   << "     stat err = " << s1 << endl
+	   << "  #2: " << m2->Name() << endl
+	   << "     stat err = " << s2 << endl
+	   << "  rho = " << rho << " (weight w1 = " << wt << ")" << endl;
+      if (s1 > s2) {
+	cout << "  Keeping measurement #2" << endl;
+	m1->setDoNotUse (true);
+      } else {
+	cout << "  Keeping measurement #1" << endl;
+	m2->setDoNotUse (true);
+      }
+    }
 
     // Solve a quad eqn for s2c (s2, the correlated component)
     double a = 1.0;
@@ -279,12 +304,24 @@ namespace BTagCombination {
   ///
   map<string, CombinationContext::FitResult> CombinationContext::Fit(void)
   {
+    //
+    // There are only a certian sub-set of the measruements that are "valid"
+    // for use.
+    //
+
+    vector<Measurement*> gMeas;
+    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+      if (!(*imeas)->doNotUse())
+	gMeas.push_back(*imeas);
+    }
+
     ///
     /// Get all the systematic errors and create the variables we will need for them.
     ///
 
-    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+    for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
+
       vector<string> errorNames (m->GetSystematicErrorNames());
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &sysErrorName(*isyserr);
@@ -297,7 +334,7 @@ namespace BTagCombination {
     ///
 
     vector<RooAbsPdf*> measurementGaussians;
-    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+    for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
 
       ///
@@ -378,8 +415,9 @@ namespace BTagCombination {
     ///
 
     RooArgList varNames, varValues;
-    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+    for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
+
       varNames.add(*(m->GetActualMeasurement()));
       varValues.add(*(m->GetActualMeasurement()));
     }
@@ -408,8 +446,9 @@ namespace BTagCombination {
     map<string, FitResult> result;
     map<string, double> totalError;
     map<string, double> runningErrorXCheck;
-    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
+    for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
+
       RooRealVar *v = _whatMeasurements.FindRooVar(m->What());
       result[m->What()].centralValue = v->getVal();
       totalError[m->What()] = v->getError();
@@ -427,8 +466,9 @@ namespace BTagCombination {
       /// First task - look at the actual values that are input and dump some informative plots on what it is.
       ///
 
-      for (unsigned int i = 0; i < _measurements.size(); i++) {
-	Measurement *item(_measurements[i]);
+      for (unsigned int i = 0; i < gMeas.size(); i++) {
+	Measurement *item(gMeas[i]);
+
 	TH1F* h = new TH1F((string(item->Name()) + "_input_errors_absolute").c_str(),
 			  (string(item->Name()) + " Absolute Input Errors").c_str(),
 			  allVars.size()+1, 0.0, allVars.size()+1);
@@ -701,7 +741,7 @@ namespace BTagCombination {
   {
     for (size_t i = 0; i < _measurements.size(); i++) {
       const Measurement *m (_measurements[i]);
-      if (whatVariable == m->What()) {
+      if (whatVariable == m->What() && !m->doNotUse()) {
 	if (m->hasSysError(sysErrName))
 	  return true;
       }

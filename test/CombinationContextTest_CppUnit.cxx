@@ -36,6 +36,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitTwoDataOneMeasurementSys );
 
   CPPUNIT_TEST ( testFitTwoDataTwoMeasurement );
+  CPPUNIT_TEST ( testFitTwoDataOneMeasurementNoUse );
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
 
@@ -55,6 +56,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitCorrelatedResults3 );
   CPPUNIT_TEST ( testFitCorrelatedResults4 );
   CPPUNIT_TEST ( testFitCorrelatedResults5 );
+  CPPUNIT_TEST ( testFitCorrelatedResults6 );
 
   CPPUNIT_TEST ( testFitParameterNameLength );
   CPPUNIT_TEST_EXCEPTION ( testFitParameterNameLength1, std::runtime_error );
@@ -190,6 +192,21 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["a2"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a2"].statisticalError, 0.01);
+  }
+
+  void testFitTwoDataOneMeasurementNoUse()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m = c.AddMeasurement ("a1", -10.0, 10.0, 0.0, 0.1);
+    m->setDoNotUse(true);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a1"].statisticalError, 0.01);
   }
 
   void testFitTwoDataTwoMeasurement()
@@ -597,6 +614,9 @@ class CombinationContextTest : public CppUnit::TestFixture
     // This comes from the actual data, and the result was making
     // no sense.
 
+    // New protection code should now bounce this - and take only the best of the
+    // two measurements.
+
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
     Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
@@ -606,8 +626,26 @@ class CombinationContextTest : public CppUnit::TestFixture
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.871953, fr["average"].centralValue, 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0192838, fr["average"].statisticalError, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.8789, fr["average"].centralValue, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0243, fr["average"].statisticalError, 0.001);
+  }
+
+  void testFitCorrelatedResults6()
+  {
+    // This comes from the actual data, and the result was making
+    // no sense.
+
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.01);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1);
+    c.AddCorrelation ("statistical", m1, m2, 0.8);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.8789, fr["average"].centralValue, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.01, fr["average"].statisticalError, 0.001);
   }
 
   void testFitParameterNameLength()

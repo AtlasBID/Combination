@@ -36,10 +36,19 @@ namespace BTagCombination {
       { return _what; }
     bool hasSysError (const std::string &name) const;
 
+    // Get/Set the do not use flab. If set, then ignore this measurement
+    // when doing the combination.
+    // Use this when you have to wait until the full context is built before you decide that you
+    // can't use. Also used internally to prevent bad combinations from occuring.
+    void setDoNotUse (bool v) { _doNotUse = v; }
+    bool doNotUse (void) const { return _doNotUse; }
+
   private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
     RooConstVar *GetStatisticalError() {return _statError;}
+
+    bool _doNotUse;
 
   private:
     /// The context is allowed access to everything.
