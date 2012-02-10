@@ -63,7 +63,9 @@ namespace BTagCombination {
   ///
   bool Measurement::hasSysError (const string &name) const
   {
+    cout << "Looking for sys error " << name << endl;
     for(vector<pair<string,double> >::const_iterator itr = _sysErrors.begin(); itr != _sysErrors.end(); itr++) {
+      cout << " -> checking " << itr->first << endl;
       if (itr->first == name)
 	return true;
     }
@@ -115,5 +117,28 @@ namespace BTagCombination {
   void Measurement::addSystematicPer (const std::string &errorName, const double oneSigmaSizeRelativePercent)
   {
     addSystematicRel(errorName,  oneSigmaSizeRelativePercent/100.0);
+  }
+
+  //
+  // Determine what errosr are correlated and not correlated between measurements.
+  // Include both systeamtic and statistical errors in the calculation.
+  // Returns pair<uncorrelated, correlated>.
+  //
+  pair<double, double> Measurement::SharedError (const Measurement *other) const
+  {
+    double corErr2 = 0.0;
+    double uncorErr2 = _statError->getVal()*_statError->getVal();
+
+    for (size_t i = 0; i < _sysErrors.size(); i++) {
+      double v2 = _sysErrors[i].second;
+      v2 = v2*v2;
+      if (other->hasSysError(_sysErrors[i].first)) {
+	corErr2 += v2;
+      } else {
+	uncorErr2 += v2;
+      }
+    }
+
+    return make_pair(sqrt(uncorErr2), sqrt(corErr2));
   }
 }

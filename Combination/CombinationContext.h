@@ -81,6 +81,9 @@ namespace BTagCombination {
 
     /// Should we make plots as a diagnostic output?
     bool _doPlots;
+
+    // Any common measurements that are over correlated are "bad"
+    void TurnOffOverCorrelations();
   };
 }
 

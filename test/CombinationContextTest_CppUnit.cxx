@@ -50,6 +50,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys4 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys5 );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys6 );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys7 );
 
   CPPUNIT_TEST ( testFitCorrelatedResults );
   CPPUNIT_TEST ( testFitCorrelatedResults2 );
@@ -60,6 +61,10 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitParameterNameLength );
   CPPUNIT_TEST_EXCEPTION ( testFitParameterNameLength1, std::runtime_error );
+
+  CPPUNIT_TEST ( testMeasurementSharedError );
+  CPPUNIT_TEST ( testMeasurementSharedError2 );
+  CPPUNIT_TEST ( testMeasurementSharedError3 );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -494,6 +499,27 @@ class CombinationContextTest : public CppUnit::TestFixture
     cout << "Finishing testFitOneDataTwoMeasurementSys2" << endl;
   }
 
+  void testFitOneDataTwoMeasurementSys7()
+  {
+    cout << "Starting testFitOneDataTwoMeasurementSys7" << endl;
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.00631882);
+    m1->addSystematicAbs("s1", 0.0998002);
+    Measurement *m2 = c.AddMeasurement ("a1", -10.0, 10.0, 2.0, 0.00631882);
+    m2->addSystematicAbs("s1", 0.0495991);
+    
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (2.0, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.00631882, fr["a1"].statisticalError, 0.001);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, fr["a1"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0495991, fr["a1"].sysErrors["s1"], 0.01);
+    cout << "Finishing testFitOneDataTwoMeasurementSys7" << endl;
+  }
+
   void testFitOneDataTwoMeasurementSys5()
   {
     cout << "Starting testFitOneDataTwoMeasurementSys5" << endl;
@@ -695,6 +721,54 @@ class CombinationContextTest : public CppUnit::TestFixture
     //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.871953, fr["average"].centralValue, 0.001);
     //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0192838, fr["average"].statisticalError, 0.001);
   }
+
+  void testMeasurementSharedError()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    Measurement *m2 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    pair<double, double> s = m1->SharedError(m2);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, s.first, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, s.second, 0.001);
+  }
+
+  void testMeasurementSharedError1()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    m1->addSystematicAbs("s1", 0.1);
+    Measurement *m2 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    pair<double, double> s = m1->SharedError(m2);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1*sqrt(2), s.first, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, s.second, 0.001);
+  }
+
+  void testMeasurementSharedError2()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    m1->addSystematicAbs("s1", 0.1);
+    Measurement *m2 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    m2->addSystematicAbs("s1", 0.1);
+    pair<double, double> s = m1->SharedError(m2);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, s.first, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, s.second, 0.001);
+  }
+
+  void testMeasurementSharedError3()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    m1->addSystematicAbs("s1", 0.1);
+    m1->addSystematicAbs("s2", 0.1);
+    Measurement *m2 = c.AddMeasurement("a1", -10.0, 10.0, 1.0, 0.1);
+    m2->addSystematicAbs("s1", 0.1);
+    m2->addSystematicAbs("s2", 0.1);
+    pair<double, double> s = m1->SharedError(m2);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, s.first, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1*sqrt(2), s.second, 0.001);
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);

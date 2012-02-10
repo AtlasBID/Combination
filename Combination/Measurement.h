@@ -43,12 +43,13 @@ namespace BTagCombination {
     void setDoNotUse (bool v) { _doNotUse = v; }
     bool doNotUse (void) const { return _doNotUse; }
 
+    // Returns the error that is uncorrelated, correlated with another measurement.
+    std::pair<double, double> SharedError (const Measurement *other) const;
+
   private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
     RooConstVar *GetStatisticalError() {return _statError;}
-
-    bool _doNotUse;
 
   private:
     /// The context is allowed access to everything.
@@ -58,6 +59,7 @@ namespace BTagCombination {
     Measurement(const std::string &measurementName, const std::string &what, const double val, const double statError);
 
     ~Measurement(void);
+
 
     /// Keep track...
     const std::string _name;
@@ -76,6 +78,9 @@ namespace BTagCombination {
     std::vector<std::string> GetSystematicErrorNames(void) const;
     RooAbsReal *GetSystematicErrorWeight (RooRealVar &error);
     double GetSystematicErrorWidth (const std::string &errorName) const;
+    
+    // Ignore this in a calculation.
+    bool _doNotUse;
   };
 }
 

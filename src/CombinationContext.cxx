@@ -298,12 +298,91 @@ namespace BTagCombination {
     return RooFit::Range(low, high);
   }
 
+  //
+  // Look through all the measurements to be combined and make sure they
+  // aren't going to put us in a region that is "bad".
+  //
+  void CombinationContext::TurnOffOverCorrelations()
+  {
+    //
+    // First we need to catalog all the data ponits by what they are measuring, as
+    // that is where we have to do the testing.
+    //
+
+    typedef map<string, vector<Measurement*> > t_MeasureByWhat;
+    t_MeasureByWhat mapper;
+    for (vector<Measurement*>::const_iterator itr = _measurements.begin(); itr != _measurements.end(); itr++) {
+      if ((*itr)->doNotUse())
+	continue;
+      mapper[(*itr)->What()].push_back(*itr);
+    }
+
+    //
+    // For each one calculate the conditiosn for over correlations, and turn off one if
+    // it occurs.
+    //
+
+    for (t_MeasureByWhat::iterator itr = mapper.begin(); itr != mapper.end(); itr++) {
+
+      // Silly cases.
+
+      if (itr->second.size() == 0)
+	continue; // Nothing to combine here! :-)
+      if (itr->second.size() > 2) {
+	throw runtime_error("WARNING: Don't know how to calculate over-correlation condition for > 2 measurements yet!");
+      }
+
+      // Get the uncorrelated, correlated errors
+      Measurement *m1 = itr->second[0];
+      Measurement *m2 = itr->second[1];
+      pair<double, double> split1 = m1->SharedError(m2);
+      pair<double, double> split2 = m2->SharedError(m1);
+
+      // Calculate the rho
+
+      double s12 = split1.first*split1.first + split1.second*split1.second;
+      double s22 = split2.first*split2.first + split2.second*split2.second;
+      double s1 = sqrt(s12);
+      double s2 = sqrt(s22);
+
+      double rho = split1.second*split2.second/(s1*s2);
+
+      // And now the weight, assuming a straight combination.
+
+      double wt = (s22 - rho*s1*s2)/(s12 + s22 - 2*rho*s1*s2);
+      if (wt > 1.0 || wt < 0.0) {
+	cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
+	     << "  #1: " << m1->Name() << endl
+	     << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
+	     << "  #2: " << m2->Name() << endl
+	     << "  s2=" << s2 << " s2c=" << split2.second << " s2u=" << split2.first << endl
+	     << "  rho=" << rho << " wt=" << wt << endl;
+	if (s1 > s2) {
+	  cout << "  Keeping #2" << endl;
+	  m1->setDoNotUse(true);
+	} else {
+	  cout << "  Keeping #1" << endl;
+	  m2->setDoNotUse(true);
+	}
+      }
+    }
+
+  }
+
   ///
   /// Do the fit. We do all the building here, and then the fit, and then we extract
   /// all the results needed.
   ///
   map<string, CombinationContext::FitResult> CombinationContext::Fit(void)
   {
+    //
+    // First thing to do is x-check the measurements to eliminate any combinations
+    // that will lead to bad points in phase space (i.e. the correlated/uncorrelated
+    // are nasty
+    //
+
+    TurnOffOverCorrelations();
+
     //
     // There are only a certian sub-set of the measruements that are "valid"
     // for use.
