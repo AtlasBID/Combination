@@ -9,6 +9,7 @@
 
 #include <TFile.h>
 #include <TDirectory.h>
+#include <TH1.h>
 
 #include <iostream>
 #include <fstream>
@@ -61,6 +62,7 @@ int main(int argc, char **argv)
   // specific!
   //
 
+  TH1::AddDirectory(false);
   TFile *output;
   string outputROOTName ("output.root");
   if (!updateROOTFile) {
