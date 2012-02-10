@@ -39,6 +39,7 @@ namespace {
       input.close();
       list.Analyses.insert(list.Analyses.end(), calib.Analyses.begin(), calib.Analyses.end());
       list.Correlations.insert(list.Correlations.end(), calib.Correlations.begin(), calib.Correlations.end());
+      list.Defaults.insert(list.Defaults.begin(), calib.Defaults.begin(), calib.Defaults.end());
     } catch (exception &e) {
       ostringstream msg;
       msg << "Caught error parsing file '" << fname << "': " << e.what();
@@ -94,6 +95,7 @@ namespace BTagCombination {
 
     operatingPoints.Analyses.clear();
     operatingPoints.Correlations.clear();
+    operatingPoints.Defaults.clear();
     unknownFlags.clear();
 
     //
@@ -233,6 +235,16 @@ namespace BTagCombination {
   // Returns a well formed name for the analysis. This is text only,
   // and is what a person can use to talk to us. :-)
   string OPFullName (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.name
+	<< "-" << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.jetAlgorithm;
+    return msg.str();
+  }
+  string OPFullName (const DefaultAnalysis &ana)
   {
     ostringstream msg;
     msg << ana.name

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <algorithm>
 #include <stdexcept>
+#include <set>
 
 using namespace std;
 using namespace BTagCombination;
@@ -38,11 +39,9 @@ int main(int argc, char **argv)
 
   CalibrationInfo info;
   bool updateROOTFile = false;
-  vector<CalibrationAnalysis> calib;
   try {
     vector<string> otherFlags;
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
-    calib = info.Analyses;
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "update") {
 	updateROOTFile = true;
@@ -75,6 +74,22 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  //
+  // Next, index the defaults so we can quickly decide who is a default
+  // analysis and who isn't.
+  //
+
+  set<string> defaultAnalysisNames;
+  for (vector<DefaultAnalysis>::const_iterator itr = info.Defaults.begin(); itr != info.Defaults.end(); itr++) {
+    defaultAnalysisNames.insert(OPFullName(*itr));
+  }
+
+  //
+  // Now, write out everything. If the analysis is a default re-run the conversion
+  // (to make sure that we are not doing somethign funny in ROOT).
+  //
+
+  const vector<CalibrationAnalysis> calib (info.Analyses);
   for (unsigned int i = 0; i < calib.size(); i++) {
     const CalibrationAnalysis &c(calib[i]);
 
@@ -87,6 +102,12 @@ int main(int argc, char **argv)
     loc = get_sub_dir(loc, convert_flavor(c.flavor));
 
     loc->WriteTObject(container);
+
+
+    if (defaultAnalysisNames.find(OPFullName(c)) != defaultAnalysisNames.end()) {
+      CalibrationDataContainer *def_c = ConvertToCDI (c, "default_SF");
+      loc->WriteTObject(def_c);
+    }
   }
 
   output->Close();
