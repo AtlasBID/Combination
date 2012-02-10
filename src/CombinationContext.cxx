@@ -326,7 +326,7 @@ namespace BTagCombination {
 
       // Silly cases.
 
-      if (itr->second.size() == 0)
+      if (itr->second.size() < 2)
 	continue; // Nothing to combine here! :-)
       if (itr->second.size() > 2) {
 	throw runtime_error("WARNING: Don't know how to calculate over-correlation condition for > 2 measurements yet!");
@@ -352,6 +352,7 @@ namespace BTagCombination {
       double wt = (s22 - rho*s1*s2)/(s12 + s22 - 2*rho*s1*s2);
       if (wt > 1.0 || wt < 0.0) {
 	cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
+	     << "  " << m1->What() << endl
 	     << "  #1: " << m1->Name() << endl
 	     << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
 	     << "  #2: " << m2->Name() << endl

@@ -63,9 +63,7 @@ namespace BTagCombination {
   ///
   bool Measurement::hasSysError (const string &name) const
   {
-    cout << "Looking for sys error " << name << endl;
     for(vector<pair<string,double> >::const_iterator itr = _sysErrors.begin(); itr != _sysErrors.end(); itr++) {
-      cout << " -> checking " << itr->first << endl;
       if (itr->first == name)
 	return true;
     }
