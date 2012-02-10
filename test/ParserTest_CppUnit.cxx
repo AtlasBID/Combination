@@ -50,6 +50,9 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION(testParseCorrelation4, std::runtime_error);
   CPPUNIT_TEST(testParseCorrelation5);
 
+  CPPUNIT_TEST(testParseDefault);
+  CPPUNIT_TEST(testParseDefaultRoundtrip);
+
   CPPUNIT_TEST_SUITE_END();
 
   void testSourceComments()
@@ -424,6 +427,46 @@ class ParserTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL(true, b.hasStatCorrelation);
     CPPUNIT_ASSERT_EQUAL(0.5, b.statCorrelation);
+  }
+
+  void testParseDefault()
+  {
+    cout << "Test testParseDefault" << endl;
+    CalibrationInfo result (Parse("Default (ptrel, bottom, MV1, 0.9, AntiKt)"));
+    
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Defaults.size());
+
+    DefaultAnalysis d (result.Defaults[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), d.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), d.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
+  }
+
+  void testParseDefaultRoundtrip()
+  {
+    cout << "Test testParseDefault" << endl;
+    CalibrationInfo result (Parse("Default (ptrel, bottom, MV1, 0.9, AntiKt)"));
+    
+    ostringstream buffer;
+    cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result2.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result2.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result2.Defaults.size());
+
+    DefaultAnalysis d (result2.Defaults[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), d.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), d.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
   }
 };
 

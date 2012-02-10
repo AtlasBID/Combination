@@ -272,11 +272,35 @@ namespace BTagCombination
     return out;
   }
 
+
+  // Info on what analysis should be marked default
+  struct DefaultAnalysis
+  {
+    std::string name; // The name of the analyiss, like "system8"
+    std::string flavor; // What is this calibration for?
+    
+    std::string tagger; // What tagger are we running
+    std::string operatingPoint; // SV050 or similar - the operating point
+    std::string jetAlgorithm; // The Jet algorithm we are using
+  };
+
+  inline std::ostream &operator<< (std::ostream &out, const DefaultAnalysis &d) {
+    out << "Default(" 
+	<< d.name 
+	<< ", " << d.flavor
+	<< ", " << d.tagger
+	<< ", " << d.operatingPoint
+	<< ", " << d.jetAlgorithm
+	<< ")";
+    return out;
+  }  
+
   // A list of everything that we might be reading in
   struct CalibrationInfo
   {
     std::vector<CalibrationAnalysis> Analyses;
     std::vector<AnalysisCorrelation> Correlations;
+    std::vector<DefaultAnalysis> Defaults;
   };
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {
@@ -285,6 +309,9 @@ namespace BTagCombination
     }
     for (size_t i = 0; i < info.Correlations.size(); i++) {
       out << info.Correlations[i] << std::endl;
+    }
+    for (size_t i = 0; i < info.Defaults.size(); i++) {
+      out << info.Defaults[i] << std::endl;
     }
     return out;
   }

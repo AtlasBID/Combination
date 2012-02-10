@@ -500,13 +500,6 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
       > '{'
       > *binFinder
       > '}';
-#ifdef later
-
-    start %= lit("Analysis") > lit('(') > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ')'
-      > '{'
-      > *binParser
-      > '}';
-#endif
   }
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
@@ -518,27 +511,71 @@ struct AnalysisCorrelationParser : qi::grammar<Iterator, AnalysisCorrelation(), 
     qi::rule<Iterator, std::vector<BTagCombination::CalibrationBinBoundary>(), ascii::space_type>  boundary_list;
 };
 
+//
+// Parsing for a default string. Pretty simple, actually.
+//
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::DefaultAnalysis,
+			  (std::string, name)
+			  (std::string, flavor)
+			  (std::string, tagger)
+			  (std::string, operatingPoint)
+			  (std::string, jetAlgorithm)
+			  )
+template <typename Iterator>
+struct DefaultAnalysisParser : qi::grammar<Iterator, DefaultAnalysis(), ascii::space_type>
+{
+  DefaultAnalysisParser() : DefaultAnalysisParser::base_type(start, "DefaultAnalysis") {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+    using qi::_val;
+    using qi::labels::_1;
+    using boost::phoenix::bind;
+    using qi::double_;
+
+    name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
+
+    start %= lit("Default") 
+      > '(' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ')';
+  }
+
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, DefaultAnalysis(), ascii::space_type> start;
+};
+
+
 // 
 // Helper struct for the parsing.
 struct CIHolder
 {
   vector<CalibrationAnalysis> Anas;
   vector<AnalysisCorrelation> Cors;
+  vector<DefaultAnalysis> Defs;
 
   inline void AddAnalysis (const CalibrationAnalysis &ana)
   {
     Anas.push_back(ana);
   }
-
   inline void AddCorrelation (const AnalysisCorrelation &cor)
   {
     Cors.push_back(cor);
+  }
+  inline void AddDefault (const DefaultAnalysis &def)
+  {
+    Defs.push_back(def);
   }
 
   inline void Convert(CalibrationInfo &holder)
   {
     holder.Analyses = Anas;
     holder.Correlations = Cors;
+    holder.Defaults = Defs;
   }
 };
 
@@ -555,6 +592,7 @@ struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::s
       localCIHolder = *(
 			analysisParser[bind(&CIHolder::AddAnalysis, _val, _1)]
 			| correlationParser[bind(&CIHolder::AddCorrelation, _val, _1)]
+			| defaultParser[bind(&CIHolder::AddDefault, _val, _1)]
 			);
 
       converter = localCIHolder[bind(&CIHolder::Convert, _1, _val)];
@@ -565,6 +603,7 @@ struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::s
     qi::rule<Iterator, CIHolder(), ascii::space_type> localCIHolder;
     CalibrationAnalysisParser<Iterator> analysisParser;
     AnalysisCorrelationParser<Iterator> correlationParser;
+    DefaultAnalysisParser<Iterator> defaultParser;
 };
 
 //
