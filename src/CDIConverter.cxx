@@ -22,6 +22,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <cmath>
 
 using Analysis::CalibrationDataHistogramContainer;
 using Analysis::CalibrationDataContainer;
@@ -198,23 +199,39 @@ namespace BTagCombination {
     CalibrationDataHistogramContainer *result = new CalibrationDataHistogramContainer(name.c_str());
 
     //
+    // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
+    //
+
+    CalibrationAnalysis ana (eff);
+    for (vector<CalibrationBin>::iterator itr = ana.bins.begin(); itr != ana.bins.end(); itr++) {
+      double totS = 0.0;
+      for (vector<SystematicError>::const_iterator i_s = itr->systematicErrors.begin(); i_s != itr->systematicErrors.end(); i_s++) {
+	totS += i_s->value*i_s->value;
+      }
+      SystematicError s;
+      s.value = sqrt(totS);
+      s.name = "systematics";
+      itr->systematicErrors.push_back(s);
+    }
+
+    //
     // First, convert this analysis to a histogram, and extract the values with errors
     // being the systematic errors for each value.
     //
 
-    bin_boundaries_hist bins = calcBoundaries(eff);
-    TH2 *central_value = set_bin_values(bins, eff, "central", get_central_value);
+    bin_boundaries_hist bins = calcBoundaries(ana);
+    TH2 *central_value = set_bin_values(bins, ana, "central", get_central_value);
     result->setResult(central_value);
 
     // Get all systematic errors
-    set<string> error_names (sys_error_names(eff));
+    set<string> error_names (sys_error_names(ana));
 
     // Get the full set of values for each.
     for (set<string>::const_iterator e_name = error_names.begin(); e_name != error_names.end(); e_name++) {
-      TH2 *errors = set_bin_values(bins, eff, *e_name, get_sys_error(*e_name));
+      TH2 *errors = set_bin_values(bins, ana, *e_name, get_sys_error(*e_name));
       result->setUncertainty(e_name->c_str(), errors);
 
-      if (is_uncorrelated(eff, *e_name))
+      if (is_uncorrelated(ana, *e_name))
 	result->setUncorrelated(e_name->c_str());
 
     }
