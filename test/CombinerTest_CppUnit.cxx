@@ -806,11 +806,11 @@ class CombinerTest : public CppUnit::TestFixture
 
     // We know a bit of how the code is tructured - if the bin came over, everything under it
     // came over otherwise other tests in this file would have failed.
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_1.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, b_1.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_2.centralValue, 0.01);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, b_1.centralValueStatisticalError, 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_2.centralValue, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(2)*0.1, b_2.centralValueStatisticalError, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, b_2.centralValueStatisticalError, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0/sqrt(1.0/(0.1*0.1)+1.0/(0.2*0.2)), b_1.centralValueStatisticalError, 0.001);
   }
 
   void testAnaTwoDifBinsDiffSys()

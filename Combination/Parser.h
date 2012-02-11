@@ -151,8 +151,13 @@ namespace BTagCombination
       }
       out << ") {" << std::endl;
       out << "    central_value (" << b.centralValue
-	  << ", " << relativeErrorCalc(b.centralValue, b.centralValueStatisticalError)
-	  << "%)";
+	  << ", ";
+      if (b.centralValue != 0.0) {
+	out << relativeErrorCalc(b.centralValue, b.centralValueStatisticalError)
+	    << "%)";
+      } else {
+	out << b.centralValueStatisticalError << ")";
+      }
       
       for (size_t i = 0; i < b.systematicErrors.size(); i++) {
 	out << std::endl

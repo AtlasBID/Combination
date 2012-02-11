@@ -161,7 +161,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a1"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["a2"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a2"].statisticalError, 0.01);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.08944, fr["a1"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0/sqrt(1.0/(0.1*0.1)+1.0/(0.2*0.2)), fr["a1"].statisticalError, 0.01);
   }
 
   void testFitTwoDataOneMeasurement()
