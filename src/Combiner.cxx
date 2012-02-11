@@ -86,7 +86,7 @@ namespace {
   // Extract the complete result - with sys errors - from the calibratoin bin
   //  - Context has already had the fit run.
   //
-  CalibrationBin ExtractBinResult (CombinationContext::FitResult binResult, const CalibrationBin &forThisBin)
+  CalibrationBin ExtractBinResult (const CombinationContext::FitResult &binResult, const CalibrationBin &forThisBin)
   {
     CalibrationBin result;
     result.binSpec = forThisBin.binSpec;
@@ -119,12 +119,18 @@ namespace {
   // Given a mapping of bins to analysis bins, and a set of fit results, extract the mapping
   // and return a list of combined fits.
   vector<CalibrationBin> ExtractBinsResult (const map<string, vector<CalibrationBin> > &bybins,
-					    map<string, CombinationContext::FitResult> &fitResult)
+					    const map<string, CombinationContext::FitResult> &fitResult)
   {
     vector<CalibrationBin> result;
     for (map<string, vector<CalibrationBin> >::const_iterator i_b = bybins.begin(); i_b != bybins.end(); i_b++) {
       string binName = i_b->first;
-      CalibrationBin thisBin (ExtractBinResult (fitResult[binName], i_b->second[0]));
+      map<string, CombinationContext::FitResult>::const_iterator itr = fitResult.find(binName);
+      if (itr == fitResult.end()) {
+	ostringstream err;
+	err << "Unable to recover bin " << binName << " in the output of the fit!";
+	throw runtime_error (err.str().c_str());
+      }
+      CalibrationBin thisBin (ExtractBinResult (itr->second, i_b->second[0]));
       result.push_back(thisBin);
     }
     return result;
@@ -156,15 +162,17 @@ namespace BTagCombination
     // Now we are ready to build the combination. Do a single fit of everything.
     CombinationContext ctx;
     FillContextWithBinInfo (ctx, bins);
-    map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+    const map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
 
     // Now that we have the result, we need to extract the numbers and build the resulting bin
     string binName (OPBinName(bins[0]));    
 
-    if (fitResult.find(binName) == fitResult.end())
+    
+    map<string, CombinationContext::FitResult>::const_iterator ptr = fitResult.find(binName);
+    if (ptr == fitResult.end())
       throw runtime_error ("Unable to find bin '" + binName + "' in the fit results");
 
-    CalibrationBin result (ExtractBinResult (fitResult[binName], bins[0]));
+    CalibrationBin result (ExtractBinResult (ptr->second, bins[0]));
 
     return result;
   }
@@ -201,7 +209,7 @@ namespace BTagCombination
 
     CombinationContext ctx;
     map<string, vector<CalibrationBin> > bybins = FillContextWithCommonAnaInfo (ctx, ana);
-    map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+    const map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
 
     //
     // Finally, go through and extract the fit results.

@@ -40,6 +40,8 @@ class CombinerTest : public CppUnit::TestFixture
   //CPPUNIT_TEST_EXCPETION ( testAnaTwoBinsBad1, std::runtime_error );
   CPPUNIT_TEST ( testAnaTwoSamBins );
 
+  CPPUNIT_TEST ( testAnaTwoWeirdBins );
+
   CPPUNIT_TEST ( testAnaDifOne );
   //CPPUNIT_TEST ( testAnaDifTwoSameBins );
   //CPPUNIT_TEST ( testAnaDifTwoDifAndSameBins );
@@ -751,6 +753,64 @@ class CombinerTest : public CppUnit::TestFixture
     SystematicError e2 (b_2.systematicErrors[0]);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e1.value, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e2.value, 0.01);
+  }
+
+  void testAnaTwoWeirdBins()
+  {
+    cout << "Starting fit testAnaTwoWeirdBins" << endl;
+
+    // Two ana, mis-matched bins, some overlap, some not...
+
+    CalibrationBin b1;
+    b1.centralValue = 0.0;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+
+    b1.centralValue = 0.0;
+    b1.binSpec[0].lowvalue = 2.5;
+    b1.binSpec[0].highvalue = 5.0;
+    ana1.bins.push_back(b1);
+
+    ana2.name = "ptrel";
+    ana2.bins[0].centralValue = 1.0;
+    ana2.bins[0].centralValueStatisticalError = 0.2;
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana1);
+    inputs.push_back (ana2);
+
+    setupRoo();
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
+    cout << "Result of the weird bin test:" << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_EQUAL (size_t(2), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CalibrationBin b_2 (result.bins[1]);
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_1.centralValue, 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, b_1.centralValueStatisticalError, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_2.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(2)*0.1, b_2.centralValueStatisticalError, 0.001);
   }
 
   void testAnaTwoDifBinsDiffSys()

@@ -259,6 +259,7 @@ namespace BTagCombination {
     /// Get the thing we are fitting to
     ///
 
+    cout << "Adding a measurement " << measurementName << "(" << what << "): " << value << " +- " << statError << endl;
     if (measurementName.size() > cMaxParameterNameLength) {
       ostringstream err;
       err << "Parameter names is too long and will cause a crash in RooFit::migrad - "
