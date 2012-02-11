@@ -53,6 +53,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSys7 );
 
   CPPUNIT_TEST ( testFitWeirdMatches );
+  CPPUNIT_TEST ( testFitWeirdMatches2 );
 
   CPPUNIT_TEST ( testFitCorrelatedResults );
   CPPUNIT_TEST ( testFitCorrelatedResults2 );
@@ -154,6 +155,30 @@ class CombinationContextTest : public CppUnit::TestFixture
     c.AddMeasurement ("a1", -10.0, 10.0, 0.0, 0.1);
     c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.2);
     c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, fr["a1"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["a2"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, fr["a2"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0/sqrt(1.0/(0.1*0.1)+1.0/(0.2*0.2)), fr["a1"].statisticalError, 0.01);
+  }
+
+  void testFitWeirdMatches2()
+  {
+    cout << "Starting testFitWeirdMatches2" << endl;
+
+    // Garbage in, garbage out.
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("a1", -10.0, 10.0, 0.0, 0.1);
+    m1->addSystematicAbs("s1", 0.1);
+
+    m1 = c.AddMeasurement ("a1", -10.0, 10.0, 1.0, 0.2);
+    m1->addSystematicAbs("s2", 0.1);
+
+    m1 = c.AddMeasurement ("a2", -10.0, 10.0, 0.0, 0.1);
+    m1->addSystematicAbs("s1", 0.1);
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
