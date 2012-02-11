@@ -33,6 +33,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testIgnoreFlag );
   CPPUNIT_TEST ( testIgnoreFlagWildcard );
+  CPPUNIT_TEST ( testIgnoreFlagWildcard2 );
   CPPUNIT_TEST ( testIgnoreFlagFile );
   CPPUNIT_TEST ( testIgnoreAnalysis );
   CPPUNIT_TEST ( testIgnoreCorrelation );
@@ -154,6 +155,20 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CalibrationAnalysis ana = results.Analyses[0];
     CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 8, ana.bins.size());
+  }
+
+  void testIgnoreFlagWildcard2()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--ignore",
+			  "ttbar_kin_ljets-.*-JetTaggerCOMBNN-0.60-AntiKt4Topo:.*"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
   }
 
   void testIgnoreFlagFile()

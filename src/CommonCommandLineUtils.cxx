@@ -175,7 +175,7 @@ namespace BTagCombination {
 	for (unsigned int b = 0; b < ops[op].bins.size(); b++) {
 	  if (regex_match(OPIgnoreFormat(ops[op], ops[op].bins[b]), rIgnore)) {
 	    ops[op].bins.erase(ops[op].bins.begin() + b);
-	    break;
+	    b = b - 1;
 	  }
 	}
       }
@@ -185,7 +185,7 @@ namespace BTagCombination {
 	for (unsigned int b = 0; b < cors[ic].bins.size(); b++) {
 	  if (regex_match(OPIgnoreFormat(cors[ic], cors[ic].bins[b]), rIgnore)) {
 	    cors[ic].bins.erase(cors[ic].bins.begin() + b);
-	    break;
+	    b = b - 1;
 	  }
 	}
       }
