@@ -131,7 +131,6 @@ namespace {
 	err << "Unable to recover bin " << binName << " in the output of the fit!";
 	throw runtime_error (err.str().c_str());
       }
-      cout << "Extract bings result for " << binName << endl << itr->second << endl;
 
       CalibrationBin thisBin (ExtractBinResult (itr->second, i_b->second[0]));
       result.push_back(thisBin);

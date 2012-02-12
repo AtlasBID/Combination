@@ -259,13 +259,17 @@ namespace BTagCombination {
     /// Get the thing we are fitting to
     ///
 
-    cout << "Adding a measurement " << measurementName << "(" << what << "): " << value << " +- " << statError << endl;
     if (measurementName.size() > cMaxParameterNameLength) {
       ostringstream err;
       err << "Parameter names is too long and will cause a crash in RooFit::migrad - "
 	  << "'" << measurementName << "'";
       throw runtime_error (err.str().c_str());
     }
+
+    //
+    // Create the variable we are going to be fitting for, and a data point and an
+    // object to hand back.
+    //
 
     RooRealVar* whatVar = _whatMeasurements.FindOrCreateRooVar(what, minValue, maxValue);
     whatVar->setVal(value);
@@ -297,6 +301,19 @@ namespace BTagCombination {
     double low = v.getVal() - sigma*v.getError();
     double high = v.getVal() + sigma*v.getError();
     return RooFit::Range(low, high);
+  }
+
+  //
+  // If a gaussian error is less than 1% then we must bump it up, unfortunately.
+  //
+  void CombinationContext::AdjustTooSmallGaussians()
+  {
+    for (vector<Measurement*>::iterator itr = _measurements.begin(); itr != _measurements.end(); itr++) {
+      if ((*itr)->doNotUse())
+	continue;
+
+      (*itr)->CheckAndAdjustStatisticalError(0.01);
+    }
   }
 
   //
@@ -380,10 +397,12 @@ namespace BTagCombination {
     //
     // First thing to do is x-check the measurements to eliminate any combinations
     // that will lead to bad points in phase space (i.e. the correlated/uncorrelated
-    // are nasty
+    // are nasty. Also look for gaussian errors that are too small for our fitter
+    // to deal with.
     //
 
     TurnOffOverCorrelations();
+    AdjustTooSmallGaussians();
 
     //
     // There are only a certian sub-set of the measruements that are "valid"

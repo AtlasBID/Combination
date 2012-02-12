@@ -84,6 +84,10 @@ namespace BTagCombination {
 
     // Any common measurements that are over correlated are "bad"
     void TurnOffOverCorrelations();
+
+    // Any gaussian errors too small, we fix here.
+    void AdjustTooSmallGaussians();
+
   };
 
   // Dump a fit result out.

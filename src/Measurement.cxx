@@ -46,6 +46,34 @@ namespace BTagCombination {
 			     statErr);
   }
 
+  //
+  // See if the stat error is too small, artifiically boost it if it is.
+  //
+  void Measurement::CheckAndAdjustStatisticalError(double minFraction)
+  {
+    double fract = _statError->getVal() / _actualValue.getVal();
+    if (fract < minFraction) {
+      double newStatError = _actualValue.getVal() * minFraction;
+      cout << "WARNING: Statistical error is too small for fitting to succeed." << endl
+	   << "  " << Name() << " (" << What() << ")" << endl
+	   << "  central value " << _actualValue.getVal() << " +- " << _statError->getVal() << " (stat) +- " << totalSysError() << " (sys)" << endl
+	   << "  Adjusting the stat error to " << newStatError << endl;
+      ResetStatisticalError(newStatError);
+    }
+  }
+
+  //
+  // Calc the total systematic error in quad
+  //
+  double Measurement::totalSysError() const
+  {
+    double tot = 0.0;
+    for (size_t i = 0; i < _sysErrors.size(); i++) {
+      tot += _sysErrors[i].second*_sysErrors[i].second;
+    }
+    return sqrt(tot);
+  }
+
   ///
   /// Return a list of the systematic errors that we are "using".
   ///
