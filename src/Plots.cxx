@@ -122,12 +122,25 @@ namespace {
 
     double yCentralTotMin = 10.0;
     double yCentralTotMax = 0.0;
+
+    
+    // Extract the data for plotting, and make the plots.
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
       const string &anaName (anas[ia].name);
+
+
+      // Clear out the arrays...
+      for (size_t ib = 0; ib < axisBins.size(); ib++) {
+	v_bin[ib] = x_InitialCoordinate + ib;
+	v_binError[ib] = 0.0;
+	v_central[ib] = -1000.0;
+	v_centralStatError[ib] = 0.0;
+	v_centralTotError[ib] = 0.0;
+      }
+
       int ibin = 0;
 
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
-	v_bin[ibin] = x_InitialCoordinate + ibin;
 	v_binError[ibin] = 0; // No error along x-axis!!
 	const CalibrationBin &cb(i_c->second.find(anaName)->second);
 	v_central[ibin] = cb.centralValue;
@@ -142,24 +155,39 @@ namespace {
 	if (t != 0.0 && yCentralTotMax < t)
 	  yCentralTotMax = t;
 
-	// Fill in the axis labels if this is our first time through.
-	if (ia == 0) {
+	ibin++;
+      }
 
-	  // Grab the bin specification for this bin we are looping over
+      //
+      // Now build the bin labels. We have to do all analyses b/c we don't always know what might
+      // be covered by an individual analysis.
+      //
+
+      set<CalibrationBinBoundary> tempLabels;
+      for (unsigned int ia = 0; ia < anas.size(); ia++) {
+	const string &anaName (anas[ia].name);
+	for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
+	  const CalibrationBin &cb(i_c->second.find(anaName)->second);
 	  for (unsigned int i_bs = 0; i_bs < cb.binSpec.size(); i_bs++) {
 	    if (cb.binSpec[i_bs].variable == binName) {
-
-	      ostringstream buf;
-	      buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
-		  << cb.binSpec[i_bs];
-	      binlabels.push_back(buf.str());
+	      tempLabels.insert(cb.binSpec[i_bs]);
 	      break;
 	    }
 	  }
 	}
-
-	ibin++;
       }
+
+      binlabels.clear();
+      for (set<CalibrationBinBoundary>::const_iterator i_labels = tempLabels.begin(); i_labels != tempLabels.end(); i_labels++) {
+	ostringstream buf;
+	buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
+	    << *i_labels;
+	binlabels.push_back(buf.str());
+      }
+
+      //
+      // Build the plots
+      //
 
       TGraphErrors *g = new TGraphErrors (axisBins.size(),
 				    v_bin, v_central,
