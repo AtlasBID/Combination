@@ -831,4 +831,17 @@ namespace BTagCombination {
     return false;
   }
 
+  // Dump a fit result out to an output stream (mostly for debugging)
+  ostream &operator<< (ostream &out, const CombinationContext::FitResult &fr)
+  {
+    out << "fit cv: " << fr.centralValue << " +- " << fr.statisticalError << endl;
+    if (fr.sysErrors.size() == 0) {
+      out << "  0 systematic errors" << endl;
+    } else {
+      for (map<string, double>::const_iterator itr = fr.sysErrors.begin(); itr != fr.sysErrors.end(); itr++) {
+	cout << "  sys " << itr->first << " +- " << itr->second << endl;
+      }
+    }
+    return out;
+  }
 }

@@ -85,6 +85,9 @@ namespace BTagCombination {
     // Any common measurements that are over correlated are "bad"
     void TurnOffOverCorrelations();
   };
+
+  // Dump a fit result out.
+  std::ostream &operator<< (std::ostream &out, const CombinationContext::FitResult &fr);
 }
 
 #endif

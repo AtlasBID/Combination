@@ -117,16 +117,6 @@ namespace {
     return result;
   }
 
-  //
-  // Utility for testing - so that we can dump things out...
-  //
-  void DumpResult (const string &binname, const CombinationContext::FitResult &r)
-  {
-    cout << "Dumping raw fit result for bin " << binname << endl;
-    cout << " -> central value " << r.centralValue << " +- " << r.statisticalError << endl;
-    cout << "   " << r.sysErrors.size() << " systematic errors" << endl;
-  }
-
   // Given a mapping of bins to analysis bins, and a set of fit results, extract the mapping
   // and return a list of combined fits.
   vector<CalibrationBin> ExtractBinsResult (const map<string, vector<CalibrationBin> > &bybins,
@@ -141,7 +131,8 @@ namespace {
 	err << "Unable to recover bin " << binName << " in the output of the fit!";
 	throw runtime_error (err.str().c_str());
       }
-      DumpResult (binName, itr->second);
+      cout << "Extract bings result for " << binName << endl << itr->second << endl;
+
       CalibrationBin thisBin (ExtractBinResult (itr->second, i_b->second[0]));
       result.push_back(thisBin);
     }
