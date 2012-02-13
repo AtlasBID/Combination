@@ -28,6 +28,8 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testCorrelation );
   CPPUNIT_TEST_EXCEPTION( testInputFromBadFile, std::runtime_error );
 
+  CPPUNIT_TEST( testInputFromFileWithSpitAna );
+
   CPPUNIT_TEST( testOPName );
   CPPUNIT_TEST( testOPBin );
 
@@ -84,6 +86,21 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CalibrationInfo results;
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"};
+
+    ParseOPInputArgs(argv, 1, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
+
+    CalibrationAnalysis ana = results.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 9, ana.bins.size());
+  }
+
+  void testInputFromFileWithSpitAna()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60Split.txt"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());

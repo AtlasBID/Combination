@@ -22,6 +22,34 @@ using namespace std;
 //
 namespace {
   using namespace BTagCombination;
+
+  void Combine(vector<CalibrationAnalysis> &master, const vector<CalibrationAnalysis> &newstuff)
+  {
+    for (vector<CalibrationAnalysis>::const_iterator itr = newstuff.begin(); itr != newstuff.end(); itr++) {
+      bool inserted = false;
+      for (vector<CalibrationAnalysis>::iterator mitr = master.begin(); mitr != master.end(); mitr++) {
+	if (itr->name == mitr->name
+	    && itr->flavor == mitr->flavor
+	    && itr->tagger == mitr->tagger
+	    && itr->operatingPoint == mitr->operatingPoint
+	    && itr->jetAlgorithm == mitr->jetAlgorithm) {
+	  // Should make sure there are no collisions!
+	  cout << "Found matchign bin, doing insert" << endl;
+	  for (vector<CalibrationBin>::const_iterator bitr = itr->bins.begin(); bitr != itr->bins.end(); bitr++) {
+	    mitr->bins.push_back(*bitr);
+	  }
+	  cout << "Done with insert now" << endl;
+	  inserted = true;
+	  break;
+	}
+      }
+      if (!inserted) {
+	cout << "No match found, now doing wholesale isnert" << endl;
+	master.push_back(*itr);
+      }
+    }
+  }
+
   // Load operating poitns from a text file on disk.
   void loadOPsFromFile(CalibrationInfo &list, const string &fname)
   {
@@ -37,7 +65,7 @@ namespace {
       ifstream input(fname.c_str());
       CalibrationInfo calib = Parse(input);
       input.close();
-      list.Analyses.insert(list.Analyses.end(), calib.Analyses.begin(), calib.Analyses.end());
+      Combine(list.Analyses, calib.Analyses);
       list.Correlations.insert(list.Correlations.end(), calib.Correlations.begin(), calib.Correlations.end());
       list.Defaults.insert(list.Defaults.begin(), calib.Defaults.begin(), calib.Defaults.end());
     } catch (exception &e) {
