@@ -35,6 +35,7 @@ namespace {
   // Max length of a parameter we allow into RooFit to prevent a crash.
   // It does change with RooFit version number...
   const size_t cMaxParameterNameLength = 90;
+  const int cMINUITStrat = 1;
 }
 
 namespace BTagCombination {
@@ -530,7 +531,7 @@ namespace BTagCombination {
     ///
 
     cout << "Starting the master fit..." << endl;
-    finalPDF.fitTo(measuredPoints);
+    finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
     cout << "Master fit is finished..." << endl;
 
     ///
@@ -686,7 +687,7 @@ namespace BTagCombination {
 	sysErr->setError(0.0);
 
 	cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
-	finalPDF.fitTo(measuredPoints);
+	finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
 	// Loop over all measurements. If the measurement knows about
 	// this systematic error, then extract a number from it.
@@ -732,7 +733,7 @@ namespace BTagCombination {
       }
 
       cout << "  Finding the statistical error" << endl;
-      finalPDF.fitTo(measuredPoints);
+      finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
       for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
 	const string item (allMeasureNames[i_mn]);
@@ -778,7 +779,7 @@ namespace BTagCombination {
     ///
 
     cout << "  Refit to restore the state." << endl;
-    finalPDF.fitTo(measuredPoints);
+    finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
     //
     // How did the total errors work out?

@@ -18,6 +18,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
+#include <stdexcept>
 
 using namespace std;
 
@@ -35,14 +36,25 @@ namespace {
 
   // Find the bin results for a partiuclar bin. Return an empty if we
   // can't find it.
-  CalibrationBin FindBin (const CalibrationAnalysis &ana, t_BBSet &bininfo)
+  CalibrationBin FindBin (const CalibrationAnalysis &ana, t_BBSet &bininfo, bool &found)
   {
+    found = false;
     for (unsigned int ib = 0; ib < ana.bins.size(); ib++) {
       const CalibrationBin &cb (ana.bins[ib]);
       t_BBSet t (cb.binSpec.begin(), cb.binSpec.end());
-      if (t == bininfo)
+      if (t == bininfo) {
+	//cout << "found bin: " << ana.name << "(" << ana.flavor << "," << ana.tagger << "," << ana.operatingPoint << ") ";
+	//for (t_BBSet::const_iterator i = t.begin(); i != t.end(); i++) {
+	//cout << *i << " ";
+	//}
+	//cout << endl;
+	found = true;
 	return cb;
+      }
     }
+
+    // This line will cause an analysis that isn't present to appear as a "ZERO"
+    // in the plot. We should fix this.
     return CalibrationBin();
   }
 
@@ -86,13 +98,42 @@ namespace {
     typedef map<string, CalibrationBin> t_CBMap;
     typedef map<CalibrationBinBoundary, t_CBMap> t_BoundaryMap;
     t_BoundaryMap taggerResults;
+    //cout << "Looking at each axis bin for contents now:" << endl;
     for (t_BBSet::const_iterator ib = axisBins.begin(); ib != axisBins.end(); ib++) {
       t_BBSet coordinate (specifiedBins);
       coordinate.insert(*ib);
       for(unsigned int ia = 0; ia < anas.size(); ia++) {
-	taggerResults[*ib][anas[ia].name] = FindBin (anas[ia], coordinate);
+	bool found;
+	CalibrationBin fb = FindBin (anas[ia], coordinate, found);
+	if (!found) {
+	  if (taggerResults[*ib].find(anas[ia].name) == taggerResults[*ib].end()) {
+	    taggerResults[*ib][anas[ia].name] = fb;
+	  }
+	} else {
+	  taggerResults[*ib][anas[ia].name] = fb;
+	}
+	//cout << "  " << *ib << " (" << anas[ia].name << "): " 
+	//<< taggerResults[*ib][anas[ia].name].centralValue
+	//<< " +- "
+	//<< taggerResults[*ib][anas[ia].name].centralValueStatisticalError << endl;
       }
     }
+
+    //
+    // A little tricky here. The person providing input can split the analysis up into multiple
+    // partitiions. So the same analysis can appear twice in the list. No good talking about it that
+    // way on the plots. So, sort that out. and maintain order.
+    //
+
+    set<string> seenAnaNames;
+    vector<string> anaNames;
+    for (unsigned int ia = 0; ia < anas.size(); ia++) {
+      string anaName (anas[ia].name);
+      if (seenAnaNames.find(anaName) == seenAnaNames.end()) {
+	seenAnaNames.insert(anaName);
+	anaNames.push_back(anaName);
+      }
+    }    
 
     //
     // We need to put each analysis at a point along the x-axis, and have it at
@@ -123,25 +164,51 @@ namespace {
     double yCentralTotMin = 10.0;
     double yCentralTotMax = 0.0;
 
-    
-    // Extract the data for plotting, and make the plots.
-    for (unsigned int ia = 0; ia < anas.size(); ia++) {
-      const string &anaName (anas[ia].name);
+    //
+    // Our first job is to build the bin lables. We already have the set
+    // that is the bin lables. So all we now have to do is get a mapping
+    // between the labels.
+    //
 
+    map<CalibrationBinBoundary, int> bbBinNumber;
+    int index = 0;
+    for (t_BBSet::const_iterator itr_b = axisBins.begin(); itr_b != axisBins.end(); itr_b++) {
+      ostringstream buf;
+      buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
+	  << *itr_b;
+      binlabels.push_back(buf.str());
+
+      bbBinNumber[*itr_b] = index;
+      index++;
+    }
+
+    //
+    // Extract the data for plotting, and make the plots.
+    //
+
+    for (unsigned int ia = 0; ia < anaNames.size(); ia++) {
+      const string &anaName (anaNames[ia]);
 
       // Clear out the arrays...
       for (size_t ib = 0; ib < axisBins.size(); ib++) {
 	v_bin[ib] = x_InitialCoordinate + ib;
+	v_binError[ib] = 0; // No error along x-axis!!
+
 	v_binError[ib] = 0.0;
 	v_central[ib] = -1000.0;
 	v_centralStatError[ib] = 0.0;
 	v_centralTotError[ib] = 0.0;
       }
 
-      int ibin = 0;
-
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
-	v_binError[ibin] = 0; // No error along x-axis!!
+	// Get the bin number
+	if (bbBinNumber.find(i_c->first) == bbBinNumber.end()) {
+	  ostringstream err;
+	  err << "Internal error - bin boundary " << i_c->first << " is not known as a bin boundary!";
+	  throw runtime_error(err.str().c_str());
+	}
+	int ibin = bbBinNumber[i_c->first];
+
 	const CalibrationBin &cb(i_c->second.find(anaName)->second);
 	v_central[ibin] = cb.centralValue;
 	v_centralStatError[ibin] = cb.centralValueStatisticalError;
@@ -156,33 +223,6 @@ namespace {
 	  yCentralTotMax = t;
 
 	ibin++;
-      }
-
-      //
-      // Now build the bin labels. We have to do all analyses b/c we don't always know what might
-      // be covered by an individual analysis.
-      //
-
-      set<CalibrationBinBoundary> tempLabels;
-      for (unsigned int ia = 0; ia < anas.size(); ia++) {
-	const string &anaName (anas[ia].name);
-	for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
-	  const CalibrationBin &cb(i_c->second.find(anaName)->second);
-	  for (unsigned int i_bs = 0; i_bs < cb.binSpec.size(); i_bs++) {
-	    if (cb.binSpec[i_bs].variable == binName) {
-	      tempLabels.insert(cb.binSpec[i_bs]);
-	      break;
-	    }
-	  }
-	}
-      }
-
-      binlabels.clear();
-      for (set<CalibrationBinBoundary>::const_iterator i_labels = tempLabels.begin(); i_labels != tempLabels.end(); i_labels++) {
-	ostringstream buf;
-	buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
-	    << *i_labels;
-	binlabels.push_back(buf.str());
       }
 
       //
