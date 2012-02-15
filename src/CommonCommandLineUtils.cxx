@@ -34,17 +34,14 @@ namespace {
 	    && itr->operatingPoint == mitr->operatingPoint
 	    && itr->jetAlgorithm == mitr->jetAlgorithm) {
 	  // Should make sure there are no collisions!
-	  cout << "Found matchign bin, doing insert" << endl;
 	  for (vector<CalibrationBin>::const_iterator bitr = itr->bins.begin(); bitr != itr->bins.end(); bitr++) {
 	    mitr->bins.push_back(*bitr);
 	  }
-	  cout << "Done with insert now" << endl;
 	  inserted = true;
 	  break;
 	}
       }
       if (!inserted) {
-	cout << "No match found, now doing wholesale isnert" << endl;
 	master.push_back(*itr);
       }
     }
