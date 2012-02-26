@@ -556,6 +556,15 @@ namespace BTagCombination {
       runningErrorXCheck[m->What()] = 0.0;
     }
 
+    //
+    // Dump out the pulls that the fit settled on... so this crudely fornow.
+    //
+
+    for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
+      RooRealVar *c (_systematicErrors.FindRooVar(*iVar));
+      cout << " Sys " << *iVar << " pull: " << c->getVal() << " +- " << c->getError() << endl;
+    }
+
     ///
     /// Now that the fit is done, dump out a root file that contains some good info
     ///
