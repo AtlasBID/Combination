@@ -159,8 +159,8 @@ struct ErrorValue
   void SetName (const std::string &n)
   {
     name = n;
-    const size_t endStr = n.find_last_not_of(" \t");
-    name = name.substr(0, endStr+1);
+    //const size_t endStr = n.find_last_not_of(" \t");
+    //name = name.substr(0, endStr+1);
   }
 
   void CopyErrorAndRelative(const ErrorValue &cp)
@@ -220,21 +220,24 @@ struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_
     using qi::labels::_1;
     using boost::phoenix::bind;
 
-    name_string %= lexeme[+(char_ - ',' - '"')];
-    name_string.name("Systematic Error Name");
+    name_word %= +(qi::char_("_a-zA-Z0-9+"));
+    //name_string %= lexeme[name_word >> *(qi::hold[+(qi::char_(' ')) >> name_word])];
 
+    name_string %= lexeme[+(qi::char_("-_a-zA-Z0-9+")) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_("-_a-zA-Z0-9+"))])];
     start = (
 	     lit("sys")[bind(&ErrorValue::MakeCorrelated, _val)]
 	     |lit("usys")[bind(&ErrorValue::MakeUncorrelated, _val)]
 	     )
-      > '('
-      > name_string[bind(&ErrorValue::SetName, _val, _1)] > ','
-      > errParser[bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
-      > ')';
+      >> '('
+      >> name_string[bind(&ErrorValue::SetName, _val, _1)] >> *qi::lit(' ')
+      >> ','
+      >> errParser[bind(&ErrorValue::CopyErrorAndRelative, _val, _1)]
+      >> ')';
 
     start.name("Systematic Error");
   }
 
+    qi::rule<Iterator, std::string(), ascii::space_type> name_word;
     qi::rule<Iterator, std::string(), ascii::space_type> name_string;
     ErrorValueParser<Iterator> errParser;
     qi::rule<Iterator, ErrorValue(), ascii::space_type> start;
