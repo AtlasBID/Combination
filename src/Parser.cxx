@@ -223,7 +223,7 @@ struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_
     name_word %= +(qi::char_("_a-zA-Z0-9+"));
     //name_string %= lexeme[name_word >> *(qi::hold[+(qi::char_(' ')) >> name_word])];
 
-    name_string %= lexeme[+(qi::char_("-_a-zA-Z0-9+")) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_("-_a-zA-Z0-9+"))])];
+    name_string %= lexeme[+(qi::char_("-_a-zA-Z0-9+:")) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_("-_a-zA-Z0-9+:"))])];
     start = (
 	     lit("sys")[bind(&ErrorValue::MakeCorrelated, _val)]
 	     |lit("usys")[bind(&ErrorValue::MakeUncorrelated, _val)]
