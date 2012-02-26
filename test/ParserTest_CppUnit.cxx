@@ -177,7 +177,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSimpleAnalysisWithSysColon()
   {
     cout << "Test testParseSimpleAnalysisWithSys" << endl;
-    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude: fork, 0.1%)}}"));
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude: fo.rk*, 0.1%)}}"));
     
     CPPUNIT_ASSERT_EQUAL((size_t)1, result.Analyses.size());
 
@@ -186,7 +186,7 @@ class ParserTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.systematicErrors.size());
     SystematicError e(bin0.systematicErrors[0]);
-    CPPUNIT_ASSERT_EQUAL(string("dude: fork"), e.name);
+    CPPUNIT_ASSERT_EQUAL(string("dude: fo.rk*"), e.name);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
   }
 
