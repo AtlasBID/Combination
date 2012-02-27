@@ -75,6 +75,18 @@ namespace {
   }
 
   ///
+  /// Declare a single histogram
+  ///
+
+  TH1F *DeclareSingleHist(const string &ananame, const string &namePostFix, const string &titlePrefix, int nbins,
+			  TDirectory *out)
+  {
+    TH1F *t = new TH1F((ananame + namePostFix).c_str(), (titlePrefix + ananame).c_str(), nbins, 0.0, nbins);
+    t->SetDirectory(out);
+    return t;
+  }
+
+  ///
   /// Actually generate the plots for a particular bin
   ///
   void GenerateCommonAnalysisPlots (TDirectory *out,
@@ -183,7 +195,8 @@ namespace {
     }
 
     //
-    // Extract the data for plotting, and make the plots.
+    // Extract the data for plotting, and make the plots. We actually make the plots
+    // for the single values here.
     //
 
     for (unsigned int ia = 0; ia < anaNames.size(); ia++) {
@@ -200,6 +213,24 @@ namespace {
 	v_centralTotError[ib] = 0.0;
       }
 
+      // Create the plots we are going to be filling as we go
+      map<string, TH1F*> singlePlots;
+      singlePlots["central"] = DeclareSingleHist(anaName,  "_cv", "Central values for ", axisBins.size(), out);
+      singlePlots["statistical"] = DeclareSingleHist(anaName,  "_stat", "Statistical errors for ", axisBins.size(), out);
+
+      set<string> allSys;
+      for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
+	const CalibrationBin &cb(i_c->second.find(anaName)->second);
+	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
+	  allSys.insert(cb.systematicErrors[i].name);
+	}
+      }
+
+      for (set<string>::const_iterator i = allSys.begin(); i != allSys.end(); i++) {
+	singlePlots[*i] = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);
+      }
+
+      // Now, loop over all the bins filling everything in
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
 	// Get the bin number
 	if (bbBinNumber.find(i_c->first) == bbBinNumber.end()) {
@@ -214,6 +245,13 @@ namespace {
 	v_centralStatError[ibin] = cb.centralValueStatisticalError;
 	v_centralTotError[ibin] = CalcTotalError(cb);
 
+	// Fill in the single plots now
+	singlePlots["central"]->SetBinContent(ibin+1, cb.centralValue);
+	singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
+	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
+	  singlePlots[cb.systematicErrors[i].name]->Fill(ibin+1, cb.systematicErrors[i].value);
+	}
+
 	// Record min and max for later use with limit setting
 	double t = v_central[ibin] - v_centralTotError[ibin];
 	if (t != 0.0 && yCentralTotMin > t)
@@ -226,7 +264,7 @@ namespace {
       }
 
       //
-      // Build the plots
+      // Build the main comparison plot
       //
 
       TGraphErrors *g = new TGraphErrors (axisBins.size(),
