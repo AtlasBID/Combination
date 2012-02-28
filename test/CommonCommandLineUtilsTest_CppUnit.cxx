@@ -50,6 +50,8 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testUseOnlyFlags8 );
   CPPUNIT_TEST ( testUseOnlyFlags9 );
 
+  CPPUNIT_TEST ( testCopyAnalysis);
+
   CPPUNIT_TEST ( testSplitAnalysis );
   CPPUNIT_TEST ( testSplitAnalysis2 );
   CPPUNIT_TEST ( testSplitAnalysis3 );
@@ -461,6 +463,41 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
   }
+
+  void testCopyAnalysis()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "../testdata/JetFitCopy.txt"
+    };
+
+    ParseOPInputArgs(argv, 2, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 3, results.Analyses.size());
+    bool a_seen = false;
+    bool b_seen = false;
+    for (size_t i = 0; i < 3; i++) {
+      const CalibrationAnalysis &a(results.Analyses[i]);
+      if (a.name == "bbb") {
+	a_seen = true;
+	CPPUNIT_ASSERT_EQUAL(string("bottom"), a.flavor);
+	CPPUNIT_ASSERT_EQUAL(string("JetTaggerCOMBNN"), a.tagger);
+	CPPUNIT_ASSERT_EQUAL(string("0.60"), a.operatingPoint);
+	CPPUNIT_ASSERT_EQUAL(string("AntiKt4Topo"), a.jetAlgorithm);
+      }
+      if (a.name == "aaa") {
+	b_seen = true;
+	CPPUNIT_ASSERT_EQUAL(string("light"), a.flavor);
+	CPPUNIT_ASSERT_EQUAL(string("Foo"), a.tagger);
+	CPPUNIT_ASSERT_EQUAL(string("0.70"), a.operatingPoint);
+	CPPUNIT_ASSERT_EQUAL(string("AntiKtTopo"), a.jetAlgorithm);
+      }
+    }
+
+    CPPUNIT_ASSERT_EQUAL (true, a_seen);
+    CPPUNIT_ASSERT_EQUAL (true, b_seen);
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommonCommandLineUtilsTest);

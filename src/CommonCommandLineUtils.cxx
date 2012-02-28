@@ -65,6 +65,7 @@ namespace {
       Combine(list.Analyses, calib.Analyses);
       list.Correlations.insert(list.Correlations.end(), calib.Correlations.begin(), calib.Correlations.end());
       list.Defaults.insert(list.Defaults.begin(), calib.Defaults.begin(), calib.Defaults.end());
+      list.Aliases.insert(list.Aliases.begin(), calib.Aliases.begin(), calib.Aliases.end());
     } catch (exception &e) {
       ostringstream msg;
       msg << "Caught error parsing file '" << fname << "': " << e.what();
@@ -121,6 +122,8 @@ namespace BTagCombination {
     operatingPoints.Analyses.clear();
     operatingPoints.Correlations.clear();
     operatingPoints.Defaults.clear();
+    operatingPoints.Aliases.clear();
+
     unknownFlags.clear();
 
     //
@@ -187,6 +190,31 @@ namespace BTagCombination {
 	}
       }
     }
+
+    //
+    // Process the copy commands... we will basically copy over anything listed
+    //
+
+    for (size_t i = 0; i < operatingPoints.Aliases.size(); i++) {
+      const AliasAnalysis a(operatingPoints.Aliases[i]);
+      vector<CalibrationAnalysis> copied;
+      for (vector<CalibrationAnalysis>::const_iterator anaItr = operatingPoints.Analyses.begin(); anaItr != operatingPoints.Analyses.end(); anaItr++) {
+	if (OPFullName(*anaItr) == OPFullName(a)) {
+	  for (vector<AliasAnalysisCopyTo>::const_iterator cItr = a.CopyTargets.begin(); cItr != a.CopyTargets.end(); cItr++) {
+	    CalibrationAnalysis cp (*anaItr);
+	    cp.name = cItr->name;
+	    cp.flavor = cItr->flavor;
+	    cp.tagger = cItr->tagger;
+	    cp.operatingPoint = cItr->operatingPoint;
+	    cp.jetAlgorithm = cItr->jetAlgorithm;
+	    copied.push_back(cp);
+	  }
+	}
+      }
+      operatingPoints.Analyses.insert(operatingPoints.Analyses.begin(), copied.begin(), copied.end());
+    }
+    
+    operatingPoints.Aliases.clear();
 
     //
     // Process the main ignore lists - anything fully matching these are
@@ -269,6 +297,7 @@ namespace BTagCombination {
 	<< "-" << ana.jetAlgorithm;
     return msg.str();
   }
+
   string OPFullName (const DefaultAnalysis &ana)
   {
     ostringstream msg;
@@ -279,6 +308,18 @@ namespace BTagCombination {
 	<< "-" << ana.jetAlgorithm;
     return msg.str();
   }
+
+  string OPFullName (const AliasAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.name
+	<< "-" << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.jetAlgorithm;
+    return msg.str();
+  }
+
   string OPFullName (const AnalysisCorrelation &ana)
   {
     ostringstream msg;
