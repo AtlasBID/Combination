@@ -553,6 +553,62 @@ struct DefaultAnalysisParser : qi::grammar<Iterator, DefaultAnalysis(), ascii::s
     qi::rule<Iterator, DefaultAnalysis(), ascii::space_type> start;
 };
 
+// Parse an alias: where we copy one analysis to another.
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::AliasAnalysisCopyTo,
+			  (std::string, name)
+			  (std::string, flavor)
+			  (std::string, tagger)
+			  (std::string, operatingPoint)
+			  (std::string, jetAlgorithm)
+			  )
+BOOST_FUSION_ADAPT_STRUCT(
+			  BTagCombination::AliasAnalysis,
+			  (std::string, name)
+			  (std::string, flavor)
+			  (std::string, tagger)
+			  (std::string, operatingPoint)
+			  (std::string, jetAlgorithm)
+			  (std::vector<BTagCombination::AliasAnalysisCopyTo>, CopyTargets)
+			  )
+template <typename Iterator>
+struct AliasAnalysisParser : qi::grammar<Iterator, AliasAnalysis(), ascii::space_type>
+{
+  AliasAnalysisParser() : AliasAnalysisParser::base_type(start, "AliasAnalysis") {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+    using qi::_val;
+    using qi::labels::_1;
+    using boost::phoenix::bind;
+    using qi::double_;
+
+    name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
+
+    copies %= lit("Analysis") 
+      > '(' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ')';
+
+    start %= lit("Copy") 
+      > '(' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ',' > name_string 
+      > ')'
+      > '{'
+      > *copies
+      > '}';
+  }
+    
+    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    qi::rule<Iterator, AliasAnalysis(), ascii::space_type> start;
+    qi::rule<Iterator, AliasAnalysisCopyTo(), ascii::space_type> copies;
+};
 
 // 
 // Helper struct for the parsing.
@@ -561,6 +617,7 @@ struct CIHolder
   vector<CalibrationAnalysis> Anas;
   vector<AnalysisCorrelation> Cors;
   vector<DefaultAnalysis> Defs;
+  vector<AliasAnalysis> Aliases;
 
   inline void AddAnalysis (const CalibrationAnalysis &ana)
   {
@@ -574,12 +631,17 @@ struct CIHolder
   {
     Defs.push_back(def);
   }
+  inline void AddAlias (const AliasAnalysis &a)
+  {
+    Aliases.push_back(a);
+  }
 
   inline void Convert(CalibrationInfo &holder)
   {
     holder.Analyses = Anas;
     holder.Correlations = Cors;
     holder.Defaults = Defs;
+    holder.Aliases = Aliases;
   }
 };
 
@@ -597,6 +659,7 @@ struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::s
 			analysisParser[bind(&CIHolder::AddAnalysis, _val, _1)]
 			| correlationParser[bind(&CIHolder::AddCorrelation, _val, _1)]
 			| defaultParser[bind(&CIHolder::AddDefault, _val, _1)]
+			| aliasParser[bind(&CIHolder::AddAlias, _val, _1)]
 			);
 
       converter = localCIHolder[bind(&CIHolder::Convert, _1, _val)];
@@ -608,6 +671,7 @@ struct CalibrationInfoParser : qi::grammar<Iterator, CalibrationInfo(), ascii::s
     CalibrationAnalysisParser<Iterator> analysisParser;
     AnalysisCorrelationParser<Iterator> correlationParser;
     DefaultAnalysisParser<Iterator> defaultParser;
+    AliasAnalysisParser<Iterator> aliasParser;
 };
 
 //

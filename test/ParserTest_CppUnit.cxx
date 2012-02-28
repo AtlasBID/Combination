@@ -51,6 +51,10 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION(testParseCorrelation4, std::runtime_error);
   CPPUNIT_TEST(testParseCorrelation5);
 
+  CPPUNIT_TEST(testParseCopy);
+  CPPUNIT_TEST(testParseCopy2);
+  CPPUNIT_TEST(testParseCopyRoundtrip);
+
   CPPUNIT_TEST(testParseDefault);
   CPPUNIT_TEST(testParseDefaultRoundtrip);
 
@@ -465,7 +469,7 @@ class ParserTest : public CppUnit::TestFixture
 
   void testParseDefaultRoundtrip()
   {
-    cout << "Test testParseDefault" << endl;
+    cout << "Test testParseRoundtrip" << endl;
     CalibrationInfo result (Parse("Default (ptrel, bottom, MV1, 0.9, AntiKt)"));
     
     ostringstream buffer;
@@ -484,6 +488,97 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
     CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
     CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
+  }
+
+  void testParseCopy()
+  {
+    cout << "Test testParseCopy" << endl;
+    CalibrationInfo result (Parse("Copy(ptrel, bottom, MV1, 0.9, AntiKt) {Analysis(ptrel, bottom, MV2, 0.9, AntiKt)}"));
+    
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Defaults.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Aliases.size());
+
+    AliasAnalysis d (result.Aliases[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), d.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), d.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, d.CopyTargets.size());
+    AliasAnalysisCopyTo c (d.CopyTargets[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), c.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), c.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV2"), c.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), c.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), c.jetAlgorithm);
+  }
+
+  void testParseCopy2()
+  {
+    cout << "Test testParseCopy2" << endl;
+    CalibrationInfo result (Parse("Copy(ptrel, bottom, MV1, 0.9, AntiKt) {Analysis(ptrel, bottom, MV2, 0.9, AntiKt) Analysis(ptrel, bottom, MV3, 0.9, AntiKt)}"));
+    
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Defaults.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Aliases.size());
+
+    AliasAnalysis d (result.Aliases[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), d.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), d.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)2, d.CopyTargets.size());
+    AliasAnalysisCopyTo c (d.CopyTargets[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), c.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), c.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV2"), c.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), c.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), c.jetAlgorithm);
+
+    c = d.CopyTargets[1];
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), c.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), c.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV3"), c.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), c.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), c.jetAlgorithm);
+  }
+
+  void testParseCopyRoundtrip()
+  {
+    cout << "Test testParseCopy" << endl;
+    CalibrationInfo init (Parse("Copy(ptrel, bottom, MV1, 0.9, AntiKt) {Analysis(ptrel, bottom, MV2, 0.9, AntiKt)}"));
+    
+    ostringstream buffer;
+    cout << init << endl;
+    buffer << init << endl;
+
+    CalibrationInfo result (Parse(buffer.str()));
+
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Defaults.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Aliases.size());
+
+    AliasAnalysis d (result.Aliases[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), d.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), d.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, d.CopyTargets.size());
+    AliasAnalysisCopyTo c (d.CopyTargets[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), c.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), c.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("MV2"), c.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("0.9"), c.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("AntiKt"), c.jetAlgorithm);
   }
 };
 

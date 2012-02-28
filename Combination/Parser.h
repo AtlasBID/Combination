@@ -300,12 +300,63 @@ namespace BTagCombination
     return out;
   }  
 
+  struct AliasAnalysisCopyTo
+  {
+    std::string name; // The name of the analyiss, like "system8"
+    std::string flavor; // What is this calibration for?
+    
+    std::string tagger; // What tagger are we running
+    std::string operatingPoint; // SV050 or similar - the operating point
+    std::string jetAlgorithm; // The Jet algorithm we are using
+  };
+
+  inline std::ostream &operator<< (std::ostream &out, const AliasAnalysisCopyTo &info) {
+    out << "Analysis("
+	<< info.name
+	<< ", " << info.flavor
+	<< ", " << info.tagger
+	<< ", " << info.operatingPoint
+	<< ", " << info.jetAlgorithm
+	<< ")";
+
+    return out;
+  }
+
+  struct AliasAnalysis
+  {
+    std::string name; // The name of the analyiss, like "system8"
+    std::string flavor; // What is this calibration for?
+    
+    std::string tagger; // What tagger are we running
+    std::string operatingPoint; // SV050 or similar - the operating point
+    std::string jetAlgorithm; // The Jet algorithm we are using
+    
+    std::vector<AliasAnalysisCopyTo> CopyTargets;
+  };
+
+  inline std::ostream &operator<< (std::ostream &out, const AliasAnalysis &info) {
+    out << "Copy("
+	<< info.name
+	<< ", " << info.flavor
+	<< ", " << info.tagger
+	<< ", " << info.operatingPoint
+	<< ", " << info.jetAlgorithm
+	<< ") {" << std::endl;
+    for (size_t i = 0; i < info.CopyTargets.size(); i++) {
+      out << "  " << info.CopyTargets[i] << std::endl;
+    }
+    out << "}";
+
+    return out;
+  }
+
   // A list of everything that we might be reading in
   struct CalibrationInfo
   {
     std::vector<CalibrationAnalysis> Analyses;
     std::vector<AnalysisCorrelation> Correlations;
     std::vector<DefaultAnalysis> Defaults;
+    std::vector<AliasAnalysis> Aliases;
   };
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {
@@ -317,6 +368,9 @@ namespace BTagCombination
     }
     for (size_t i = 0; i < info.Defaults.size(); i++) {
       out << info.Defaults[i] << std::endl;
+    }
+    for (size_t i = 0; i < info.Aliases.size(); i++) {
+      out << info.Aliases[i] << std::endl;
     }
     return out;
   }
