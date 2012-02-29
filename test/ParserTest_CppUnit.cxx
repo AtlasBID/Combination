@@ -36,6 +36,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testParseTwoAnalyses );
   //CPPUNIT_TEST( testParseSimpleAnalysisBadFlavor );
   CPPUNIT_TEST(testParseSimpleAnalysisWithSys);
+  CPPUNIT_TEST(testParseSimpleAnalysisWithSysQuoted);
   CPPUNIT_TEST(testParseSimpleAnalysisWithSysColon);
   CPPUNIT_TEST(testParseSimpleAnalysisWithUSys);
   CPPUNIT_TEST(testParseSimpleAnalysisWithNSys);
@@ -44,6 +45,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseRoundTrip2);
   CPPUNIT_TEST(testParseRoundTrip3);
   CPPUNIT_TEST(testParseRoundTrip4);
+  CPPUNIT_TEST(testParseRoundTrip5);
 
   CPPUNIT_TEST(testParseCorrelation);
   CPPUNIT_TEST(testParseCorrelation2);
@@ -175,6 +177,22 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.systematicErrors.size());
     SystematicError e(bin0.systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("dude"), e.name);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
+  }
+
+  void testParseSimpleAnalysisWithSysQuoted()
+  {
+    cout << "Test testParseSimpleAnalysisWithSys" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(\"dude \", 0.1%)}}"));
+    
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Analyses.size());
+
+    CalibrationAnalysis ana = result.Analyses[0];
+    CalibrationBin bin0 = ana.bins[0];
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.systematicErrors.size());
+    SystematicError e(bin0.systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("dude "), e.name);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
   }
 
@@ -448,6 +466,38 @@ class ParserTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL(true, b.hasStatCorrelation);
     CPPUNIT_ASSERT_EQUAL(0.5, b.statCorrelation);
+  }
+
+  void testParseRoundTrip5()
+  {
+    cout << "Test testParseRoundTrip5" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(\"dude \", 0.1%)}}"));
+    
+    ostringstream buffer;
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Analyses.size());
+    cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result2.Analyses.size());
+    CalibrationAnalysis ana = result2.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.bins.size());
+    CalibrationBin bin0 = ana.bins[0];
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, bin0.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.01, bin0.centralValueStatisticalError, 0.001);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.binSpec.size());
+    CalibrationBinBoundary bb = bin0.binSpec[0];
+    CPPUNIT_ASSERT(bb.lowvalue == 20);
+    CPPUNIT_ASSERT(bb.variable == "pt");
+    CPPUNIT_ASSERT(bb.highvalue == 30);
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin0.systematicErrors.size());
+    SystematicError e(bin0.systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("dude "), e.name);
+    CPPUNIT_ASSERT_EQUAL(false, e.uncorrelated);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
   }
 
   void testParseDefault()

@@ -141,6 +141,13 @@ namespace BTagCombination
     return out;
   }
 
+  inline std::string quoteStringIf (const std::string &s) {
+    if (s[0] == ' ' || s[s.size()-1] == ' ') {
+      return "\"" + s + "\"";
+    } else
+      return s;
+  }
+
   inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
     if (CalibrationBin::gForNextPrinting & CalibrationBin::kFullInfo) {
       out << "bin(";
@@ -167,7 +174,7 @@ namespace BTagCombination
 	} else {
 	  out << "sys";
 	}
-	out << " (" << b.systematicErrors[i].name
+	out << " (" << quoteStringIf(b.systematicErrors[i].name)
 	    << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
 	    << "%)";
       }

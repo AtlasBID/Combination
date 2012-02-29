@@ -204,6 +204,36 @@ struct ErrorValueParser : qi::grammar<Iterator, ErrorValue(), ascii::space_type>
     qi::rule<Iterator, ErrorValue(), ascii::space_type> start;
 };
 
+// Parse a string, that may be quoted. Deal with a trailing space by not eating it.
+template <typename Iterator>
+struct NameStringParser : qi::grammar<Iterator, std::string(), ascii::space_type>
+{
+  NameStringParser() : NameStringParser::base_type(start, "Name String") {
+
+    using qi::lexeme;
+    using ascii::char_;
+
+    string allChars("-_a-zA-Z0-9+:.*");
+
+    unquoted %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_(allChars))])];
+
+    quoted %= '"'
+      > lexeme[*qi::char_(allChars + " ")]
+      > '"';
+
+    start %= quoted | unquoted;
+
+    //Maybe we can get this working uniformly later.
+    //name_word %= +(qi::char_("_a-zA-Z0-9+"));
+    //name_string %= lexeme[name_word >> *(qi::hold[+(qi::char_(' ')) >> name_word])];
+  }
+
+  qi::rule<Iterator, std::string(), ascii::space_type> start;
+  qi::rule<Iterator, std::string(), ascii::space_type> quoted;
+  qi::rule<Iterator, std::string(), ascii::space_type> unquoted;
+};
+
+
 //
 // Parse  asystematic error ("sys(JES, 0.01)", "sys(JER, 0.1%)"). We parse
 // into a special struct b/c we can't do the % vs non-% until later.
@@ -212,19 +242,12 @@ template <typename Iterator>
 struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_type>
 {
   SystematicErrorParser() : SystematicErrorParser::base_type(start, "Systematic Error") {
-    using ascii::char_;
-    using qi::lexeme;
     using qi::lit;
     using qi::double_;
     using qi::_val;
     using qi::labels::_1;
     using boost::phoenix::bind;
 
-    name_word %= +(qi::char_("_a-zA-Z0-9+"));
-    //name_string %= lexeme[name_word >> *(qi::hold[+(qi::char_(' ')) >> name_word])];
-
-    string allChars("-_a-zA-Z0-9+:.*");
-    name_string %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_(allChars))])];
     start = (
 	     lit("sys")[bind(&ErrorValue::MakeCorrelated, _val)]
 	     |lit("usys")[bind(&ErrorValue::MakeUncorrelated, _val)]
@@ -239,7 +262,7 @@ struct SystematicErrorParser : qi::grammar<Iterator, ErrorValue(), ascii::space_
   }
 
     qi::rule<Iterator, std::string(), ascii::space_type> name_word;
-    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    NameStringParser<Iterator> name_string;
     ErrorValueParser<Iterator> errParser;
     qi::rule<Iterator, ErrorValue(), ascii::space_type> start;
 };
