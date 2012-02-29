@@ -27,6 +27,9 @@ apply_pattern application_alias FTCombine
 application FTPlot ../bin/FTPlot.cxx
 apply_pattern application_alias FTPlot
 
+application FTCheckOutput ../bin/FTCheckOutput.cxx
+apply_pattern application_alias FTCheckOutput
+
 apply_pattern installed_library
 
 private
