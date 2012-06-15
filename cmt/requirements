@@ -7,7 +7,7 @@ use AtlasPolicy                 AtlasPolicy-01-*
 use CalibrationDataInterface	CalibrationDataInterface-*	PhysicsAnalysis/JetTagging/JetTagPerformanceCalibration
 
 #
-# Library and app build instructions
+# Library and app build instructions.
 #
 
 library Combination *.cxx
