@@ -39,6 +39,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitTwoDataOneMeasurementNoUse );
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSmallStat );
 
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
@@ -241,12 +242,25 @@ class CombinationContextTest : public CppUnit::TestFixture
     double w2 = 1.0/(e2*e2);
 
     double expected = (w1*1.0 + w2*0.0)/(w1+w2);
-    //double wtExpected =sqrt(w1*w1 + w2*w2);
-    //double errExpected = sqrt(1.0/wtExpected);
+    double wtExpected =sqrt(w1*w1 + w2*w2);
+    double errExpected = sqrt(1.0/wtExpected);
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (expected, fr["average"].centralValue, 0.01);
-    // Fix this up to make it analytical! Problem could be fit is not compatible!
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.08944, fr["average"].statisticalError, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (errExpected, fr["average"].statisticalError, 0.01);
+  }
+
+  void testFitOneDataTwoMeasurementSmallStat()
+  {
+    // The fitter has a lot of trouble with tiny stat errors.
+    CombinationContext c;
+    c.AddMeasurement ("a", -10.0, 10.0, 0.7, 0.001);
+    c.AddMeasurement ("a", -10.0, 10.0, 0.3, 0.001);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.001*sqrt(2), fr["a"].statisticalError, 0.01);
   }
 
   void testFitOneDataTwoMeasurement()
