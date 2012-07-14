@@ -40,6 +40,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSmallStat );
+  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSmallStatCorrelated );
 
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
@@ -261,6 +262,14 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.001*sqrt(2), fr["a"].statisticalError, 0.01);
+  }
+
+  void testFitOneDataTwoMeasurementSmallStatCorrelated()
+  {
+    // Make sure statistical error that is correlated still gets calculated
+    // correctly. Note that this test may already have been done.
+
+    CPPUNIT_FAIL ("Test not written yet");
   }
 
   void testFitOneDataTwoMeasurement()

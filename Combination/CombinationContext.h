@@ -54,6 +54,9 @@ namespace BTagCombination {
     /// Fit all the measurements that we've asked for, and return results for each measurement done.
     std::map<std::string, FitResult> Fit(void);
 
+    /// Returns the stat-only error on each measurement.
+    std::map<std::string, double> CalculateStatisticalErrors(void);
+
     /// Turn on/off production of plots. Plots are expensive!
     inline void setDoPlots(bool v = false) { _doPlots = v;}
 

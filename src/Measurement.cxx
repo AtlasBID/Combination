@@ -74,6 +74,14 @@ namespace BTagCombination {
     return sqrt(tot);
   }
 
+  //
+  // Return the statistical error
+  //
+  double Measurement::statError() const
+  {
+    return _statError->getVal();
+  }
+
   ///
   /// Return a list of the systematic errors that we are "using".
   ///

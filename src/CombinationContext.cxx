@@ -249,6 +249,19 @@ namespace BTagCombination {
       result << "m_" << name << "_" << index;
       return result.str();	
     }
+
+    // Helper to return a list of good measurements
+    vector<Measurement*> GoodMeasurements(vector<Measurement*> &all)
+    {
+      vector<Measurement*> gMeas;
+      for (vector<Measurement*>::const_iterator imeas = all.begin(); imeas != all.end(); imeas++) {
+	if (!(*imeas)->doNotUse())
+	  gMeas.push_back(*imeas);
+      }
+
+      return gMeas;
+    }
+
   }
 
   ///
@@ -410,11 +423,7 @@ namespace BTagCombination {
     // for use.
     //
 
-    vector<Measurement*> gMeas;
-    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
-      if (!(*imeas)->doNotUse())
-	gMeas.push_back(*imeas);
-    }
+    vector<Measurement*> gMeas (GoodMeasurements(_measurements));
 
     ///
     /// Get all the systematic errors and create the variables we will need for them.
@@ -731,8 +740,22 @@ namespace BTagCombination {
       }
 
       //
-      // And the statistical error
+      // And the statistical error. For this we do a seperate calculation exactly. This avoids
+      // a common problem with the fit when the actual values are seperated by many orders of 10's
+      // of sigma. The fit just dosen't work well.
       //
+
+      map<string, double> stat_errors = CalculateStatisticalErrors();
+
+      for(unsigned int i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
+	const string item (allMeasureNames[i_mn]);
+	const double e (stat_errors[item]);
+	result[item].statisticalError = e;
+	runningErrorXCheck[item] += e*e;
+      }
+
+
+#ifdef notanymore
       for (unsigned int i_av = 0; i_av < allVars.size(); i_av++) {
 	const string sysErrorName (allVars[i_av]);
 	RooRealVar *sysErr = _systematicErrors.FindRooVar(sysErrorName);
@@ -757,6 +780,7 @@ namespace BTagCombination {
 	sysErr->setConstant(false);
       }
 
+#endif
 #ifdef false
 	/// Put them in a nice plot so we can read them out.
 	TH1F *errorSummary = new TH1F((string(m->GetName()) + "_error_summary_absolute").c_str(),
@@ -842,6 +866,38 @@ namespace BTagCombination {
     //
     // Return all the final results.
     //
+
+    return result;
+  }
+
+  //
+  // Calculate the statistical errors for each measurement, ignoring the
+  // systematic errors totally.
+  //
+  map<string, double> CombinationContext::CalculateStatisticalErrors()
+  {
+    map<string, double> result;
+
+    // Get the sub-set of measurements that we can use.
+    vector<Measurement*> gMeas (GoodMeasurements(_measurements));
+
+    // Catalog them by what is being measured.
+    map<string, vector<Measurement*> > byItem;
+    for(vector<Measurement*>::const_iterator itr = gMeas.begin(); itr != gMeas.end(); itr++) {
+      Measurement *m (*itr);
+      byItem[m->What()].push_back(m);
+    }
+
+    // For each item, calculate the new central value and the statistical error
+    for(map<string, vector<Measurement*> >::const_iterator itr = byItem.begin(); itr != byItem.end(); itr++) {
+      double s2 = 0.0;
+      for (vector<Measurement*>::const_iterator m_itr = itr->second.begin(); m_itr != itr->second.end(); m_itr++) {
+	Measurement *m (*m_itr);
+	double stat_error (m->statError());
+	s2 += stat_error*stat_error;
+      }
+      result[itr->first] = s2;
+    }
 
     return result;
   }

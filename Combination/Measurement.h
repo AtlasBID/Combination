@@ -53,6 +53,9 @@ namespace BTagCombination {
     // Returns the total systematic error
     double totalSysError() const;
 
+    // Returns the statistical error
+    double statError() const;
+
   private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
