@@ -52,6 +52,7 @@ namespace BTagCombination {
   void Measurement::CheckAndAdjustStatisticalError(double minFraction)
   {
     double fract = _statError->getVal() / _actualValue.getVal();
+#ifdef notyet
     if (fract < minFraction) {
       double newStatError = _actualValue.getVal() * minFraction;
       cout << "WARNING: Statistical error is too small for fitting to succeed." << endl
@@ -60,6 +61,7 @@ namespace BTagCombination {
 	   << "  Adjusting the stat error to " << newStatError << endl;
       ResetStatisticalError(newStatError);
     }
+#endif
   }
 
   //

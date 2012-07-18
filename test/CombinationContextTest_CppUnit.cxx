@@ -252,14 +252,19 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   void testFitOneDataTwoMeasurementSmallStat()
   {
+    cout << "Starting testFitOneDataTwoMeasurementSmallStat" << endl;
     // The fitter has a lot of trouble with tiny stat errors.
     CombinationContext c;
-    c.AddMeasurement ("a", -10.0, 10.0, 0.7, 0.001);
-    c.AddMeasurement ("a", -10.0, 10.0, 0.3, 0.001);
+    Measurement *m1 = c.AddMeasurement ("a", -10.0, 10.0, 0.7, 0.001);
+    Measurement *m2 = c.AddMeasurement ("a", -10.0, 10.0, 0.3, 0.001);
+
+    m1->addSystematicAbs("s1", 10.0);
+    m2->addSystematicAbs("s1", 10.0);
 
     setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
+    cout << "Finishing testFitOneDataTwoMeasurementSmallStat" << endl;
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.001*sqrt(2), fr["a"].statisticalError, 0.01);
   }
