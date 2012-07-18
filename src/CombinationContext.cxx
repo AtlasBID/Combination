@@ -894,9 +894,10 @@ namespace BTagCombination {
       for (vector<Measurement*>::const_iterator m_itr = itr->second.begin(); m_itr != itr->second.end(); m_itr++) {
 	Measurement *m (*m_itr);
 	double stat_error (m->statError());
-	s2 += stat_error*stat_error;
+	double wt = 1.0 / (stat_error*stat_error);
+	s2 += wt;
       }
-      result[itr->first] = s2;
+      result[itr->first] = sqrt(1.0/s2);
     }
 
     return result;
