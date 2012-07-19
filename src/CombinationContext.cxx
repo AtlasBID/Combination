@@ -464,6 +464,8 @@ namespace BTagCombination {
 
 	varAddition.add(*weight);
       }
+      cout << "The addition:" << endl;
+      varAddition.Print();
       
       string internalName = "InternalAddition" + m->Name();
       RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
@@ -486,7 +488,8 @@ namespace BTagCombination {
       RooGaussian *g = new RooGaussian(gName.c_str(), gName.c_str(),
 				       *actualValue, *varSumed, *statValue);
 
-      //g->Print();
+      cout << "Measurement " << gName << endl;
+      g->Print();
       measurementGaussians.push_back(g);
     }
 
@@ -500,22 +503,26 @@ namespace BTagCombination {
       products.add(**itr);
       //(*itr)->Print();
     }
+    cout << "Product Gaussian:" << endl;
+    products.Print();
 
     RooConstVar *zero = new RooConstVar("zero", "zero", 0.0);
     RooConstVar *one = new RooConstVar("one", "one", 1.0);
     vector<string> allVars = _systematicErrors.GetAllVars();
 
+    cout << "Constraint guassians" << endl;
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
       string cName = *iVar + "ConstraintGaussian";
       RooRealVar *c = _systematicErrors.FindRooVar(*iVar);
       //RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
       RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *c, *zero, *one);
       products.add(*constraint);
-      //constraint->Print();
+      constraint->Print();
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
-    //finalPDF.Print();
+    cout << "Printing final PDF" << endl;
+    finalPDF.Print();
 
     ///
     /// Next, we need to fit to a dataset. It will have a single data point - the

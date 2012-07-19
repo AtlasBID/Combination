@@ -261,7 +261,7 @@ class CombinationContextTest : public CppUnit::TestFixture
     m1->addSystematicAbs("s1", 10.0);
     m2->addSystematicAbs("s1", 10.0);
 
-    setupRoo();
+    setupRooTurnOn();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     cout << "Finishing testFitOneDataTwoMeasurementSmallStat" << endl;
