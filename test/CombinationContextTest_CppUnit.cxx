@@ -40,7 +40,6 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitOneDataTwoMeasurement );
   CPPUNIT_TEST ( testFitOneDataTwoMeasurementSmallStat );
-  CPPUNIT_TEST ( testFitOneDataTwoMeasurementSmallStatCorrelated );
 
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys );
   CPPUNIT_TEST ( testFitOneDataOneMeasurementSys2 );
@@ -259,22 +258,17 @@ class CombinationContextTest : public CppUnit::TestFixture
     Measurement *m2 = c.AddMeasurement ("a", -10.0, 10.0, 0.3, 0.001);
 
     m1->addSystematicAbs("s1", 10.0);
-    m2->addSystematicAbs("s1", 10.0);
+    m2->addSystematicAbs("s1", 20.0);
 
-    setupRooTurnOn();
+    m1->addSystematicAbs("s2", 20.0);
+    m2->addSystematicAbs("s2", 10.0);
+
+    setupRoo();
     map<string, CombinationContext::FitResult> fr = c.Fit();
 
     cout << "Finishing testFitOneDataTwoMeasurementSmallStat" << endl;
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, fr["a"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.001*sqrt(2), fr["a"].statisticalError, 0.01);
-  }
-
-  void testFitOneDataTwoMeasurementSmallStatCorrelated()
-  {
-    // Make sure statistical error that is correlated still gets calculated
-    // correctly. Note that this test may already have been done.
-
-    CPPUNIT_FAIL ("Test not written yet");
   }
 
   void testFitOneDataTwoMeasurement()
