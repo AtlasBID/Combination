@@ -26,6 +26,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testFitOneZeroMeasurement );
   CPPUNIT_TEST ( testFitTwoZeroMeasurement );
+  CPPUNIT_TEST ( testFitThreeZeroMeasurement );
   CPPUNIT_TEST ( testFitOneNonZeroMeasurement );
 
   CPPUNIT_TEST ( testFitTwoDataOneMeasurement );
@@ -147,6 +148,21 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["average"].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/2.0), fr["average"].statisticalError, 0.01);
+  }
+
+  void testFitThreeZeroMeasurement()
+  {
+    // Garbage in, garbage out.
+    CombinationContext c;
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+    c.AddMeasurement ("average", -10.0, 10.0, 0.0, 0.1);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, fr["average"].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.1*0.1/3.0), fr["average"].statisticalError, 0.01);
   }
 
   void testFitWeirdMatches()

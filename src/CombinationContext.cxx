@@ -32,10 +32,50 @@ using std::back_inserter;
 using std::ostringstream;
 
 namespace {
+  using namespace BTagCombination;
+
   // Max length of a parameter we allow into RooFit to prevent a crash.
   // It does change with RooFit version number...
   const size_t cMaxParameterNameLength = 90;
   const int cMINUITStrat = 1;
+
+  // Helper function that will look at the over correlation of two results and if it finds the over
+  // correlation it will then turn it off.
+
+  void CheckForAndDisableOverCorrelation (Measurement *m1, Measurement *m2)
+  {
+    pair<double, double> split1 = m1->SharedError(m2);
+    pair<double, double> split2 = m2->SharedError(m1);
+
+    // Calculate the rho
+
+    double s12 = split1.first*split1.first + split1.second*split1.second;
+    double s22 = split2.first*split2.first + split2.second*split2.second;
+    double s1 = sqrt(s12);
+    double s2 = sqrt(s22);
+
+    double rho = split1.second*split2.second/(s1*s2);
+
+    // And now the weight, assuming a straight combination.
+    
+    double wt = (s22 - rho*s1*s2)/(s12 + s22 - 2*rho*s1*s2);
+    if (wt > 1.0 || wt < 0.0) {
+      cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
+	   << "  " << m1->What() << endl
+	   << "  #1: " << m1->Name() << endl
+	   << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
+	   << "  #2: " << m2->Name() << endl
+	   << "  s2=" << s2 << " s2c=" << split2.second << " s2u=" << split2.first << endl
+	   << "  rho=" << rho << " wt=" << wt << endl;
+      if (s1 > s2) {
+	cout << "  Keeping #2" << endl;
+	m1->setDoNotUse(true);
+      } else {
+	cout << "  Keeping #1" << endl;
+	m2->setDoNotUse(true);
+      }
+    }
+  }
 }
 
 namespace BTagCombination {
@@ -350,7 +390,7 @@ namespace BTagCombination {
     }
 
     //
-    // For each one calculate the conditiosn for over correlations, and turn off one if
+    // For each one calculate the conditions for over correlations, and turn off one if
     // it occurs.
     //
 
@@ -360,46 +400,16 @@ namespace BTagCombination {
 
       if (itr->second.size() < 2)
 	continue; // Nothing to combine here! :-)
-      if (itr->second.size() > 2) {
-	throw runtime_error("WARNING: Don't know how to calculate over-correlation condition for > 2 measurements yet!");
-      }
 
-      // Get the uncorrelated, correlated errors
-      Measurement *m1 = itr->second[0];
-      Measurement *m2 = itr->second[1];
-      pair<double, double> split1 = m1->SharedError(m2);
-      pair<double, double> split2 = m2->SharedError(m1);
+      // Now, for each combination of two we have to look to check for over correlation. If any of them
+      // are, we drop the one with the lowest error.
 
-      // Calculate the rho
-
-      double s12 = split1.first*split1.first + split1.second*split1.second;
-      double s22 = split2.first*split2.first + split2.second*split2.second;
-      double s1 = sqrt(s12);
-      double s2 = sqrt(s22);
-
-      double rho = split1.second*split2.second/(s1*s2);
-
-      // And now the weight, assuming a straight combination.
-
-      double wt = (s22 - rho*s1*s2)/(s12 + s22 - 2*rho*s1*s2);
-      if (wt > 1.0 || wt < 0.0) {
-	cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
-	     << "  " << m1->What() << endl
-	     << "  #1: " << m1->Name() << endl
-	     << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
-	     << "  #2: " << m2->Name() << endl
-	     << "  s2=" << s2 << " s2c=" << split2.second << " s2u=" << split2.first << endl
-	     << "  rho=" << rho << " wt=" << wt << endl;
-	if (s1 > s2) {
-	  cout << "  Keeping #2" << endl;
-	  m1->setDoNotUse(true);
-	} else {
-	  cout << "  Keeping #1" << endl;
-	  m2->setDoNotUse(true);
+      for (size_t i_1 = 0; i_1 < itr->second.size(); i_1++) {
+	for (size_t i_2 = i_1 + 1; i_2 < itr->second.size(); i_2++) {
+	  CheckForAndDisableOverCorrelation (itr->second[i_1], itr->second[i_2]);
 	}
       }
     }
-
   }
 
   ///
