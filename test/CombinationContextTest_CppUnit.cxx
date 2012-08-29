@@ -66,6 +66,8 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitCorrelatedResults5 );
   CPPUNIT_TEST ( testFitCorrelatedResults6 );
 
+  CPPUNIT_TEST ( testFitOverCorrelatedResult );
+
   CPPUNIT_TEST ( testFitParameterNameLength );
   CPPUNIT_TEST_EXCEPTION ( testFitParameterNameLength1, std::runtime_error );
 
@@ -653,7 +655,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   void testFitCorrelatedResults()
   {
-    // one data pont, two measurements, with their statistical error 100% correlated.
+    // one data pont, two measurements, with their statistical error 0% correlated.
     cout << "Starting test testFitCorrelatedResults" << endl;
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
@@ -672,7 +674,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
   void testFitCorrelatedResults1()
   {
-    // one data pont, two measurements, with their statistical error 100% correlated.
+    // one data pont, two measurements, with their statistical error 25% correlated.
     cout << "Starting test testFitCorrelatedResults" << endl;
     CombinationContext c;
     Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 1.0, 0.1);
@@ -780,6 +782,43 @@ class CombinationContextTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.8789, fr["average"].centralValue, 0.001);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.01, fr["average"].statisticalError, 0.002);
+  }
+
+  void testFitOverCorrelatedResult()
+  {
+    // Check the correlation code properly will deal with a third measurement, no matter how
+    // it occurs.
+
+    int count = 0;
+    for (int i = 0; i < 3; i++) {
+      count++;
+      CombinationContext c;
+      Measurement *m1, *m2, *m3;
+      if (i == 0) {
+	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+	m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+      } else if (i == 1) {
+	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+      } else if (i == 2) {
+	m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+      } else {
+	CPPUNIT_FAIL ("Invalid ordering for adding measurements");
+      }
+      c.AddCorrelation ("statistical", m1, m2, 0.717724);
+
+      setupRoo();
+      map<string, CombinationContext::FitResult> fr = c.Fit();
+
+      CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+      CPPUNIT_ASSERT_DOUBLES_EQUAL (0.8789, fr["average"].centralValue, 0.001);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.0243*0.0243/2.0), fr["average"].statisticalError, 0.001);
+    }
+    CPPUNIT_ASSERT_EQUAL(3, count);
   }
 
   void testFitParameterNameLength()
