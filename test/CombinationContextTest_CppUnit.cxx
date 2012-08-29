@@ -70,6 +70,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testFitCorrelatedResults6 );
 
   CPPUNIT_TEST ( testFitOverCorrelatedResult );
+  CPPUNIT_TEST ( testFitOverCorrelatedTroikaResult );
 
   CPPUNIT_TEST ( testFitParameterNameLength );
   CPPUNIT_TEST_EXCEPTION ( testFitParameterNameLength1, std::runtime_error );
@@ -837,6 +838,32 @@ class CombinationContextTest : public CppUnit::TestFixture
       CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.0243*0.0243/2.0), fr["average"].statisticalError, 0.001);
     }
     CPPUNIT_ASSERT_EQUAL(3, count);
+  }
+
+  void testFitOverCorrelatedTroikaResult()
+  {
+    cout << "Starting testFitOverCorrelatedTroikaResult" << endl;
+    // Look at m1 over correlated with m2, and m3 with m2 too. But not m1. Make sure
+    // that m2 remains correctly.
+
+    CombinationContext c;
+    Measurement *m1, *m2, *m3;
+    // Unfortunately, in the current version, this is order dependent. It shouldn't be, but
+    // that is the best we can do right now.
+    m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+    m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+    m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+
+    c.AddCorrelation ("statistical", m1, m2, 0.717724);
+    c.AddCorrelation ("statistical", m3, m2, 0.717724);
+
+    setupRoo();
+    map<string, CombinationContext::FitResult> fr = c.Fit();
+
+    CPPUNIT_ASSERT_EQUAL (size_t(0), fr["average"].sysErrors.size());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.8789, fr["average"].centralValue, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (sqrt(0.0243*0.0243/2.0), fr["average"].statisticalError, 0.001);
+    cout << "ending testFitOverCorrelatedTroikaResult" << endl;
   }
 
   void testFitParameterNameLength()

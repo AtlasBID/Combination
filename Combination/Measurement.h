@@ -36,7 +36,7 @@ namespace BTagCombination {
       { return _what; }
     bool hasSysError (const std::string &name) const;
 
-    // Get/Set the do not use flab. If set, then ignore this measurement
+    // Get/Set the do not use flag. If set, then ignore this measurement
     // when doing the combination.
     // Use this when you have to wait until the full context is built before you decide that you
     // can't use. Also used internally to prevent bad combinations from occuring.

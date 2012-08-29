@@ -125,6 +125,10 @@ namespace BTagCombination {
       return;
     }
 
+    if (m1->doNotUse() || m2->doNotUse()) {
+      return;
+    }
+
     // The name we are going to use.
     string statSysErrorName (string("Correlated-") + m1->What() + "-" + m1->Name() + "-" + m2->Name());
     if (statSysErrorName.size() > cMaxParameterNameLength) {
@@ -406,7 +410,9 @@ namespace BTagCombination {
 
       for (size_t i_1 = 0; i_1 < itr->second.size(); i_1++) {
 	for (size_t i_2 = i_1 + 1; i_2 < itr->second.size(); i_2++) {
-	  CheckForAndDisableOverCorrelation (itr->second[i_1], itr->second[i_2]);
+	  if (!itr->second[i_2]->doNotUse() && !itr->second[i_1]->doNotUse()) {
+	    CheckForAndDisableOverCorrelation (itr->second[i_1], itr->second[i_2]);
+	  }
 	}
       }
     }
