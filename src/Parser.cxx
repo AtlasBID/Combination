@@ -430,7 +430,7 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
     using qi::lexeme;
     using qi::lit;
 
-    name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
+    //name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
 
     start %= lit("Analysis") > lit('(') > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ')'
       > '{'
@@ -438,7 +438,8 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
       > '}';
   }
 
-    qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    //qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+    NameStringParser<Iterator> name_string;
     qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
     CalibrationBinParser<Iterator> binParser;
 };
