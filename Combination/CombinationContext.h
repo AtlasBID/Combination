@@ -52,7 +52,7 @@ namespace BTagCombination {
     void AddCorrelation(const std::string &errorName, Measurement *m1, Measurement *m2, double correlation);
 
     /// Fit all the measurements that we've asked for, and return results for each measurement done.
-    std::map<std::string, FitResult> Fit(void);
+    std::map<std::string, FitResult> Fit(const std::string &name = "");
 
     /// Returns the stat-only error on each measurement.
     std::map<std::string, double> CalculateStatisticalErrors(void);

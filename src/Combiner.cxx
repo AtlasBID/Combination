@@ -143,7 +143,7 @@ namespace {
 namespace BTagCombination
 {
 
-  CalibrationBin CombineBin (vector<CalibrationBin> &bins)
+  CalibrationBin CombineBin (vector<CalibrationBin> &bins, const string &fitName)
   {
     // Simple checks to make sure we aren't bent out of shape
 
@@ -164,7 +164,7 @@ namespace BTagCombination
     // Now we are ready to build the combination. Do a single fit of everything.
     CombinationContext ctx;
     FillContextWithBinInfo (ctx, bins);
-    const map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+    const map<string, CombinationContext::FitResult> fitResult = ctx.Fit(fitName);
 
     // Now that we have the result, we need to extract the numbers and build the resulting bin
     string binName (OPBinName(bins[0]));    
@@ -244,6 +244,10 @@ namespace BTagCombination
 	CombinationContext ctx;
 	map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second);
       
+	string fitName = i_ana->second[0].flavor
+	  + ":" + i_ana->second[0].tagger
+	  + ":" + i_ana->second[0].operatingPoint;
+
 	// Now, go look for any correlations that might apply here.
 	for (size_t i_cor = 0; i_cor < info.Correlations.size(); i_cor++) {
 	  for (size_t i_cbin = 0; i_cbin < info.Correlations[i_cor].bins.size(); i_cbin++) {
@@ -280,7 +284,7 @@ namespace BTagCombination
 	}
       
 	// Do the fit.
-	map<string, CombinationContext::FitResult> fitResult = ctx.Fit();
+	map<string, CombinationContext::FitResult> fitResult = ctx.Fit(fitName);
 	
 	// Dummy analysis that we will fill in with the results.
 	CalibrationAnalysis r(i_ana->second[0]);

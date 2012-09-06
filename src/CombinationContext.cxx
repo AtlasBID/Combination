@@ -424,7 +424,7 @@ namespace BTagCombination {
   /// Do the fit. We do all the building here, and then the fit, and then we extract
   /// all the results needed.
   ///
-  map<string, CombinationContext::FitResult> CombinationContext::Fit(void)
+  map<string, CombinationContext::FitResult> CombinationContext::Fit(const std::string &name)
   {
     //
     // First thing to do is x-check the measurements to eliminate any combinations
@@ -661,7 +661,7 @@ namespace BTagCombination {
       cout << "Chi2 contrib for bin " << itr->first << " is " << itr->second << endl;
       totalChi2 += itr->second;
     }
-    cout << "Total chi2: " << totalChi2 << endl;
+    cout << "Total chi2 for " << name << ": " << totalChi2 << endl;
 
     //
     // Dump out the pulls that the fit settled on... so this crudely fornow.
