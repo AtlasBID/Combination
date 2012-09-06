@@ -84,6 +84,24 @@ namespace BTagCombination {
     return _statError->getVal();
   }
 
+  //
+  // Return the total error, added in quad
+  //
+  double Measurement::totalError() const
+  {
+    double stat = statError();
+    double sys = totalSysError();
+    return sqrt(stat*stat + sys*sys);
+  }
+
+  //
+  // Return the central value
+  //
+  double Measurement::centralValue() const
+  {
+    return _actualValue.getVal();
+  }
+
   ///
   /// Return a list of the systematic errors that we are "using".
   ///

@@ -56,6 +56,12 @@ namespace BTagCombination {
     // Returns the statistical error
     double statError() const;
 
+    // Returns the total error (in quad)
+    double totalError() const;
+
+    // Returns the central value
+    double centralValue() const;
+
   private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}

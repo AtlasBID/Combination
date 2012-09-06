@@ -14,6 +14,8 @@
 #include <RooProduct.h>
 #include <RooAddition.h>
 #include <RooPlot.h>
+#include <RooXYChi2Var.h>
+#include <RooFitResult.h>
 
 #include <TFile.h>
 #include <TH1F.h>
@@ -550,6 +552,7 @@ namespace BTagCombination {
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
+
     //cout << "Printing final PDF" << endl;
     //finalPDF.Print();
 
@@ -576,8 +579,38 @@ namespace BTagCombination {
     ///
 
     cout << "Starting the master fit..." << endl;
-    finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
+    //RooMsgService::instance().setSilentMode(false);
+    //RooMsgService::instance().setGlobalKillBelow(RooFit::INFO);
+    RooFitResult *fitResult = finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat), RooFit::Save());
+    //RooMsgService::instance().setSilentMode(true);
+    //RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+    cout << "Back!" << endl;
+    //fitResult->Print();
+    //cout << "EDM = " << fitResult->EDM() << endl;
     cout << "Master fit is finished..." << endl;
+
+    //
+    // Do the chi2 for this.
+    //
+
+#ifdef notyet
+    cout << "Creating chi2" << endl;
+    try {
+      RooXYChi2Var globalChi2 ("chi2_global", "chi2_global", finalPDF, measuredPoints);
+      cout << "Creating chi2" << endl;
+      double g_gChi2 = globalChi2.getVal();
+      cout << "Creating chi2" << endl;
+      double g_nDOF = fitResult->floatParsFinal().getSize();
+      cout << "Creating chi2" << endl;
+      cout << " -> Global chi2: " << g_gChi2 << ", nDOF: " << g_nDOF
+	   << ", chi2/nDOF: " << g_gChi2/g_nDOF
+	   << endl;
+      cout << "Creating chi2" << endl;
+    } catch (string &s) {
+      cout << "error! " << s << endl;
+      throw;
+    }
+#endif
 
     ///
     /// Dump out the graph-viz tree
@@ -600,6 +633,35 @@ namespace BTagCombination {
       totalError[m->What()] = v->getError();
       runningErrorXCheck[m->What()] = 0.0;
     }
+
+    //
+    // Extract a crude chi2
+    //
+    
+    map<string, double> individualChi2;
+    for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
+      Measurement *m(*imeas);
+      
+      if (individualChi2.find(m->What()) == individualChi2.end())
+	individualChi2[m->What()] = 0.0;
+
+      double cv = m->centralValue();
+      double err = m->totalError();
+      double meas = result[m->What()].centralValue;
+
+      double delta = meas - cv;
+      double chi2Contrib = delta*delta/(err*err);
+      individualChi2[m->What()] += chi2Contrib;
+
+      cout << "Chi2 Contrib for " << m->Name() << " is " << chi2Contrib << endl;
+    }
+
+    double totalChi2 = 0.0;
+    for (map<string,double>::const_iterator itr = individualChi2.begin(); itr != individualChi2.end(); itr++) {
+      cout << "Chi2 contrib for bin " << itr->first << " is " << itr->second << endl;
+      totalChi2 += itr->second;
+    }
+    cout << "Total chi2: " << totalChi2 << endl;
 
     //
     // Dump out the pulls that the fit settled on... so this crudely fornow.
@@ -740,7 +802,7 @@ namespace BTagCombination {
 	sysErr->setVal(0.0);
 	sysErr->setError(0.0);
 
-	cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
+	//cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
 	finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
 	// Loop over all measurements. If the measurement knows about
