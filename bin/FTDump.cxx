@@ -20,6 +20,7 @@ void Usage(void);
 void DumpEverything (const vector<CalibrationAnalysis> &calibs);
 void CheckEverything (const CalibrationInfo &info);
 void PrintNames (const CalibrationInfo &info);
+void PrintQNames (const CalibrationInfo &info);
 
 // Main program - run & control everything.
 int main (int argc, char **argv)
@@ -38,6 +39,7 @@ int main (int argc, char **argv)
     bool doCheck = false;
     bool doDump = true;
     bool doNames = false;
+    bool doQNames = false;
 
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "check") {
@@ -46,6 +48,11 @@ int main (int argc, char **argv)
       } else if (otherFlags[i] == "names") {
 	doDump = false;
 	doNames = true;
+	doQNames = false;
+      } else if (otherFlags[i] == "qnames") {
+	doDump = false;
+	doQNames = true;
+	doNames = false;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
 	Usage();
@@ -65,6 +72,9 @@ int main (int argc, char **argv)
 
     if (doNames)
       PrintNames(info);
+
+    if (doQNames)
+      PrintQNames (info);
 
     // Check to see if the bin specifications are consistent.
     return 0;
@@ -198,11 +208,15 @@ void CheckEverything (const CalibrationInfo &info)
   checkForValidCorrelations(info);
 }
 
-void PrintNames (const vector<CalibrationAnalysis> &calibs)
+void PrintNames (const vector<CalibrationAnalysis> &calibs, bool ignoreFormat = true)
 {
   for (unsigned int i = 0; i < calibs.size(); i++) {
     for (unsigned int b = 0; b < calibs[i].bins.size(); b++) {
-      cout << OPIgnoreFormat(calibs[i], calibs[i].bins[b]) << endl;
+      if (ignoreFormat) {
+	cout << OPIgnoreFormat(calibs[i], calibs[i].bins[b]) << endl;
+      } else {
+	cout << OPComputerFormat(calibs[i], calibs[i].bins[b]) << endl;
+      }
     }
   }
 }
@@ -222,9 +236,15 @@ void PrintNames (const CalibrationInfo &info)
   PrintNames(info.Correlations);
 }
 
+void PrintQNames (const CalibrationInfo &info)
+{
+  PrintNames(info.Analyses, false);
+}
+
 void Usage(void)
 {
   cout << "FTDump <file-list-and-options>" << endl;
   cout << "  --check - check if the binning of the input is self consistent" << endl;
   cout << "  --names - print out the names used for the --ignore command of everything" << endl;
+  cout << "  --qnames - print out the names used in a fully qualified, and easily computer parsable format" << endl;
 }

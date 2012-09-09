@@ -110,7 +110,7 @@ namespace {
     typedef map<string, CalibrationBin> t_CBMap;
     typedef map<CalibrationBinBoundary, t_CBMap> t_BoundaryMap;
     t_BoundaryMap taggerResults;
-    //cout << "Looking at each axis bin for contents now:" << endl;
+
     for (t_BBSet::const_iterator ib = axisBins.begin(); ib != axisBins.end(); ib++) {
       t_BBSet coordinate (specifiedBins);
       coordinate.insert(*ib);
@@ -124,10 +124,6 @@ namespace {
 	} else {
 	  taggerResults[*ib][anas[ia].name] = fb;
 	}
-	//cout << "  " << *ib << " (" << anas[ia].name << "): " 
-	//<< taggerResults[*ib][anas[ia].name].centralValue
-	//<< " +- "
-	//<< taggerResults[*ib][anas[ia].name].centralValueStatisticalError << endl;
       }
     }
 
@@ -217,6 +213,7 @@ namespace {
       map<string, TH1F*> singlePlots;
       singlePlots["central"] = DeclareSingleHist(anaName,  "_cv", "Central values for ", axisBins.size(), out);
       singlePlots["statistical"] = DeclareSingleHist(anaName,  "_stat", "Statistical errors for ", axisBins.size(), out);
+      singlePlots["total"] = DeclareSingleHist(anaName,  "_totalerror", "Total errors for ", axisBins.size(), out);
 
       set<string> allSys;
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
@@ -248,6 +245,7 @@ namespace {
 	// Fill in the single plots now
 	singlePlots["central"]->SetBinContent(ibin+1, cb.centralValue);
 	singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
+	singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
 	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
 	  singlePlots[cb.systematicErrors[i].name]->Fill(ibin+1, cb.systematicErrors[i].value);
 	}
@@ -317,8 +315,8 @@ namespace {
     h->Draw();
     h->SetDirectory(0);
 
-    int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34};
-    int colorID[] =  { 1,  2,  3,  4,  5,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
+    int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
+    int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
     for (unsigned int i_p = 0; i_p < plots.size(); i_p++) {
       int markerIndex = i_p % 15;
       plots[i_p]->SetMarkerStyle(markerID[markerIndex]);

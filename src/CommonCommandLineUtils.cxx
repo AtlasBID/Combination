@@ -332,6 +332,17 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  string OPComputerName (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.name
+	<< "//" << ana.flavor
+	<< "//" << ana.tagger
+	<< "//" << ana.operatingPoint
+	<< "//" << ana.jetAlgorithm;
+    return msg.str();
+  }
+
   // Returns a well formed name for the analysis that ignores the actual
   // analysis name. This is text only,
   // and is what a person can use to talk to us. And can be used to sort things
@@ -377,6 +388,12 @@ namespace BTagCombination {
   string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin)
   {
     return OPFullName(ana) + ":" + OPBinName(bin);
+  }
+
+  // The format that is pretty "easy" to parse by python or similar.
+  string OPComputerFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin)
+  {
+    return OPComputerName(ana) + "//" + OPBinName(bin);
   }
 
   // The format of the name used in the ignore command line option

@@ -31,6 +31,7 @@ namespace BTagCombination {
   std::string OPBinName (const BinCorrelation &bin);
   std::string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
   std::string OPIgnoreFormat(const AnalysisCorrelation &ana, const BinCorrelation &bin);
+  std::string OPComputerFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
 
   // Returns the OPIgnoreName for the two analyses involved in this guy.
   std::pair<std::string, std::string> OPIgnoreCorrelatedFormat (const AnalysisCorrelation &ana,
