@@ -673,9 +673,11 @@ class CombinerTest : public CppUnit::TestFixture
     info.Correlations.push_back(c1);
 
     setupRoo();
+    info.CombinationAnalysisName = "dork";
     vector<CalibrationAnalysis> result (CombineAnalyses(info));
 
     CPPUNIT_ASSERT_EQUAL (size_t(1), result.size());
+    CPPUNIT_ASSERT_EQUAL (string("dork"), result[0].name);
 
     CalibrationBin b (result[0].bins[0]);
 

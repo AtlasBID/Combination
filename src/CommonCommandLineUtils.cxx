@@ -123,6 +123,7 @@ namespace BTagCombination {
     operatingPoints.Correlations.clear();
     operatingPoints.Defaults.clear();
     operatingPoints.Aliases.clear();
+    operatingPoints.CombinationAnalysisName = "combined";
 
     unknownFlags.clear();
 
@@ -138,7 +139,8 @@ namespace BTagCombination {
     //
 
     vector<string> OPsToIgnore;
-    vector<string> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm;
+    vector<string> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm, spOnlyAnalysis;
+
     for (int index = 0; index < argc; index++) {
       // is it a flag or a file containing operating points?
       string a (argv[index]);
@@ -181,6 +183,18 @@ namespace BTagCombination {
 	    }
 	    index++;
 	    spOnlyJetAlgorithm.push_back(argv[index]);
+	  } else if (flag == "analysis") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("every --analysis must have an analysis name");
+	    }
+	    index++;
+	    spOnlyAnalysis.push_back(argv[index]);
+	  } else if (flag == "combinedName") {
+	    if (index+1 == argc) {
+	      throw runtime_error ("--combinedName must have a output combined name");
+	    }
+	    index++;
+	    operatingPoints.CombinationAnalysisName = argv[index];
 	  } else {
 	    unknownFlags.push_back(flag);
 	  }
@@ -251,6 +265,7 @@ namespace BTagCombination {
 
     for (size_t op = operatingPoints.Analyses.size(); op > size_t(0); op--) {
       if (!CheckInList(spOnlyFlavor, operatingPoints.Analyses[op-1].flavor)
+	  || !CheckInList(spOnlyAnalysis, operatingPoints.Analyses[op-1].name)
 	  || !CheckInList(spOnlyTagger, operatingPoints.Analyses[op-1].tagger)
 	  || !CheckInList(spOnlyOP, operatingPoints.Analyses[op-1].operatingPoint)
 	  || !CheckInList(spOnlyJetAlgorithm, operatingPoints.Analyses[op-1].jetAlgorithm)) {
@@ -261,6 +276,8 @@ namespace BTagCombination {
     for (size_t op = operatingPoints.Correlations.size(); op > size_t(0); op--) {
       if (!CheckInList(spOnlyFlavor, operatingPoints.Correlations[op-1].flavor)
 	  || !CheckInList(spOnlyTagger, operatingPoints.Correlations[op-1].tagger)
+	  || !CheckInList(spOnlyAnalysis, operatingPoints.Correlations[op-1].analysis1Name)
+	  || !CheckInList(spOnlyAnalysis, operatingPoints.Correlations[op-1].analysis2Name)
 	  || !CheckInList(spOnlyOP, operatingPoints.Correlations[op-1].operatingPoint)
 	  || !CheckInList(spOnlyJetAlgorithm, operatingPoints.Correlations[op-1].jetAlgorithm)) {
 	operatingPoints.Correlations.erase(operatingPoints.Correlations.begin() + (op-1));

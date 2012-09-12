@@ -288,7 +288,7 @@ namespace BTagCombination
 	
 	// Dummy analysis that we will fill in with the results.
 	CalibrationAnalysis r(i_ana->second[0]);
-	r.name = "combined";
+	r.name = info.CombinationAnalysisName;
 	r.bins = ExtractBinsResult(bins, fitResult);
 	result.push_back(r);
       }

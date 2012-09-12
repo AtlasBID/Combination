@@ -364,6 +364,10 @@ namespace BTagCombination
     std::vector<AnalysisCorrelation> Correlations;
     std::vector<DefaultAnalysis> Defaults;
     std::vector<AliasAnalysis> Aliases;
+
+    // The resulting combination should be stored as this analysis name.
+    std::string CombinationAnalysisName;
+
   };
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {

@@ -40,6 +40,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testIgnoreAnalysis );
   CPPUNIT_TEST ( testIgnoreCorrelation );
 
+  CPPUNIT_TEST ( testCombinationAnalysisName1 );
+  CPPUNIT_TEST ( testCombinationAnalysisName2 );
+
   CPPUNIT_TEST ( testUseOnlyFlags );
   CPPUNIT_TEST ( testUseOnlyFlags2 );
   CPPUNIT_TEST ( testUseOnlyFlags3 );
@@ -49,6 +52,8 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testUseOnlyFlags7 );
   CPPUNIT_TEST ( testUseOnlyFlags8 );
   CPPUNIT_TEST ( testUseOnlyFlags9 );
+  CPPUNIT_TEST ( testUseOnlyFlags10 );
+  CPPUNIT_TEST ( testUseOnlyFlags11 );
 
   CPPUNIT_TEST ( testCopyAnalysis);
 
@@ -462,6 +467,59 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
+  }
+
+  void testUseOnlyFlags10()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--analysis",
+			  "freak"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags11()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--analysis",
+			  "ttbar_kin_ljets"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
+
+  void testCombinationAnalysisName1()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--combinedName",
+			  "freak"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL(string("freak"), results.CombinationAnalysisName);
+  }
+
+
+  void testCombinationAnalysisName2()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"
+    };
+
+    ParseOPInputArgs(argv, 1, results, unknown);
+    CPPUNIT_ASSERT_EQUAL(string("combined"), results.CombinationAnalysisName);
   }
 
   void testCopyAnalysis()
