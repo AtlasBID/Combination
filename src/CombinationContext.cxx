@@ -590,6 +590,23 @@ namespace BTagCombination {
     cout << "Master fit is finished..." << endl;
 
     //
+    // To actually calculate the chi2 we have a fair amount of work to do.
+    // Using the method from the BLUE paper, eqn 14 (loosely based on this, actually).
+    //  (published xxx)
+    //
+
+    {
+      // Get the resulting covarience matrix
+      
+    }
+
+    ///
+    /// Dump out the graph-viz tree
+    ///
+    
+    finalPDF.graphVizTree("combined.dot");
+
+    //
     // Do the chi2 for this.
     //
 
@@ -611,12 +628,6 @@ namespace BTagCombination {
       throw;
     }
 #endif
-
-    ///
-    /// Dump out the graph-viz tree
-    ///
-    
-    finalPDF.graphVizTree("combined.dot");
 
     ///
     /// Extract the central values
