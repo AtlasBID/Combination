@@ -48,6 +48,7 @@ use AtlasROOT			AtlasROOT-*		 External
 
 apply_tag ROOTRooFitLibs
 apply_tag ROOTGraphicsLibs
+apply_tag ROOTMathLibs
 
 #
 # Use "make CppUnit" to run the unit tests for this

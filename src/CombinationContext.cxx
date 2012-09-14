@@ -14,11 +14,11 @@
 #include <RooProduct.h>
 #include <RooAddition.h>
 #include <RooPlot.h>
-#include <RooXYChi2Var.h>
 #include <RooFitResult.h>
 
 #include <TFile.h>
 #include <TH1F.h>
+#include <TMatrixT.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -579,55 +579,13 @@ namespace BTagCombination {
     ///
 
     cout << "Starting the master fit..." << endl;
-    //RooMsgService::instance().setSilentMode(false);
-    //RooMsgService::instance().setGlobalKillBelow(RooFit::INFO);
-    RooFitResult *fitResult = finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat), RooFit::Save());
-    //RooMsgService::instance().setSilentMode(true);
-    //RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
-    cout << "Back!" << endl;
-    //fitResult->Print();
-    //cout << "EDM = " << fitResult->EDM() << endl;
-    cout << "Master fit is finished..." << endl;
-
-    //
-    // To actually calculate the chi2 we have a fair amount of work to do.
-    // Using the method from the BLUE paper, eqn 14 (loosely based on this, actually).
-    //  (published xxx)
-    //
-
-    {
-      // Get the resulting covarience matrix
-      
-    }
+    finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
     ///
     /// Dump out the graph-viz tree
     ///
     
     finalPDF.graphVizTree("combined.dot");
-
-    //
-    // Do the chi2 for this.
-    //
-
-#ifdef notyet
-    cout << "Creating chi2" << endl;
-    try {
-      RooXYChi2Var globalChi2 ("chi2_global", "chi2_global", finalPDF, measuredPoints);
-      cout << "Creating chi2" << endl;
-      double g_gChi2 = globalChi2.getVal();
-      cout << "Creating chi2" << endl;
-      double g_nDOF = fitResult->floatParsFinal().getSize();
-      cout << "Creating chi2" << endl;
-      cout << " -> Global chi2: " << g_gChi2 << ", nDOF: " << g_nDOF
-	   << ", chi2/nDOF: " << g_gChi2/g_nDOF
-	   << endl;
-      cout << "Creating chi2" << endl;
-    } catch (string &s) {
-      cout << "error! " << s << endl;
-      throw;
-    }
-#endif
 
     ///
     /// Extract the central values
@@ -643,6 +601,39 @@ namespace BTagCombination {
       result[m->What()].centralValue = v->getVal();
       totalError[m->What()] = v->getError();
       runningErrorXCheck[m->What()] = 0.0;
+    }
+
+    //
+    // To actually calculate the chi2 we have a fair amount of work to do.
+    // Using the method from the BLUE paper, eqn 14 (loosely based on this, actually).
+    //  (published xxx)
+    //
+
+    {
+      TMatrixT<double> y (gMeas.size(), 1); // Actual measruements
+      TMatrixT<double> Ux (gMeas.size(), 1); // The fit measurements for each guy
+      TMatrixTSym<double> W (gMeas.size()); // Cov-var of measurements
+
+      // Get the resulting covarience matrix
+      int i_meas_row = 0;
+      for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++, i_meas_row++) {
+	Measurement *m(*imeas);
+	y(i_meas_row, 0) = m->centralValue();
+	Ux(i_meas_row, 0) = result[m->What()].centralValue;
+
+	int i_meas_row2 = i_meas_row;
+	for (vector<Measurement*>::const_iterator imeas2 = imeas; imeas2 != gMeas.end(); imeas2++, i_meas_row2++) {
+	  if (i_meas_row2 == i_meas_row) {
+	    W(i_meas_row, i_meas_row2) = 1.0;
+	  } else {
+	    
+	  }
+	}
+
+      }
+      y.Print();
+      Ux.Print();
+      W.Print();
     }
 
     //
