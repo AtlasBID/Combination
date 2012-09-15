@@ -46,6 +46,9 @@ namespace BTagCombination {
     // Returns the error that is uncorrelated, correlated with another measurement.
     std::pair<double, double> SharedError (const Measurement *other) const;
 
+    // Calculate the covar(m1, m2)
+    double Covar (const Measurement *other) const;
+
     // Check and adjust a systematic error. Default argument, if it is
     // less than 0.5%, then adjust it till it is (and print out a warning).
     void CheckAndAdjustStatisticalError (double minFraction = 0.005);

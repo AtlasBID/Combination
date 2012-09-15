@@ -195,4 +195,24 @@ namespace BTagCombination {
 
     return make_pair(sqrt(uncorErr2), sqrt(corErr2));
   }
+
+  //
+  // Calculate the covar term between this measurement and the
+  // one passed in.
+  //
+  double Measurement::Covar (const Measurement *other) const
+  {
+    pair<double, double> split1 = SharedError(other);
+    pair<double, double> split2 = other->SharedError(this);
+
+    // Calculate the rho
+
+    double s12 = split1.first*split1.first + split1.second*split1.second;
+    double s22 = split2.first*split2.first + split2.second*split2.second;
+    double s1 = sqrt(s12);
+    double s2 = sqrt(s22);
+
+    return s1*s2;
+  }
+
 }

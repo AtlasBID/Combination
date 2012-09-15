@@ -623,17 +623,30 @@ namespace BTagCombination {
 
 	int i_meas_row2 = i_meas_row;
 	for (vector<Measurement*>::const_iterator imeas2 = imeas; imeas2 != gMeas.end(); imeas2++, i_meas_row2++) {
-	  if (i_meas_row2 == i_meas_row) {
-	    W(i_meas_row, i_meas_row2) = 1.0;
-	  } else {
-	    
-	  }
+	  Measurement *m2(*imeas2);
+	  W(i_meas_row, i_meas_row2) = m->Covar(m2);
+	  W(i_meas_row2, i_meas_row) = W(i_meas_row, i_meas_row2);
 	}
 
       }
       y.Print();
       Ux.Print();
       W.Print();
+
+      TMatrixT<double> Winv(W);
+      Winv = W.Invert();
+
+      // Do the covar calc -- oh for the "auto" keyword.
+      TMatrixT<double> del(gMeas.size(), 1);
+      del = Ux-y;
+      
+      TMatrixT<double> delT(del);
+      delT.Transpose(delT);
+
+      TMatrixT<double> xchi2(1,1);
+      xchi2 = (delT*Winv)*del;
+
+      cout << "Total chi2 " << xchi2 (0,0) << endl;
     }
 
     //
