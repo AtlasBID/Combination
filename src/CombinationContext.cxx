@@ -629,9 +629,6 @@ namespace BTagCombination {
 	}
 
       }
-      y.Print();
-      Ux.Print();
-      W.Print();
 
       TMatrixT<double> Winv(W);
       Winv = W.Invert();
@@ -646,9 +643,10 @@ namespace BTagCombination {
       TMatrixT<double> xchi2(1,1);
       xchi2 = (delT*Winv)*del;
 
-      cout << "Total chi2 " << xchi2 (0,0) << endl;
+      cout << "Total chi2 for " << name << ": " << xchi2(0,0) << endl;
     }
 
+#ifdef notyet
     //
     // Extract a crude chi2
     //
@@ -678,6 +676,7 @@ namespace BTagCombination {
     }
     cout << "Total chi2 for " << name << ": " << totalChi2 << endl;
 
+#endif
     //
     // Dump out the pulls that the fit settled on... so this crudely fornow.
     //

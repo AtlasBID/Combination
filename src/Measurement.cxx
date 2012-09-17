@@ -198,21 +198,34 @@ namespace BTagCombination {
 
   //
   // Calculate the covar term between this measurement and the
-  // one passed in.
+  // one passed in. We calculate this as rho*s1*s2, where s1 and s2
+  // are the total error for each measurement. And rho is the
+  // correlation factor - how much of the error is shared (should
+  // range from zero to 1).
   //
   double Measurement::Covar (const Measurement *other) const
   {
+    // Get the total errors
+    double s1 = totalError();
+    double s2 = totalError();
+
+    // Statistical error is treated specially, unfortunately - even if we
+    // ask for covar of ourselves, the stat error will be treated as a
+    // different type of error, and rho will be incorrectly be calculated
+    // as rho < 1. So, special case.
+
+    if (other == this)
+      return s1*s2;
+
+    // Now, using shared errors, calculate how much is shared
+    // between the two.
+
     pair<double, double> split1 = SharedError(other);
     pair<double, double> split2 = other->SharedError(this);
 
-    // Calculate the rho
+    double rho = split1.second*split2.second/(s1*s2);
 
-    double s12 = split1.first*split1.first + split1.second*split1.second;
-    double s22 = split2.first*split2.first + split2.second*split2.second;
-    double s1 = sqrt(s12);
-    double s2 = sqrt(s22);
-
-    return s1*s2;
+    return rho*s1*s2;
   }
 
 }
