@@ -631,11 +631,25 @@ namespace BTagCombination {
       }
 
       TMatrixT<double> Winv(W);
-      Winv = W.Invert();
+      cout << "W:" << endl;
+      W.Print();
+      cout << "Ux: " << endl;
+      Ux.Print();
+      cout << "y:" << endl;
+      y.Print();
+      cout << "W determinate:" << W.Determinant() << endl;
+      // Invert inverts in place!!
+      Winv.Invert();
+      cout << "Winv: " << endl;
+      Winv.Print();
+      cout << "W*Winv: " << endl;
+      (W*Winv).Print();
 
       // Do the covar calc -- oh for the "auto" keyword.
       TMatrixT<double> del(gMeas.size(), 1);
       del = Ux-y;
+      cout << "Ux-y:" << endl;
+      del.Print();
       
       TMatrixT<double> delT(del);
       delT.Transpose(delT);
@@ -643,7 +657,7 @@ namespace BTagCombination {
       TMatrixT<double> xchi2(1,1);
       xchi2 = (delT*Winv)*del;
 
-      cout << "Total chi2 for " << name << ": " << xchi2(0,0) << endl;
+      cout << "Total chi2 for " << name << ": " << xchi2(0,0) << " measurements: " << gMeas.size() << " fits: " << _whatMeasurements.size() << endl;
     }
 
 #ifdef notyet

@@ -207,7 +207,7 @@ namespace BTagCombination {
   {
     // Get the total errors
     double s1 = totalError();
-    double s2 = totalError();
+    double s2 = other->totalError();
 
     // Statistical error is treated specially, unfortunately - even if we
     // ask for covar of ourselves, the stat error will be treated as a
@@ -224,6 +224,19 @@ namespace BTagCombination {
     pair<double, double> split2 = other->SharedError(this);
 
     double rho = split1.second*split2.second/(s1*s2);
+
+    if (rho < -1.0) {
+      cout << "Error calculationg covariance between "
+	   << this->Name() << " and "
+	   << other->Name() << " - rho found to be " << rho << endl;
+      rho = -1.0;
+    }
+    if (rho > 1.0) {
+      cout << "Error calculationg covariance between "
+	   << this->Name() << " and "
+	   << other->Name() << " - rho found to be " << rho << endl;
+      rho = 1.0;
+    }
 
     return rho*s1*s2;
   }

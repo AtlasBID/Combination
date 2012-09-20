@@ -26,6 +26,7 @@ public:
 	/// Returns the names of all the vars we are hanging on to.
 	std::vector<std::string> GetAllVars(void) const;
 
+	size_t size (void) const;
 private:
 	/// The cache that holds the roo real vars.
 	std::map<std::string, RooRealVar *> _vars; // Cache of all things this context is measureing.

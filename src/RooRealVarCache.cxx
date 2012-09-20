@@ -68,5 +68,13 @@ vector<string> RooRealVarCache::GetAllVars(void) const
   return result;
 }
 
+//
+// Return the number of guys we know about
+//
+size_t RooRealVarCache::size(void) const
+{
+  return _vars.size();
+}
+
 
 
