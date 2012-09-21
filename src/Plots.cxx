@@ -94,6 +94,11 @@ namespace {
 				    const t_BBSet &specifiedBins,
 				    const t_BBSet &axisBins)
   {
+    out -> cd();
+
+    int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
+    int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
+
     // Some setup and defs that make life simpler below.
     string binName (axisBins.begin()->variable);
 
@@ -163,6 +168,7 @@ namespace {
     vector<TGraphErrors*> plots, plotsSys;
     vector<string> plotAnalysisName;
     vector<string> binlabels;
+    map<string, vector<pair<string, TH1F*> > > sysErrorPlots;
     Double_t *v_bin = new Double_t[axisBins.size()];
     Double_t *v_binError = new Double_t[axisBins.size()];
     Double_t *v_central = new Double_t[axisBins.size()];
@@ -224,7 +230,9 @@ namespace {
       }
 
       for (set<string>::const_iterator i = allSys.begin(); i != allSys.end(); i++) {
-	singlePlots[*i] = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);
+	TH1F *h = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);;
+	singlePlots[*i] = h;
+	sysErrorPlots[*i].push_back(make_pair(anaName,h));
       }
 
       // Now, loop over all the bins filling everything in
@@ -290,6 +298,55 @@ namespace {
     delete[] v_centralStatError;
     delete[] v_centralTotError;
 
+    // Build a canvas that will store each systematic error, all plotted on top of each other.
+
+    for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
+      string name = "sys_" + itr->first;
+      TCanvas *c = new TCanvas (name.c_str());
+
+      const vector<pair<string, TH1F*> > &hlist (itr->second);
+      double maxV = -1000.0;
+      double minV = 1000.0;
+      for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
+	if (maxV < h_itr->second->GetMaximum())
+	  maxV = h_itr->second->GetMaximum();
+	if (minV > h_itr->second->GetMinimum())
+	  minV = h_itr->second->GetMinimum();
+      }
+
+      string opt ("P");
+      size_t m_index = 0;
+      double lYPos = 0.85;
+      double lYDelta = 0.05;
+      double lXPos = 0.65;
+
+      for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
+	
+	h_itr->second->SetMaximum (maxV*1.10);
+	h_itr->second->SetMinimum (minV);
+
+	h_itr->second->SetMarkerStyle(markerID[m_index]);
+	h_itr->second->SetMarkerColor(colorID[m_index]);
+	h_itr->second->SetLineColor(colorID[m_index]);
+
+	h_itr->second->Draw(opt.c_str());
+	opt = "SAMEP";
+
+	myMarkerText (lXPos, lYPos,
+		      colorID[m_index], markerID[m_index],
+		      h_itr->first.c_str());
+
+	m_index += 1;
+	m_index = m_index % sizeof(markerID);
+	lYPos -= lYDelta;
+      }      
+
+      c->Write();
+      delete c;
+    }
+
+    // Build a canvas that will contain the final plot of the fit results and the inputs and systematic
+    // and statistical errors. We will store this in the output directory.
     // Now build the canvas that we are going to store. Do do special axis labels we have
     // to fake the whole TGraph guy out.
 
@@ -315,10 +372,8 @@ namespace {
     h->Draw();
     h->SetDirectory(0);
 
-    int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
-    int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
     for (unsigned int i_p = 0; i_p < plots.size(); i_p++) {
-      int markerIndex = i_p % 15;
+      int markerIndex = i_p % sizeof(markerID);
       plots[i_p]->SetMarkerStyle(markerID[markerIndex]);
       plots[i_p]->SetMarkerColor(colorID[markerIndex]);
       plots[i_p]->SetLineColor(colorID[markerIndex]);
@@ -355,8 +410,7 @@ namespace {
     // Do you love root? I do!
     //
 
-    out->Add(c);
-    out->Write();
+    c->Write();
     delete c;
   }
 
