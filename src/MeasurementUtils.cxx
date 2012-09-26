@@ -37,13 +37,18 @@ namespace BTagCombination {
   //
   TMatrixTSym<double> CalcCovarMatrixUsingComposition (const vector<Measurement*> measurements)
   {
-    // Get a list of all the systematic errors, and a matrix mapping for them.
+    //
+    // Get a list of all the systematic errors. Create a symmetric matrix to hold the covariance for each
+    // of these systematic errors. Include one for the systematic error as well (it makes it easy to add it in
+    // in the next step).
+    //
 
     set<string> sysErrorNames;
     for (vector<Measurement*>::const_iterator imeas = measurements.begin(); imeas != measurements.end(); imeas++) {
       vector<string> errs ((*imeas)->GetSystematicErrorNames());
       sysErrorNames.insert(errs.begin(), errs.end());
     }
+
     map<string, TMatrixTSym<double> > sysLookup;
     for (set<string>::const_iterator itr = sysErrorNames.begin(); itr != sysErrorNames.end(); itr++) {
       // Funny insertion because default matrix has 0,0 elements, and can't deal with the "=" sign here.
@@ -51,21 +56,44 @@ namespace BTagCombination {
       sysLookup.insert(make_pair(*itr, TMatrixTSym<double>(measurements.size())));
     }
 
+    sysLookup.insert(make_pair(string("stat"), TMatrixTSym<double>(measurements.size())));
+
+    //
     // Go through all the measurements and build up each individual cov matrix.
+    //
 
     int i_meas_row = 0;
     for (vector<Measurement*>::const_iterator imeas = measurements.begin(); imeas != measurements.end(); imeas++, i_meas_row++) {
       Measurement *m(*imeas);
+
+      //
+      // The statistical error is put straight into the stat matrix, no off-diagonal elements.
+      //
+
+      sysLookup["stat"](i_meas_row, i_meas_row) = m->statError() * m->statError();
+
+      //
+      // For each systeamtic error that this measurement knows about, fill in the slots in all
+      // the sys matrices.
+      //
+
       const vector<string> errs (m->GetSystematicErrorNames());
       for (vector<string>::const_iterator i_err = errs.begin(); i_err != errs.end(); i_err++) {
 
-	double sigma_m1 = m->GetSystematicErrorWidth(*i_err);
 	TMatrixTSym<double> &covar(sysLookup[*i_err]);
+	double sigma_m1 = m->GetSystematicErrorWidth(*i_err);
 
-	// Set the diagonal element for this measurement
+	//
+	// Set the diagonal element for this measurement. This is just the error squared.
+	//
+
 	covar(i_meas_row, i_meas_row) = sigma_m1*sigma_m1;
 
-	// Now do the correlations
+	//
+	// Now do the correlations. THis means going through all the other measurements and looking for any
+	// time they have a shared error. If there is one, set the elements (symmetrically!).
+	//
+
 	int i_meas_row2 = i_meas_row;
 	for (vector<Measurement*>::const_iterator imeas2 = imeas; imeas2 != measurements.end(); imeas2++, i_meas_row2++) {
 	  Measurement *m2(*imeas2);
@@ -78,7 +106,9 @@ namespace BTagCombination {
       }
     }
 
+    //
     // Check each matrix to make sure it is invertable, and sum them to get the total determinate.
+    //
 
     TMatrixTSym<double> result (measurements.size());
     bool isfirst = true;
