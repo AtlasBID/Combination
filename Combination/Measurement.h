@@ -65,6 +65,10 @@ namespace BTagCombination {
     // Returns the central value
     double centralValue() const;
 
+    // Get the complete list of systematic errors we know about
+    std::vector<std::string> GetSystematicErrorNames(void) const;
+    double GetSystematicErrorWidth (const std::string &errorName) const;
+
   private:
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
@@ -94,9 +98,7 @@ namespace BTagCombination {
       { return Name() + "StatError";}
 
     /// Systematic Error Access
-    std::vector<std::string> GetSystematicErrorNames(void) const;
     RooAbsReal *GetSystematicErrorWeight (RooRealVar &error);
-    double GetSystematicErrorWidth (const std::string &errorName) const;
     
     // Ignore this in a calculation.
     bool _doNotUse;

@@ -14,6 +14,7 @@ namespace BTagCombination {
   class Measurement;
 
   TMatrixTSym<double> CalcCovarMatrixUsingRho (const std::vector<Measurement*> measurements);
+  TMatrixTSym<double> CalcCovarMatrixUsingComposition (const std::vector<Measurement*> measurements);
 }
 
 #endif
