@@ -44,10 +44,15 @@ namespace BTagCombination {
     bool doNotUse (void) const { return _doNotUse; }
 
     // Returns the error that is uncorrelated, correlated with another measurement.
+    // This erorr calculation takes into account negative correlations!
+    // Returns (<uncorrelated, correlated> error).
     std::pair<double, double> SharedError (const Measurement *other) const;
 
     // Calculate the covar(m1, m2)
     double Covar (const Measurement *other) const;
+
+    // Calculate rho, the covar coeff. Bounded by 1 (explicitly if the test fails)
+    double Rho (const Measurement *other) const;
 
     // Check and adjust a systematic error. Default argument, if it is
     // less than 0.5%, then adjust it till it is (and print out a warning).

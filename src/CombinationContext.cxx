@@ -54,10 +54,10 @@ namespace {
 
     double s12 = split1.first*split1.first + split1.second*split1.second;
     double s22 = split2.first*split2.first + split2.second*split2.second;
-    double s1 = sqrt(s12);
-    double s2 = sqrt(s22);
+    double s1 = m1->totalError();
+    double s2 = m2->totalError();
 
-    double rho = split1.second*split2.second/(s1*s2);
+    double rho = m1->Rho(m2);
 
     // And now the weight, assuming a straight combination.
     
