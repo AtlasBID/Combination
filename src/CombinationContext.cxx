@@ -4,6 +4,7 @@
 
 #include "Combination/CombinationContext.h"
 #include "Combination/Measurement.h"
+#include "Combination/MeasurementUtils.h"
 
 #include <RooRealVar.h>
 #include <RooAbsReal.h>
@@ -610,25 +611,20 @@ namespace BTagCombination {
     //
 
     {
+      // Get the matrix of the measurements, the fits, and the covariance.
       TMatrixT<double> y (gMeas.size(), 1); // Actual measruements
       TMatrixT<double> Ux (gMeas.size(), 1); // The fit measurements for each guy
-      TMatrixTSym<double> W (gMeas.size()); // Cov-var of measurements
 
-      // Get the resulting covarience matrix
       int i_meas_row = 0;
       for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++, i_meas_row++) {
 	Measurement *m(*imeas);
 	y(i_meas_row, 0) = m->centralValue();
 	Ux(i_meas_row, 0) = result[m->What()].centralValue;
-
-	int i_meas_row2 = i_meas_row;
-	for (vector<Measurement*>::const_iterator imeas2 = imeas; imeas2 != gMeas.end(); imeas2++, i_meas_row2++) {
-	  Measurement *m2(*imeas2);
-	  W(i_meas_row, i_meas_row2) = m->Covar(m2);
-	  W(i_meas_row2, i_meas_row) = W(i_meas_row, i_meas_row2);
-	}
-
       }
+
+      TMatrixTSym<double> W (CalcCovarMatrixUsingRho(gMeas));
+
+      // Now, calculate the chi2
 
       TMatrixT<double> Winv(W);
       cout << "W:" << endl;
