@@ -622,7 +622,8 @@ namespace BTagCombination {
 	Ux(i_meas_row, 0) = result[m->What()].centralValue;
       }
 
-      TMatrixTSym<double> W (CalcCovarMatrixUsingRho(gMeas));
+      //TMatrixTSym<double> W (CalcCovarMatrixUsingRho(gMeas));
+      TMatrixTSym<double> W (CalcCovarMatrixUsingComposition(gMeas));
 
       // Now, calculate the chi2
 

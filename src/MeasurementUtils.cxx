@@ -46,7 +46,9 @@ namespace BTagCombination {
     }
     map<string, TMatrixTSym<double> > sysLookup;
     for (set<string>::const_iterator itr = sysErrorNames.begin(); itr != sysErrorNames.end(); itr++) {
-      sysLookup[*itr] = TMatrixTSym<double>(measurements.size());
+      // Funny insertion because default matrix has 0,0 elements, and can't deal with the "=" sign here.
+      // Hopefully it won't occur later in the code that that is needed!
+      sysLookup.insert(make_pair(*itr, TMatrixTSym<double>(measurements.size())));
     }
 
     // Go through all the measurements and build up each individual cov matrix.
@@ -79,8 +81,14 @@ namespace BTagCombination {
     // Check each matrix to make sure it is invertable, and sum them to get the total determinate.
 
     TMatrixTSym<double> result (measurements.size());
+    bool isfirst = true;
     for (map<string, TMatrixTSym<double> >::const_iterator i_c = sysLookup.begin(); i_c != sysLookup.end(); i_c++) {
       double d = i_c->second.Determinant();
+      cout << "Determinate for sys error '" << i_c->first << "': " << d << endl;
+      if (isfirst) {
+	i_c->second.Print();
+	isfirst = false;
+      }
       if (d < 0) {
 	cout << "Determinate for sys error '" << i_c->first << "' is less than zero: " << d << endl;
       }
