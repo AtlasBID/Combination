@@ -22,6 +22,18 @@ using std::find_if;
 using std::back_inserter;
 using std::runtime_error;
 
+namespace {
+  // Deal with a signed number we want to take a square root of by passing
+  // it all the way through.
+  double ssqrt (double v)
+  {
+    double r = sqrt(fabs(v));
+    if (v < 0.0)
+      return -r;
+    return r;
+  }
+}
+
 namespace BTagCombination {
 
   Measurement::~Measurement(void)
@@ -51,8 +63,8 @@ namespace BTagCombination {
   //
   void Measurement::CheckAndAdjustStatisticalError(double minFraction)
   {
-    double fract = _statError->getVal() / _actualValue.getVal();
 #ifdef notyet
+    double fract = _statError->getVal() / _actualValue.getVal();
     if (fract < minFraction) {
       double newStatError = _actualValue.getVal() * minFraction;
       cout << "WARNING: Statistical error is too small for fitting to succeed." << endl
@@ -184,8 +196,11 @@ namespace BTagCombination {
     double uncorErr2 = _statError->getVal()*_statError->getVal();
 
     for (size_t i = 0; i < _sysErrors.size(); i++) {
-      double v2 = _sysErrors[i].second;
-      v2 = v2*v2;
+      double v2r = _sysErrors[i].second;
+      double v2 = v2r*v2r;
+      if (v2r < 0.0)
+	v2 = -v2;
+
       if (other->hasSysError(_sysErrors[i].first)) {
 	corErr2 += v2;
       } else {
@@ -193,7 +208,8 @@ namespace BTagCombination {
       }
     }
 
-    return make_pair(sqrt(uncorErr2), sqrt(corErr2));
+    
+    return make_pair(ssqrt(uncorErr2), ssqrt(corErr2));
   }
 
   //
@@ -238,6 +254,7 @@ namespace BTagCombination {
       rho = 1.0;
     }
 
+    cout << "rho: " << rho << " s1: " << s1 << " s2: " << s2 << " s1.s: " << split1.second << " s2.s: " << split2.second << endl;
     return rho*s1*s2;
   }
 

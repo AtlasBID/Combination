@@ -25,12 +25,16 @@ class MeasurementTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testCovarSelf );
   CPPUNIT_TEST( testCovarNoShare );
   CPPUNIT_TEST( testCovarAllShare );
+  CPPUNIT_TEST( testCovarAllNegShare );
   CPPUNIT_TEST( testCovarHalfShare );
   CPPUNIT_TEST( testCovarBustedShare );
 
   CPPUNIT_TEST( testSharedErrorIsWhole );
   CPPUNIT_TEST( testSharedErrorIsNoCommon );
   CPPUNIT_TEST( testSharedErrorIsCommon );
+
+  CPPUNIT_TEST( testTotalError );
+  CPPUNIT_TEST( testTotalErrorWithNegative );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -60,6 +64,18 @@ class MeasurementTest : public CppUnit::TestFixture
     m2->addSystematicAbs("s1", 0.5);
     double covar = m1->Covar(m2);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.5, covar, 0.01);
+  }
+
+  void testCovarAllNegShare()
+  {
+    cout << "Startign testCovarAllNegShare" << endl;
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average1", -10.0, 10.0, 5.0, 0.0);
+    Measurement *m2 = c.AddMeasurement ("average2", -10.0, 10.0, 5.0, 0.0);
+    m1->addSystematicAbs("s1", 0.5);
+    m2->addSystematicAbs("s1", -0.5);
+    double covar = m1->Covar(m2);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.5*0.5, covar, 0.01);
   }
 
   void testCovarHalfShare()
@@ -131,6 +147,22 @@ class MeasurementTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*sqrt(2), r.first, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, r.second, 0.01);
+  }
+
+  void testTotalError ()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average1", -10.0, 10.0, 5.0, 0.5);
+    m1->addSystematicAbs ("e1", 0.5);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5*sqrt(2), m1->totalError(), 0.01);
+  }
+
+  void testTotalErrorWithNegative ()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average1", -10.0, 10.0, 5.0, 0.5);
+    m1->addSystematicAbs ("e1", -0.5);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5*sqrt(2), m1->totalError(), 0.01);
   }
 };
 
