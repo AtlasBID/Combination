@@ -35,6 +35,9 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testCovarM1TwoNegC );
   CPPUNIT_TEST( testCovarM2TwoNegC );
 
+  CPPUNIT_TEST( testCovarM1TwoNeg2C );
+  CPPUNIT_TEST( testCovarM2TwoNeg2C );
+
   CPPUNIT_TEST( testCovarM1TwoCPartial );
   CPPUNIT_TEST( testCovarM2TwoCPartial );
 
@@ -203,6 +206,52 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.25*0.25, r(1,1), 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.5*0.25, r(1,0), 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.5*0.25, r(0,1), 0.01);
+  }
+
+  void testCovarM1TwoNeg2C()
+  {
+    // Two guys, with 100% anti-correlation.
+
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.0);
+    m1->addSystematicAbs("e", -0.5);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.0);
+    m2->addSystematicAbs("e", -0.25);
+
+    vector<Measurement*> mlist;
+    mlist.push_back(m1);
+    mlist.push_back(m2);
+
+    TMatrixTSym<double> r (CalcCovarMatrixUsingRho (mlist));
+
+    CPPUNIT_ASSERT_EQUAL (2, r.GetNrows());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.5, r(0,0), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.25*0.25, r(1,1), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.25, r(1,0), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.25, r(0,1), 0.01);
+  }
+
+  void testCovarM2TwoNeg2C()
+  {
+    // Two guys, with 100% anti-correlation.
+
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.0);
+    m1->addSystematicAbs("e", -0.5);
+    Measurement *m2 = c.AddMeasurement ("average", -10.0, 10.0, 5.0, 0.0);
+    m2->addSystematicAbs("e", -0.25);
+
+    vector<Measurement*> mlist;
+    mlist.push_back(m1);
+    mlist.push_back(m2);
+
+    TMatrixTSym<double> r (CalcCovarMatrixUsingComposition (mlist));
+
+    CPPUNIT_ASSERT_EQUAL (2, r.GetNrows());
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.5, r(0,0), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.25*0.25, r(1,1), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.25, r(1,0), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.25, r(0,1), 0.01);
   }
 
   void testCovarM1TwoCPartial()
