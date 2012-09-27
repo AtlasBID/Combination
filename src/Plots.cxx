@@ -255,7 +255,7 @@ namespace {
 	singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
 	singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
 	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
-	  singlePlots[cb.systematicErrors[i].name]->Fill(ibin+1, cb.systematicErrors[i].value);
+	  singlePlots[cb.systematicErrors[i].name]->SetBinContent(ibin+1, cb.systematicErrors[i].value);
 	}
 
 	// Record min and max for later use with limit setting
@@ -314,7 +314,32 @@ namespace {
 	  minV = h_itr->second->GetMinimum();
       }
 
-      string opt ("P");
+      if (minV > 0.0)
+	minV = 0.0;
+
+      // Plot header
+
+      TH1F *h = new TH1F("sys", "",
+			 binlabels.size(), 0.0, binlabels.size());
+      h->SetMaximum(maxV*1.10);
+      h->SetMinimum(minV);
+      h->SetStats(false);
+      {
+	ostringstream buf;
+	buf << "Systematic Error " << itr->first;
+	h->GetYaxis()->SetTitle(buf.str().c_str());
+
+	TAxis *a = h->GetXaxis();
+	for (size_t i = 0; i < binlabels.size(); i++) {
+	  a->SetBinLabel(i+1, binlabels[i].c_str());
+	}
+      }
+
+      h->Draw();
+      h->SetDirectory(0);
+
+      // Plot the actual guys
+
       size_t m_index = 0;
       double lYPos = 0.85;
       double lYDelta = 0.05;
@@ -329,8 +354,7 @@ namespace {
 	h_itr->second->SetMarkerColor(colorID[m_index]);
 	h_itr->second->SetLineColor(colorID[m_index]);
 
-	h_itr->second->Draw(opt.c_str());
-	opt = "SAMEP";
+	h_itr->second->Draw("SAMEP");
 
 	myMarkerText (lXPos, lYPos,
 		      colorID[m_index], markerID[m_index],
