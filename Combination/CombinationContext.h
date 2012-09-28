@@ -60,7 +60,12 @@ namespace BTagCombination {
     /// Turn on/off production of plots. Plots are expensive!
     inline void setDoPlots(bool v = false) { _doPlots = v;}
 
+    inline void SetVerbose (bool v) { _verbose = v; }
+
   private:
+    // How quiet should we be? Mouse like is false.
+    bool _verbose;
+
     /// Keep track of all the measurements.
     RooRealVarCache _whatMeasurements;
 

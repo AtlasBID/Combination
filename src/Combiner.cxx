@@ -21,7 +21,7 @@ namespace {
   using namespace BTagCombination;
 
   // Fill the context info for a single bin.
-  void FillContextWithBinInfo (CombinationContext &ctx, const CalibrationBin &b, const string &prefix = "", const string &mname = "") {
+  void FillContextWithBinInfo (CombinationContext &ctx, const CalibrationBin &b, const string &prefix = "", const string &mname = "", bool verbose = true) {
     
     string binName (prefix + OPBinName(b));
 
@@ -30,7 +30,8 @@ namespace {
       m = ctx.AddMeasurement (binName, -10.0, 10.0, b.centralValue, b.centralValueStatisticalError);
     } else {
       m = ctx.AddMeasurement (mname, binName, -10.0, 10.0, b.centralValue, b.centralValueStatisticalError);
-      cout << "--> Adding measurement called " << mname << endl;
+      if (verbose)
+	cout << "--> Adding measurement called " << mname << endl;
     }
 
     for (unsigned int i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {
@@ -66,7 +67,7 @@ namespace {
 
   // Fill the fitting context with a list of analyses info... it is assumed that common bins
   // in here can be fit together.
-  map<string, vector<CalibrationBin> > FillContextWithCommonAnaInfo (CombinationContext &ctx, const vector<CalibrationAnalysis> &ana, const string &prefix = "")
+  map<string, vector<CalibrationBin> > FillContextWithCommonAnaInfo (CombinationContext &ctx, const vector<CalibrationAnalysis> &ana, const string &prefix = "", bool verbose = true)
   {
     // Sort the bins all together.
     map<string, vector<CalibrationBin> > bybins;
@@ -76,7 +77,7 @@ namespace {
 	const CalibrationBin &b(a.bins[i_bin]);
 	string binName(OPBinName(b));
 	bybins[prefix + binName].push_back(b);
-	FillContextWithBinInfo(ctx, b, prefix, OPIgnoreFormat(a, b));
+	FillContextWithBinInfo(ctx, b, prefix, OPIgnoreFormat(a, b), verbose);
       }
     }
 
@@ -224,7 +225,7 @@ namespace BTagCombination
 
   // Given a list of analyses, sort them, and combine everything, and return
   // all the new ones.
-  vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info)
+  vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info, bool verbose)
   {
     //
     // First step, divide up the analyses by fittable catagory
@@ -242,7 +243,8 @@ namespace BTagCombination
     for(t_anaMap::const_iterator i_ana = binnedAnalyses.begin(); i_ana != binnedAnalyses.end(); i_ana++) {
       if (i_ana->second.size() > 1) {
 	CombinationContext ctx;
-	map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second);
+	ctx.SetVerbose(verbose);
+	map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second, "", verbose);
       
 	string fitName = i_ana->second[0].flavor
 	  + ":" + i_ana->second[0].tagger
@@ -269,8 +271,9 @@ namespace BTagCombination
 	      continue;
 	    }
 
-	    cout << "--> Adding correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
-		 << std::endl;
+	    if (verbose)
+	      cout << "--> Adding correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
+		   << std::endl;
 
 	    //
 	    // Now, do the correlations

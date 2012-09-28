@@ -107,21 +107,11 @@ namespace BTagCombination {
     }
 
     //
-    // Check each matrix to make sure it is invertable, and sum them to get the total determinate.
+    // Sum them to get the total determinate.
     //
 
     TMatrixTSym<double> result (measurements.size());
-    bool isfirst = true;
     for (map<string, TMatrixTSym<double> >::const_iterator i_c = sysLookup.begin(); i_c != sysLookup.end(); i_c++) {
-      double d = i_c->second.Determinant();
-      cout << "Determinate for sys error '" << i_c->first << "': " << d << endl;
-      if (isfirst) {
-	i_c->second.Print();
-	isfirst = false;
-      }
-      if (d < 0) {
-	cout << "Determinate for sys error '" << i_c->first << "' is less than zero: " << d << endl;
-      }
       result = result + i_c->second;
     }
 

@@ -45,7 +45,7 @@ namespace {
   // Helper function that will look at the over correlation of two results and if it finds the over
   // correlation it will then turn it off.
 
-  void CheckForAndDisableOverCorrelation (Measurement *m1, Measurement *m2)
+  void CheckForAndDisableOverCorrelation (Measurement *m1, Measurement *m2, bool verbose = true)
   {
     pair<double, double> split1 = m1->SharedError(m2);
     pair<double, double> split2 = m2->SharedError(m1);
@@ -63,18 +63,21 @@ namespace {
     
     double wt = (s22 - rho*s1*s2)/(s12 + s22 - 2*rho*s1*s2);
     if (wt > 1.0 || wt < 0.0) {
-      cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
-	   << "  " << m1->What() << endl
-	   << "  #1: " << m1->Name() << endl
-	   << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
-	   << "  #2: " << m2->Name() << endl
-	   << "  s2=" << s2 << " s2c=" << split2.second << " s2u=" << split2.first << endl
-	   << "  rho=" << rho << " wt=" << wt << endl;
+      if (verbose)
+	cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
+	     << "  " << m1->What() << endl
+	     << "  #1: " << m1->Name() << endl
+	     << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
+	     << "  #2: " << m2->Name() << endl
+	     << "  s2=" << s2 << " s2c=" << split2.second << " s2u=" << split2.first << endl
+	     << "  rho=" << rho << " wt=" << wt << endl;
       if (s1 > s2) {
-	cout << "  Keeping #2" << endl;
+	if (verbose)
+	  cout << "  Keeping #2" << endl;
 	m1->setDoNotUse(true);
       } else {
-	cout << "  Keeping #1" << endl;
+	if (verbose)
+	  cout << "  Keeping #1" << endl;
 	m2->setDoNotUse(true);
       }
     }
@@ -87,7 +90,7 @@ namespace BTagCombination {
   /// Creates a new combination context.
   ///
   CombinationContext::CombinationContext(void)
-    : _doPlots (false)
+    : _doPlots (false), _verbose(true)
   {
   }
 
@@ -414,7 +417,7 @@ namespace BTagCombination {
       for (size_t i_1 = 0; i_1 < itr->second.size(); i_1++) {
 	for (size_t i_2 = i_1 + 1; i_2 < itr->second.size(); i_2++) {
 	  if (!itr->second[i_2]->doNotUse() && !itr->second[i_1]->doNotUse()) {
-	    CheckForAndDisableOverCorrelation (itr->second[i_1], itr->second[i_2]);
+	    CheckForAndDisableOverCorrelation (itr->second[i_1], itr->second[i_2], _verbose);
 	  }
 	}
       }
@@ -579,7 +582,8 @@ namespace BTagCombination {
     /// And do the fit
     ///
 
-    cout << "Starting the master fit..." << endl;
+    if (_verbose)
+      cout << "Starting the master fit..." << endl;
     finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
     ///
@@ -628,25 +632,12 @@ namespace BTagCombination {
       // Now, calculate the chi2
 
       TMatrixT<double> Winv(W);
-      cout << "W:" << endl;
-      W.Print();
-      cout << "Ux: " << endl;
-      Ux.Print();
-      cout << "y:" << endl;
-      y.Print();
-      cout << "W determinate:" << W.Determinant() << endl;
       // Invert inverts in place!!
       Winv.Invert();
-      cout << "Winv: " << endl;
-      Winv.Print();
-      cout << "W*Winv: " << endl;
-      (W*Winv).Print();
 
       // Do the covar calc -- oh for the "auto" keyword.
       TMatrixT<double> del(gMeas.size(), 1);
       del = Ux-y;
-      cout << "Ux-y:" << endl;
-      del.Print();
       
       TMatrixT<double> delT(del);
       delT.Transpose(delT);
@@ -654,7 +645,8 @@ namespace BTagCombination {
       TMatrixT<double> xchi2(1,1);
       xchi2 = (delT*Winv)*del;
 
-      cout << "Total chi2 for " << name << ": " << xchi2(0,0) << " measurements: " << gMeas.size() << " fits: " << _whatMeasurements.size() << endl;
+      if (_verbose)
+	cout << "Total chi2 for " << name << ": " << xchi2(0,0) << " measurements: " << gMeas.size() << " fits: " << _whatMeasurements.size() << endl;
     }
 
 #ifdef notyet
@@ -677,7 +669,8 @@ namespace BTagCombination {
       double chi2Contrib = delta*delta/(err*err);
       individualChi2[m->What()] += chi2Contrib;
 
-      cout << "Chi2 Contrib for " << m->Name() << " is " << chi2Contrib << endl;
+      if (_verbose)
+	cout << "Chi2 Contrib for " << m->Name() << " is " << chi2Contrib << endl;
     }
 
     double totalChi2 = 0.0;
@@ -694,7 +687,8 @@ namespace BTagCombination {
 
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
       RooRealVar *c (_systematicErrors.FindRooVar(*iVar));
-      cout << " Sys " << *iVar << " pull: " << c->getVal() << " +- " << c->getError() << endl;
+      if (_verbose)
+	cout << " Sys " << *iVar << " pull: " << c->getVal() << " +- " << c->getError() << endl;
     }
 
     ///
@@ -934,7 +928,6 @@ namespace BTagCombination {
     /// Since we've been futzing with all of this, we had better return the fit to be "normal".
     ///
 
-    cout << "  Refit to restore the state." << endl;
     finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 
     //

@@ -30,6 +30,9 @@ apply_pattern application_alias FTPlot
 application FTCheckOutput ../bin/FTCheckOutput.cxx
 apply_pattern application_alias FTCheckOutput
 
+application FTExploreFit ../bin/FTExploreFit.cxx
+apply_pattern application_alias FTExploreFit
+
 apply_pattern installed_library
 
 private
