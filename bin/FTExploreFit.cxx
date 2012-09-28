@@ -8,6 +8,7 @@
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/Combiner.h"
+#include "Combination/BinUtils.h"
 
 #include <RooMsgService.h>
 
@@ -61,8 +62,16 @@ int main (int argc, char **argv)
 
     // Now, if we've been asked to remove a bin at a time.
 
-    
+    // Get a list of the bins in these analyses.
+    set<set<CalibrationBinBoundary> > allBins (listAllBins(centralInfo.Analyses));
 
+    // Now, remove the bins one at a time
+    for (set<set<CalibrationBinBoundary> >::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
+      CalibrationInfo missingBinInfo (allInfo);
+      missingBinInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
+      //cout << "Doing fit without bin " << *itr << endl;
+      vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(centralInfo, false));
+    }
   }
 
   return 0;
