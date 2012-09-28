@@ -377,13 +377,18 @@ namespace BTagCombination {
   // return name of a bin (in a command-line friendly way)
   string OPBinName (const CalibrationBin &bin)
   {
+    return OPBinName (bin.binSpec);
+  }
+
+  string OPBinName (const vector<CalibrationBinBoundary> &binspec)
+  {
     ostringstream msg;
-    for (unsigned int i = 0; i < bin.binSpec.size(); i++) {
+    for (unsigned int i = 0; i < binspec.size(); i++) {
       if (i > 0)
 	msg << ":";
-      msg << bin.binSpec[i].lowvalue
-	  << "-" << bin.binSpec[i].variable
-	  << "-" << bin.binSpec[i].highvalue;
+      msg << binspec[i].lowvalue
+	  << "-" << binspec[i].variable
+	  << "-" << binspec[i].highvalue;
     }
     return msg.str();
   }

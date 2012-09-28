@@ -69,7 +69,8 @@ int main (int argc, char **argv)
     for (set<set<CalibrationBinBoundary> >::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
       CalibrationInfo missingBinInfo (allInfo);
       missingBinInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
-      //cout << "Doing fit without bin " << *itr << endl;
+      vector<CalibrationBinBoundary> tempBinInfo (itr->begin(), itr->end());
+      cout << "Doing fit without bin " << OPBinName(tempBinInfo) << endl;
       vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(centralInfo, false));
     }
   }
