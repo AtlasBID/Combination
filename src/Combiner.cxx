@@ -288,11 +288,15 @@ namespace BTagCombination
       
 	// Do the fit.
 	map<string, CombinationContext::FitResult> fitResult = ctx.Fit(fitName);
-	
+	CombinationContext::ExtraFitInfo extraInfo = ctx.GetExtraFitInformation();
+
 	// Dummy analysis that we will fill in with the results.
 	CalibrationAnalysis r(i_ana->second[0]);
 	r.name = info.CombinationAnalysisName;
 	r.bins = ExtractBinsResult(bins, fitResult);
+	r.metadata.clear();
+	r.metadata["gchi2"] = extraInfo._globalChi2;
+	r.metadata["gndof"] = extraInfo._ndof;
 	result.push_back(r);
       }
     }

@@ -60,6 +60,11 @@ int main (int argc, char **argv)
     cout << "Doing central fit..." << endl;
     vector<CalibrationAnalysis> centralResult (CombineAnalyses(centralInfo, false));
 
+    // We use the global chi2/ndof as the figure of merit.
+
+    double centralChi2 = centralResult[0].metadata["gchi2"]/centralResult[0].metadata["gndof"];
+    cout << "  chi2/ndof = " << centralChi2 << endl;
+
     // Now, if we've been asked to remove a bin at a time.
 
     // Get a list of the bins in these analyses.
@@ -71,7 +76,11 @@ int main (int argc, char **argv)
       missingBinInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
       vector<CalibrationBinBoundary> tempBinInfo (itr->begin(), itr->end());
       cout << "Doing fit without bin " << OPBinName(tempBinInfo) << endl;
-      vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(centralInfo, false));
+      vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(missingBinInfo, false));
+
+      double missingChi2 = missingBinResult[0].metadata["gchi2"]/missingBinResult[0].metadata["gndof"];
+      cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
+
     }
   }
 

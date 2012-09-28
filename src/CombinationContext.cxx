@@ -86,6 +86,13 @@ namespace {
 
 namespace BTagCombination {
 
+  // Clean up
+  void CombinationContext::ExtraFitInfo::clear (void)
+  {
+    _globalChi2 = 0.0;
+    _ndof = 0.0;
+  }
+
   ///
   /// Creates a new combination context.
   ///
@@ -431,6 +438,12 @@ namespace BTagCombination {
   map<string, CombinationContext::FitResult> CombinationContext::Fit(const std::string &name)
   {
     //
+    // We do keep some state (I know, not perfect)
+    //
+
+    _extraInfo.clear();
+
+    //
     // First thing to do is x-check the measurements to eliminate any combinations
     // that will lead to bad points in phase space (i.e. the correlated/uncorrelated
     // are nasty. Also look for gaussian errors that are too small for our fitter
@@ -644,6 +657,9 @@ namespace BTagCombination {
 
       TMatrixT<double> xchi2(1,1);
       xchi2 = (delT*Winv)*del;
+
+      _extraInfo._globalChi2 = xchi2(0,0);
+      _extraInfo._ndof = gMeas.size() -_whatMeasurements.size();
 
       if (_verbose)
 	cout << "Total chi2 for " << name << ": " << xchi2(0,0) << " measurements: " << gMeas.size() << " fits: " << _whatMeasurements.size() << endl;

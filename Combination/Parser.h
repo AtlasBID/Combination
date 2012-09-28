@@ -8,6 +8,7 @@
 #ifndef COMBINATION_PARSER
 #define COMBINATION_PARSER
 
+#include <map>
 #include <string>
 #include <vector>
 #include <ostream>
@@ -208,6 +209,8 @@ namespace BTagCombination
     std::string jetAlgorithm; // The Jet algorithm we are using
 
     std::vector<CalibrationBin> bins; // List of bins with the actual 
+
+    std::map<std::string, double> metadata; // Meta data that we might pull along. Basically a property bag.
   };
 
   //

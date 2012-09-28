@@ -29,6 +29,15 @@ namespace BTagCombination {
     };
 
   public:
+    class ExtraFitInfo
+    {
+    public:
+      double _globalChi2; // The total chi21
+      double _ndof; // The degrees of freedom
+
+      void clear();
+    };
+
     /// Create/Destroy a new context. This will contain the common
     /// data to do a fit to mutliple measurements.
     CombinationContext(void);
@@ -57,12 +66,17 @@ namespace BTagCombination {
     /// Returns the stat-only error on each measurement.
     std::map<std::string, double> CalculateStatisticalErrors(void);
 
+    // Get the extra info from a fit that was just run.
+    inline ExtraFitInfo GetExtraFitInformation (void) { return _extraInfo;}
+
     /// Turn on/off production of plots. Plots are expensive!
     inline void setDoPlots(bool v = false) { _doPlots = v;}
 
     inline void SetVerbose (bool v) { _verbose = v; }
 
   private:
+    ExtraFitInfo _extraInfo;
+
     // How quiet should we be? Mouse like is false.
     bool _verbose;
 
