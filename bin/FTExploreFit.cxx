@@ -41,6 +41,7 @@ namespace {
 
     replace(r.begin(), r.end(), '.', '-');
     replace(r.begin(), r.end(), ':', '-');
+    replace(r.begin(), r.end(), '/', '-');
 
     return r;
   }
@@ -135,6 +136,7 @@ int main (int argc, char **argv)
     for (set<string>::const_iterator itr = allSysErrors.begin(); itr != allSysErrors.end(); itr++) {
       CalibrationInfo missingSysInfo (allInfo);
       missingSysInfo.Analyses = removeSysError (missingSysInfo.Analyses, *itr);
+
       cout << "Doing fit wihtout sys error " << *itr << endl;
       vector<CalibrationAnalysis> missingSysResult (CombineAnalyses(missingSysInfo, false));
 
