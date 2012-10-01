@@ -1,7 +1,8 @@
-///
-/// Code to dump plots of the input and output analyses to a
-/// root file.
-///
+//
+// Code to dump plots of the input and output analyses to a
+// root file.
+//
+
 #include "Combination/Plots.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/AtlasLabels.h"
@@ -140,11 +141,19 @@ namespace {
 
     set<string> seenAnaNames;
     vector<string> anaNames;
+    vector<double> anaChi2;
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
       string anaName (anas[ia].name);
       if (seenAnaNames.find(anaName) == seenAnaNames.end()) {
 	seenAnaNames.insert(anaName);
 	anaNames.push_back(anaName);
+	map<string, double>::const_iterator i_chi2 = anas[ia].metadata.find("gchi2");
+	map<string, double>::const_iterator i_ndof = anas[ia].metadata.find("gndof");
+	if (i_chi2 != anas[ia].metadata.end()) {
+	  anaChi2.push_back((i_chi2->second)/(i_ndof->second));
+	} else {
+	  anaChi2.push_back(0.0);
+	}
       }
     }    
 
@@ -287,7 +296,17 @@ namespace {
       g->SetTitle((anaName + " Total Error").c_str());
       plotsSys.push_back(g);
 
-      plotAnalysisName.push_back(anaName);
+      // The name should have a chi2 if we can
+
+      if (anaChi2[ia] != 0.0) {
+	ostringstream msg;
+	msg << anaName << " (\\chi^2 " << anaChi2[ia] << ")";
+	plotAnalysisName.push_back(msg.str());
+      } else {
+	plotAnalysisName.push_back(anaName);
+      }
+
+      // And the place we will be putting stuff
 
       x_InitialCoordinate += x_DeltaCoordinate;
     }
