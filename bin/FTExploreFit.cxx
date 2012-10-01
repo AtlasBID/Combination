@@ -128,6 +128,21 @@ int main (int argc, char **argv)
       // Generate plots.
       DumpPlotResults (outDir->mkdir(Normalize(OPBinName(tempBinInfo)).c_str()), missingBinInfo, missingBinResult);
     }
+
+    // Now, do it by removing one sys error at a time.
+
+    set<string> allSysErrors (listAllSysErrors(centralInfo.Analyses));
+    for (set<string>::const_iterator itr = allSysErrors.begin(); itr != allSysErrors.end(); itr++) {
+      CalibrationInfo missingSysInfo (allInfo);
+      missingSysInfo.Analyses = removeSysError (missingSysInfo.Analyses, *itr);
+      cout << "Doing fit wihtout sys error " << *itr << endl;
+      vector<CalibrationAnalysis> missingSysResult (CombineAnalyses(missingSysInfo, false));
+
+      double missingChi2 = missingSysResult[0].metadata["gchi2"]/missingSysResult[0].metadata["gndof"];
+      cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
+
+      DumpPlotResults (outDir->mkdir(Normalize(*itr).c_str()), missingSysInfo, missingSysResult);
+    }
   }
 
   //

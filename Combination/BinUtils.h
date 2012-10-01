@@ -19,6 +19,13 @@ namespace BTagCombination {
 
   // Remove a bin from all analyses...
   std::vector<CalibrationAnalysis> removeBin (const std::vector<CalibrationAnalysis> &analyses, const std::set<CalibrationBinBoundary> &binToRemove);
+
+  // Get a list of all systematic errors
+  std::set<std::string> listAllSysErrors(const std::vector<CalibrationAnalysis> &analyses);
+
+  // Remove a sys error from all analyses...
+  std::vector<CalibrationAnalysis> removeSysError(const std::vector<CalibrationAnalysis> &analyses, const std::string &sysErrorName);
+
 }
 
 #endif
