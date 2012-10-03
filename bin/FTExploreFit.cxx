@@ -137,6 +137,55 @@ namespace {
     string _studyDir;
   };
 
+  // Remove a list of sys errors from the fit.
+  class RemoveSysFit : public FitTask {
+  public:
+    RemoveSysFit (int sysErrorsRemoved, const set<string> &errToRemove) : _remove (errToRemove) {
+
+      // Get the main directory name that will be used
+      ostringstream msg;
+      msg << "remove-" << sysErrorsRemoved << "-errors";
+      _dirName = msg.str();
+
+      // Next, the name of the study and the directory name for the study
+      ostringstream studyName, studyDir;
+      studyName << " with sys errors ";
+      bool first = true;
+
+      for (set<string>::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
+	if (!first) {
+	  studyName << ", ";
+	  studyDir << "-";
+	}
+	first = false;
+
+	studyName << *itr;
+	studyDir << Normalize(*itr);
+      }
+      studyName << " removed";
+      _studyName = studyName.str();
+      _studyDir = studyDir.str();
+    }
+
+    string UserTitle () const { return _studyName; }
+    string StudyClassDirName (void) const { return _dirName; }
+    string StudyDirName (void) const { return _studyDir; }
+
+    CalibrationInfo GetAnalyses (const CalibrationInfo &info) const {
+      CalibrationInfo missingInfo (info);
+      for (set<string>::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
+	missingInfo.Analyses = removeSysError (missingInfo.Analyses, *itr);
+      }
+      return missingInfo;
+    }
+
+  private:
+    const set<string> _remove;
+    string _dirName;
+    string _studyName;
+    string _studyDir;
+  };
+
   // We are given a set of bin names (or objects, whatever) - as long as they are listed in a
   // set. We will then will return a list of them to remove, numberToRemove at a time.
   template <typename ST>
@@ -176,8 +225,7 @@ int main (int argc, char **argv)
   CalibrationInfo allInfo;
 
   vector<int> removeBins;
-  bool doRemoveSys = false;
-  int nRemoveSys = 0;
+  vector<int> removeSys;
 
   try {
     vector<string> otherFlags;
@@ -190,9 +238,10 @@ int main (int argc, char **argv)
 	buf >> r;
 	removeBins.push_back(r);
       } else if (itr->find("remove-sys-") == 0) {
-	doRemoveSys = true;
 	istringstream buf (itr->substr(11).c_str());
-	buf >> nRemoveSys;
+	int r;
+	buf >> r;
+	removeSys.push_back(r);
       } else {
 	cerr << "Unknown flag '" << *itr << "'" << endl;
 	usage();
@@ -262,6 +311,20 @@ int main (int argc, char **argv)
     }
 
     //
+    // Systematic errors?
+    //
+
+    set<string> allSysErrors (listAllSysErrors(centralInfo.Analyses));
+    for (vector<int>::const_iterator i_sys = removeSys.begin(); i_sys != removeSys.end(); i_sys++) {
+
+      // Get the remove list for this one.
+      set<set<string> > binPerm (permutationsWithoutNItems (allSysErrors, *i_sys));
+      for (set<set<string> >::const_iterator i_p = binPerm.begin(); i_p != binPerm.end(); i_p++) {
+	fits.push_back (new RemoveSysFit (*i_sys, *i_p));
+      }
+    }
+
+    //
     // Now that all the fits are queued up, time to run them!
     //
 
@@ -286,54 +349,6 @@ int main (int argc, char **argv)
 	outClassDir = FindRootSubDir (outDir, rootClassDir);
 
       DumpPlotResults (outClassDir->mkdir(fit->StudyDirName().c_str()), info, result);
-    }
-
-    //cout << "Doing central fit..." << endl;
-    // We use the global chi2/ndof as the figure of merit.
-    // Sore the default in a single one.
-
-#ifdef notyet
-    // Now, if we've been asked to remove a bin at a time.
-    if (doRemoveBin) {
-
-      // Get a list of the bins in these analyses.
-
-      // Now, remove the bins one at a time
-      for (set<set<CalibrationBinBoundary> >::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
-	CalibrationInfo missingBinInfo (allInfo);
-	missingBInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
-	vector<CalibrationBinBoundary> tempBinInfo (itr->begin(), itr->end());
-
-	cout << "Doing fit without bin " << OPBinName(tempBinInfo) << endl;
-	vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(missingBinInfo, false));
-
-	// Print out the chi2
-	double missingChi2 = missingBinResult[0].metadata["gchi2"]/missingBinResult[0].metadata["gndof"];
-	cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
-
-	// Generate plots.
-	DumpPlotResults (outDir->mkdir(Normalize(OPBinName(tempBinInfo)).c_str()), missingBinInfo, missingBinResult);
-      }
-    }
-#endif
-
-    // Now, do it by removing one sys error at a time.
-
-    if (doRemoveSys) {
-
-      set<string> allSysErrors (listAllSysErrors(centralInfo.Analyses));
-      for (set<string>::const_iterator itr = allSysErrors.begin(); itr != allSysErrors.end(); itr++) {
-	CalibrationInfo missingSysInfo (allInfo);
-	missingSysInfo.Analyses = removeSysError (missingSysInfo.Analyses, *itr);
-
-	cout << "Doing fit wihtout sys error " << *itr << endl;
-	vector<CalibrationAnalysis> missingSysResult (CombineAnalyses(missingSysInfo, false));
-
-	double missingChi2 = missingSysResult[0].metadata["gchi2"]/missingSysResult[0].metadata["gndof"];
-	cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
-
-	DumpPlotResults (outDir->mkdir(Normalize(*itr).c_str()), missingSysInfo, missingSysResult);
-      }
     }
   }
 
