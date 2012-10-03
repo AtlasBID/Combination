@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <iterator>
 #include <stdexcept>
+#include <iomanip>
 
 using namespace std;
 
@@ -105,7 +106,7 @@ namespace {
 
     double legendYPos = 0.85;
     double legendYDelta = 0.05;
-    double legendXPos = 0.65;
+    double legendXPos = 0.60;
 
     string flavorName (anas[0].flavor);
     string taggerName (anas[0].tagger);
@@ -300,7 +301,7 @@ namespace {
 
       if (anaChi2[ia] != 0.0) {
 	ostringstream msg;
-	msg << anaName << " (\\chi^2 " << anaChi2[ia] << ")";
+	msg << anaName << " (\\chi^{2}=" <<setprecision(3) << anaChi2[ia] << ")";
 	plotAnalysisName.push_back(msg.str());
       } else {
 	plotAnalysisName.push_back(anaName);
@@ -362,7 +363,7 @@ namespace {
       size_t m_index = 0;
       double lYPos = 0.85;
       double lYDelta = 0.05;
-      double lXPos = 0.65;
+      double lXPos = 0.60;
 
       for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
 	
