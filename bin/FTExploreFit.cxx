@@ -52,10 +52,13 @@ namespace {
   // create it.
   TDirectory *FindRootSubDir (TDirectory *dir, const string &subDirName)
   {
-    TKey *k = dir->GetKey(subDirName.c_str());
-    if (k != nullptr) {
-      return static_cast<TDirectory*> (k->ReadObj());
+    TObject *o = dir->Get(subDirName.c_str());
+    if (o != 0) {
+      TDirectory *d = dynamic_cast<TDirectory*>(o);
+      if (d != 0)
+	return d;
     }
+
     return dir->mkdir(subDirName.c_str());
   }
 
@@ -91,13 +94,12 @@ namespace {
 
       // Get the main directory name that will be used
       ostringstream msg;
-      msg << "remove-" << binsRemoved << "-bins" << endl;
+      msg << "remove-" << binsRemoved << "-bins";
       _dirName = msg.str();
-      replace (_dirName.begin(), _dirName.end(), " ", "-");
 
       // Next, the name of the study and the directory name for the study
       ostringstream studyName, studyDir;
-      studyName << "Removing bins ";
+      studyName << " with bins ";
       bool first = true;
 
       for (set<set<CalibrationBinBoundary> >::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
@@ -105,20 +107,28 @@ namespace {
 	  studyName << ", ";
 	  studyDir << "-";
 	}
+	first = false;
 
 	vector<CalibrationBinBoundary> temp (itr->begin(), itr->end());
 	studyName << OPBinName(temp);
 	studyDir << Normalize(OPBinName(temp));
       }
+      studyName << " removed";
       _studyName = studyName.str();
       _studyDir = studyDir.str();
     }
 
-    string UserTitle () const { return _studyName + " fit"; }
+    string UserTitle () const { return _studyName; }
     string StudyClassDirName (void) const { return _dirName; }
     string StudyDirName (void) const { return _studyDir; }
 
-    CalibrationInfo GetAnalyses (const CalibrationInfo &info) const { return info; }
+    CalibrationInfo GetAnalyses (const CalibrationInfo &info) const {
+      CalibrationInfo missingInfo (info);
+      for (set<set<CalibrationBinBoundary> >::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
+	missingInfo.Analyses = removeBin (missingInfo.Analyses, *itr);
+      }
+      return missingInfo;
+    }
 
   private:
     const set<set<CalibrationBinBoundary> > _remove;
@@ -126,6 +136,37 @@ namespace {
     string _studyName;
     string _studyDir;
   };
+
+  // We are given a set of bin names (or objects, whatever) - as long as they are listed in a
+  // set. We will then will return a list of them to remove, numberToRemove at a time.
+  template <typename ST>
+  set<set<ST> > permutationsWithoutNItems (const set<ST> allBins, int numberToRemove)
+  {
+    // Recursion end case
+
+    set<set<ST> > result;
+    if (numberToRemove <= 0) {
+      set<ST> dummy;
+      result.insert(result.begin(), dummy);
+    } else {
+      
+      // Remove one at a time, and recurse to get the next one.
+
+      for (typename set<ST>::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
+	set<ST> minusOne (allBins);
+	minusOne.erase(*itr);
+
+	set<set<ST> > subResult (permutationsWithoutNItems(minusOne, numberToRemove - 1));
+	for(typename set<set<ST> >::iterator i_r = subResult.begin(); i_r != subResult.end(); i_r++) {
+	  set<ST> sr (*i_r);
+	  sr.insert(*itr);
+	  result.insert(sr);
+	}
+      }
+    }
+
+    return result;
+  }
 
 }
 
@@ -214,8 +255,8 @@ int main (int argc, char **argv)
       // Get a list of all bins that we know about
       set<set<CalibrationBinBoundary> > allBins (listAllBins(centralInfo.Analyses));
 
-      set<set<set<CalibrationBinBoundary> > > binPermutations (allBins, *i_bins);
-      for (set<set<set<CalibrationBinBoundary> > >::const_iterator *i_p = binPermutations.begin(); i_p != binPermutations.end(); i_p++) {
+      set<set<set<CalibrationBinBoundary> > > binPerm (permutationsWithoutNItems (allBins, *i_bins));
+      for (set<set<set<CalibrationBinBoundary> > >::const_iterator i_p = binPerm.begin(); i_p != binPerm.end(); i_p++) {
 	fits.push_back (new RemoveBinFit (*i_bins, *i_p));
       }
     }
@@ -226,10 +267,10 @@ int main (int argc, char **argv)
 
     for (vector<FitTask*>::const_iterator itr = fits.begin(); itr != fits.end(); itr++) {
       const FitTask *fit (*itr);
-      cout << "Doing " << fit->UserTitle() << endl;
       
       CalibrationInfo info (fit->GetAnalyses(centralInfo));
 
+      cout << "Doing fit " << fit->UserTitle() << endl;
       vector<CalibrationAnalysis> result (CombineAnalyses(info, false));
 
       double chi2 = result[0].metadata["gchi2"]/result[0].metadata["gndof"];
@@ -260,7 +301,7 @@ int main (int argc, char **argv)
       // Now, remove the bins one at a time
       for (set<set<CalibrationBinBoundary> >::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
 	CalibrationInfo missingBinInfo (allInfo);
-	missingBinInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
+	missingBInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
 	vector<CalibrationBinBoundary> tempBinInfo (itr->begin(), itr->end());
 
 	cout << "Doing fit without bin " << OPBinName(tempBinInfo) << endl;
