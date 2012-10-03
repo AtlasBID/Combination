@@ -13,8 +13,10 @@
 
 #include <RooMsgService.h>
 #include <TFile.h>
+#include <TKey.h>
 
 #include <algorithm>
+#include <sstream>
 
 using namespace std;
 using namespace BTagCombination;
@@ -46,15 +48,117 @@ namespace {
     return r;
   }
 
+  // Find a sub directory in a root directory. If it isn't there, then
+  // create it.
+  TDirectory *FindRootSubDir (TDirectory *dir, const string &subDirName)
+  {
+    TKey *k = dir->GetKey(subDirName.c_str());
+    if (k != nullptr) {
+      return static_cast<TDirectory*> (k->ReadObj());
+    }
+    return dir->mkdir(subDirName.c_str());
+  }
+
+  // Interface for a fit
+  class FitTask {
+  public:
+    inline virtual ~FitTask (void) {}
+    virtual string UserTitle () const = 0;
+
+    virtual CalibrationInfo GetAnalyses (const CalibrationInfo &info) const = 0;
+
+    virtual string StudyClassDirName() const = 0;
+    virtual string StudyDirName() const = 0;
+  };
+
+  // Simple fit, do it unadulterated.
+  class SimpleFit : public FitTask {
+  public:
+    SimpleFit (const string &name) : _name (name) {}
+    string UserTitle () const { return _name + " fit"; }
+    string StudyClassDirName (void) const { return ""; }
+    string StudyDirName (void) const { return _name; }
+    CalibrationInfo GetAnalyses (const CalibrationInfo &info) const { return info; }
+
+  private:
+    const string _name;
+  };
+
+  // Remove a list of bins from the fit.
+  class RemoveBinFit : public FitTask {
+  public:
+    RemoveBinFit (int binsRemoved, const set<set<CalibrationBinBoundary> > &binsToRemove) : _remove (binsToRemove) {
+
+      // Get the main directory name that will be used
+      ostringstream msg;
+      msg << "remove-" << binsRemoved << "-bins" << endl;
+      _dirName = msg.str();
+      replace (_dirName.begin(), _dirName.end(), " ", "-");
+
+      // Next, the name of the study and the directory name for the study
+      ostringstream studyName, studyDir;
+      studyName << "Removing bins ";
+      bool first = true;
+
+      for (set<set<CalibrationBinBoundary> >::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
+	if (!first) {
+	  studyName << ", ";
+	  studyDir << "-";
+	}
+
+	vector<CalibrationBinBoundary> temp (itr->begin(), itr->end());
+	studyName << OPBinName(temp);
+	studyDir << Normalize(OPBinName(temp));
+      }
+      _studyName = studyName.str();
+      _studyDir = studyDir.str();
+    }
+
+    string UserTitle () const { return _studyName + " fit"; }
+    string StudyClassDirName (void) const { return _dirName; }
+    string StudyDirName (void) const { return _studyDir; }
+
+    CalibrationInfo GetAnalyses (const CalibrationInfo &info) const { return info; }
+
+  private:
+    const set<set<CalibrationBinBoundary> > _remove;
+    string _dirName;
+    string _studyName;
+    string _studyDir;
+  };
+
 }
 
 int main (int argc, char **argv)
 {
   // Parse input arguments
   CalibrationInfo allInfo;
+
+  vector<int> removeBins;
+  bool doRemoveSys = false;
+  int nRemoveSys = 0;
+
   try {
     vector<string> otherFlags;
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, allInfo, otherFlags);
+
+    for (vector<string>::const_iterator itr = otherFlags.begin(); itr != otherFlags.end(); itr++) {
+      if (itr->find("remove-bin-") == 0) {
+	istringstream buf (itr->substr(11).c_str());
+	int r;
+	buf >> r;
+	removeBins.push_back(r);
+      } else if (itr->find("remove-sys-") == 0) {
+	doRemoveSys = true;
+	istringstream buf (itr->substr(11).c_str());
+	buf >> nRemoveSys;
+      } else {
+	cerr << "Unknown flag '" << *itr << "'" << endl;
+	usage();
+	return 1;
+      }
+    }
+
   } catch (exception &e) {
     cerr << "Error parsing command line: " << e.what() << endl;
     usage();
@@ -92,58 +196,103 @@ int main (int argc, char **argv)
     // Put each set of analyses in a seperate guy.
     TDirectory *outDir = outputPlots->mkdir(Normalize(i_ana->first).c_str());
 
-    // Next, build up a new Calibration Info as the central guy - this will have just one fit. And then
-    // get the complete results of the fit.
+    // Next, build up a new Calibration Info as the central guy - this will have just one fit. This
+    // will be the template we build all the other fits off of.
 
     CalibrationInfo centralInfo (allInfo);
     centralInfo.Analyses = i_ana->second;
-    cout << "Doing central fit..." << endl;
-    vector<CalibrationAnalysis> centralResult (CombineAnalyses(centralInfo, false));
 
+    vector<FitTask*> fits;
+    fits.push_back (new SimpleFit ("Default"));
+
+    //
+    // Next, if we are doing it by removing bins.
+    //
+
+    for (vector<int>::const_iterator i_bins = removeBins.begin(); i_bins != removeBins.end(); i_bins++) {
+      
+      // Get a list of all bins that we know about
+      set<set<CalibrationBinBoundary> > allBins (listAllBins(centralInfo.Analyses));
+
+      set<set<set<CalibrationBinBoundary> > > binPermutations (allBins, *i_bins);
+      for (set<set<set<CalibrationBinBoundary> > >::const_iterator *i_p = binPermutations.begin(); i_p != binPermutations.end(); i_p++) {
+	fits.push_back (new RemoveBinFit (*i_bins, *i_p));
+      }
+    }
+
+    //
+    // Now that all the fits are queued up, time to run them!
+    //
+
+    for (vector<FitTask*>::const_iterator itr = fits.begin(); itr != fits.end(); itr++) {
+      const FitTask *fit (*itr);
+      cout << "Doing " << fit->UserTitle() << endl;
+      
+      CalibrationInfo info (fit->GetAnalyses(centralInfo));
+
+      vector<CalibrationAnalysis> result (CombineAnalyses(info, false));
+
+      double chi2 = result[0].metadata["gchi2"]/result[0].metadata["gndof"];
+      cout << "  chi2/ndof = " << chi2 << endl;
+
+      // Analysis directory. There are two levels, one, what we are investigating,
+      // and one if there is a name under that. If the investigation is empty, don't
+      // do anything.
+
+      string rootClassDir (fit->StudyClassDirName());
+      TDirectory *outClassDir (outDir);
+      if (rootClassDir.size() > 0)
+	outClassDir = FindRootSubDir (outDir, rootClassDir);
+
+      DumpPlotResults (outClassDir->mkdir(fit->StudyDirName().c_str()), info, result);
+    }
+
+    //cout << "Doing central fit..." << endl;
     // We use the global chi2/ndof as the figure of merit.
-
-    double centralChi2 = centralResult[0].metadata["gchi2"]/centralResult[0].metadata["gndof"];
-    cout << "  chi2/ndof = " << centralChi2 << endl;
-
     // Sore the default in a single one.
 
-    DumpPlotResults (outDir->mkdir("Default"), centralInfo, centralResult);
-
+#ifdef notyet
     // Now, if we've been asked to remove a bin at a time.
+    if (doRemoveBin) {
 
-    // Get a list of the bins in these analyses.
-    set<set<CalibrationBinBoundary> > allBins (listAllBins(centralInfo.Analyses));
+      // Get a list of the bins in these analyses.
 
-    // Now, remove the bins one at a time
-    for (set<set<CalibrationBinBoundary> >::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
-      CalibrationInfo missingBinInfo (allInfo);
-      missingBinInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
-      vector<CalibrationBinBoundary> tempBinInfo (itr->begin(), itr->end());
-      cout << "Doing fit without bin " << OPBinName(tempBinInfo) << endl;
-      vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(missingBinInfo, false));
+      // Now, remove the bins one at a time
+      for (set<set<CalibrationBinBoundary> >::const_iterator itr = allBins.begin(); itr != allBins.end(); itr++) {
+	CalibrationInfo missingBinInfo (allInfo);
+	missingBinInfo.Analyses = removeBin (missingBinInfo.Analyses, *itr);
+	vector<CalibrationBinBoundary> tempBinInfo (itr->begin(), itr->end());
 
-      // Print out the chi2
-      double missingChi2 = missingBinResult[0].metadata["gchi2"]/missingBinResult[0].metadata["gndof"];
-      cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
+	cout << "Doing fit without bin " << OPBinName(tempBinInfo) << endl;
+	vector<CalibrationAnalysis> missingBinResult (CombineAnalyses(missingBinInfo, false));
 
-      // Generate plots.
-      DumpPlotResults (outDir->mkdir(Normalize(OPBinName(tempBinInfo)).c_str()), missingBinInfo, missingBinResult);
+	// Print out the chi2
+	double missingChi2 = missingBinResult[0].metadata["gchi2"]/missingBinResult[0].metadata["gndof"];
+	cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
+
+	// Generate plots.
+	DumpPlotResults (outDir->mkdir(Normalize(OPBinName(tempBinInfo)).c_str()), missingBinInfo, missingBinResult);
+      }
     }
+#endif
 
     // Now, do it by removing one sys error at a time.
 
-    set<string> allSysErrors (listAllSysErrors(centralInfo.Analyses));
-    for (set<string>::const_iterator itr = allSysErrors.begin(); itr != allSysErrors.end(); itr++) {
-      CalibrationInfo missingSysInfo (allInfo);
-      missingSysInfo.Analyses = removeSysError (missingSysInfo.Analyses, *itr);
+    if (doRemoveSys) {
 
-      cout << "Doing fit wihtout sys error " << *itr << endl;
-      vector<CalibrationAnalysis> missingSysResult (CombineAnalyses(missingSysInfo, false));
+      set<string> allSysErrors (listAllSysErrors(centralInfo.Analyses));
+      for (set<string>::const_iterator itr = allSysErrors.begin(); itr != allSysErrors.end(); itr++) {
+	CalibrationInfo missingSysInfo (allInfo);
+	missingSysInfo.Analyses = removeSysError (missingSysInfo.Analyses, *itr);
 
-      double missingChi2 = missingSysResult[0].metadata["gchi2"]/missingSysResult[0].metadata["gndof"];
-      cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
+	cout << "Doing fit wihtout sys error " << *itr << endl;
+	vector<CalibrationAnalysis> missingSysResult (CombineAnalyses(missingSysInfo, false));
 
-      DumpPlotResults (outDir->mkdir(Normalize(*itr).c_str()), missingSysInfo, missingSysResult);
+	double missingChi2 = missingSysResult[0].metadata["gchi2"]/missingSysResult[0].metadata["gndof"];
+	cout << "  Missing bin chi2/ndof = " << missingChi2 << endl;
+
+	DumpPlotResults (outDir->mkdir(Normalize(*itr).c_str()), missingSysInfo, missingSysResult);
+      }
     }
   }
 
@@ -159,5 +308,6 @@ int main (int argc, char **argv)
 
 void usage(void)
 {
-  cout << "FTExploreFit <std-cmd-line-argsw>" << endl;
+  cout << "FTExploreFit <std-cmd-line-argsw> --remove-bin-NN --remove-sys-NN" << endl;
+  cout << "  NN is a number - how many to remove or run on each iteration" << endl;
 }
