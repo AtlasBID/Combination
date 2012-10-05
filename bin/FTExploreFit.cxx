@@ -226,6 +226,7 @@ int main (int argc, char **argv)
 
   vector<int> removeBins;
   vector<int> removeSys;
+  bool verbose = false;
 
   try {
     vector<string> otherFlags;
@@ -242,6 +243,8 @@ int main (int argc, char **argv)
 	int r;
 	buf >> r;
 	removeSys.push_back(r);
+      } else if (*itr == "verbose") {
+	verbose = true;
       } else {
 	cerr << "Unknown flag '" << *itr << "'" << endl;
 	usage();
@@ -334,7 +337,7 @@ int main (int argc, char **argv)
       CalibrationInfo info (fit->GetAnalyses(centralInfo));
 
       cout << "Doing fit " << fit->UserTitle() << endl;
-      vector<CalibrationAnalysis> result (CombineAnalyses(info, false));
+      vector<CalibrationAnalysis> result (CombineAnalyses(info, verbose));
 
       double chi2 = result[0].metadata["gchi2"]/result[0].metadata["gndof"];
       cout << "  chi2/ndof = " << chi2 << endl;
@@ -364,6 +367,7 @@ int main (int argc, char **argv)
 
 void usage(void)
 {
-  cout << "FTExploreFit <std-cmd-line-argsw> --remove-bin-NN --remove-sys-NN" << endl;
+  cout << "FTExploreFit <std-cmd-line-argsw> --remove-bin-NN --remove-sys-NN --verbose" << endl;
   cout << "  NN is a number - how many to remove or run on each iteration" << endl;
+  cout << "  verbose - print out all the usual fit messages from a full blown filt" << endl;
 }
