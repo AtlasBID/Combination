@@ -48,6 +48,8 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseRoundTrip3);
   CPPUNIT_TEST(testParseRoundTrip4);
   CPPUNIT_TEST(testParseRoundTrip5);
+  CPPUNIT_TEST(testParseRoundTrip6);
+  CPPUNIT_TEST(testParseRoundTrip7);
 
   CPPUNIT_TEST(testParseCorrelation);
   CPPUNIT_TEST(testParseCorrelation2);
@@ -497,6 +499,40 @@ class ParserTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT(ana.metadata.find("yo,dude") != ana.metadata.end());
     CPPUNIT_ASSERT(ana.metadata.find("ISR FSR") != ana.metadata.end());
+  }
+
+  void testParseRoundTrip6()
+  {
+    cout << "Test testParseRoundTrip6" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}meta_data(junk, 0.2)}"));
+    
+    ostringstream buffer;
+    //cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+ 
+    CalibrationAnalysis ana(result2.Analyses[0]);
+    pair<string, double> v = *(ana.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL(string("junk"), v.first);
+    CPPUNIT_ASSERT_EQUAL(0.2, v.second);
+  }
+
+  void testParseRoundTrip7()
+  {
+    cout << "Test testParseRoundTrip6" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}meta_data(\"junk,f\", 0.2)}"));
+    
+    ostringstream buffer;
+    //cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+ 
+    CalibrationAnalysis ana(result2.Analyses[0]);
+    pair<string, double> v = *(ana.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL(string("junk,f"), v.first);
+    CPPUNIT_ASSERT_EQUAL(0.2, v.second);
   }
 
   void testParseRoundTrip4()

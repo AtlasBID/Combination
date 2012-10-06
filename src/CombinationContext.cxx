@@ -665,38 +665,6 @@ namespace BTagCombination {
 	cout << "Total chi2 for " << name << ": " << xchi2(0,0) << " measurements: " << gMeas.size() << " fits: " << _whatMeasurements.size() << endl;
     }
 
-#ifdef notyet
-    //
-    // Extract a crude chi2
-    //
-    
-    map<string, double> individualChi2;
-    for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
-      Measurement *m(*imeas);
-      
-      if (individualChi2.find(m->What()) == individualChi2.end())
-	individualChi2[m->What()] = 0.0;
-
-      double cv = m->centralValue();
-      double err = m->totalError();
-      double meas = result[m->What()].centralValue;
-
-      double delta = meas - cv;
-      double chi2Contrib = delta*delta/(err*err);
-      individualChi2[m->What()] += chi2Contrib;
-
-      if (_verbose)
-	cout << "Chi2 Contrib for " << m->Name() << " is " << chi2Contrib << endl;
-    }
-
-    double totalChi2 = 0.0;
-    for (map<string,double>::const_iterator itr = individualChi2.begin(); itr != individualChi2.end(); itr++) {
-      cout << "Chi2 contrib for bin " << itr->first << " is " << itr->second << endl;
-      totalChi2 += itr->second;
-    }
-    cout << "Total chi2 for " << name << ": " << totalChi2 << endl;
-
-#endif
     //
     // Dump out the pulls that the fit settled on... so this crudely fornow.
     //
@@ -705,6 +673,7 @@ namespace BTagCombination {
       RooRealVar *c (_systematicErrors.FindRooVar(*iVar));
       if (_verbose)
 	cout << " Sys " << *iVar << " pull: " << c->getVal() << " +- " << c->getError() << endl;
+      _extraInfo._pulls[*iVar] = c->getVal();
     }
 
     ///

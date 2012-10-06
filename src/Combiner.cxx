@@ -297,6 +297,9 @@ namespace BTagCombination
 	r.metadata.clear();
 	r.metadata["gchi2"] = extraInfo._globalChi2;
 	r.metadata["gndof"] = extraInfo._ndof;
+	for (map<string,double>::const_iterator i_p = extraInfo._pulls.begin(); i_p != extraInfo._pulls.end(); i_p++) {
+	  r.metadata[string("Pull ") + i_p->first] = i_p->second;
+	}
 	result.push_back(r);
       }
     }

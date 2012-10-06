@@ -35,6 +35,8 @@ namespace BTagCombination {
       double _globalChi2; // The total chi21
       double _ndof; // The degrees of freedom
 
+      std::map<std::string, double> _pulls; // Pulls from the fit.
+
       void clear();
     };
 
