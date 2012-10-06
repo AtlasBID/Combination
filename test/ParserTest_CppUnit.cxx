@@ -55,6 +55,8 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION(testParseCorrelation4, std::runtime_error);
   CPPUNIT_TEST(testParseCorrelation5);
 
+  CPPUNIT_TEST(testParseMetadata);
+
   CPPUNIT_TEST(testParseCopy);
   CPPUNIT_TEST(testParseCopy2);
   CPPUNIT_TEST(testParseCopyRoundtrip);
@@ -468,6 +470,19 @@ class ParserTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL(true, b.hasStatCorrelation);
     CPPUNIT_ASSERT_EQUAL(-0.5, b.statCorrelation);
+  }
+
+  void testParseMetadata()
+  {
+    cout << "Test testParseMetadata" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){meta_data (ISR FSR, -0.1) bin(20<pt<30){central_value(0.5,0.01)}}"));
+    
+    CPPUNIT_ASSERT(result.Analyses.size() == 1);
+    CalibrationAnalysis ana = result.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.metadata.size());
+    pair<string, double> v = *(ana.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL(string("ISR FSR"), v.first);
+    CPPUNIT_ASSERT_EQUAL(-0.1, v.second);
   }
 
   void testParseRoundTrip4()

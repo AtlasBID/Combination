@@ -313,6 +313,49 @@ struct CentralValueParser : qi::grammar<Iterator, centralvalue(), ascii::space_t
     qi::rule<Iterator, centralvalue(), ascii::space_type> start;
 };
 
+struct metadata
+{
+  string name;
+  double value;
+
+  void SetName(const std::string &n)
+  {
+    name = n;
+  }
+  void SetValue (const double v)
+  {
+    value = v;
+  }
+};
+
+//
+// Parse a bit of meta-data.
+template <typename Iterator>
+struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
+{
+  MetaDataParser() : MetaDataParser::base_type(start, "Meta Data") {
+    using ascii::char_;
+    using qi::lexeme;
+    using qi::lit;
+    using qi::double_;
+    using qi::_val;
+    using qi::labels::_1;
+    using boost::phoenix::bind;
+
+    start = lit("meta_data")
+      > '('
+      > name_string[bind(&metadata::SetName, _val, _1)] >> *qi::lit(' ')
+      > ','
+      > double_[bind(&metadata::SetValue, _val, _1)]
+      > ')';
+
+    start.name("Meta data");
+  }
+
+    qi::rule<Iterator, metadata(), ascii::space_type> start;
+    NameStringParser<Iterator> name_string;
+};
+
 //
 // Parse the bin spec bin(30 < pt < 40, 2.5 < eta < 5.5) {xxx}. There should be only one central
 // value, but to make the parsing flexible we need to do this.
@@ -412,15 +455,19 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 //
 // Parse the top level analysis info
 //
-BOOST_FUSION_ADAPT_STRUCT(
-			  BTagCombination::CalibrationAnalysis,
-			  (std::string, name)
-			  (std::string, flavor)
-			  (std::string, tagger)
-			  (std::string, operatingPoint)
-			  (std::string, jetAlgorithm)
-			  (std::vector<CalibrationBin>, bins)
-			  )
+class CAHolder {
+  inline void SetName (const std::string &n) { result.name = n; }
+  inline void SetFlavor (const std::string &f) { result.flavor = f; }
+  inline void SetTagger (const std::string &t) { result.tagger = t; }
+  inline void SetOP (const std::string &op) { result.operatingPoint = op; }
+  inline void SetJet (const std::string &j) { result.jetAlgorithm = j; }
+  inline void AddBin (const CalibrationBin &b) { result.bins.push_back(b); }
+  inline void AddMD (const metadata &m) { result.metadata[m.name] = m.value; }
+
+  inline void Convert(CalibrationAnalysis &holder) { holder = result; }
+private:
+  CalibrationAnalysis result;
+};
 
 template <typename Iterator>
 struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), ascii::space_type>
@@ -429,19 +476,35 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
+    using qi::_val;
+    using qi::labels::_1;
 
-    //name_string %= lexeme[+(char_ - ',' - '"' - '}' - '{' - ')' - '(')];
-
-    start %= lit("Analysis") > lit('(') > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ',' > name_string > ')'
+    localCAHolder = 
+      lit("Analysis")
+      > lit('(') > name_string[bind(&CAHolder::SetName, _val, _1)]
+      > ',' > name_string[bind(&CAHolder::SetFlavor, _val, _1)]
+      > ',' > name_string[bind(&CAHolder::SetTagger, _val, _1)]
+      > ',' > name_string[bind(&CAHolder::SetOP, _val, _1)]
+      > ',' > name_string[bind(&CAHolder::SetJet, _val, _1)]
+      > ')'
       > '{'
-      > *binParser
+      > *(binParser[bind(&CAHolder::AddBin, _val, _1)]
+	  | metadataParser[bind(&CAHolder::AddMD, _val, _1)]
+	  )
       > '}';
+
+    // Extract the final value from the temporary.
+    start = localCAHolder[bind(&CAHolder::Convert, _1, _val)];
   }
 
     //qi::rule<Iterator, std::string(), ascii::space_type> name_string;
-    NameStringParser<Iterator> name_string;
     qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
+    qi::rule<Iterator, CAHolder(), ascii::space_type> localCAHolder;
+
     CalibrationBinParser<Iterator> binParser;
+    MetaDataParser<Iterator> metadataParser;
+
+    NameStringParser<Iterator> name_string;
 };
 
 //
