@@ -301,7 +301,7 @@ namespace {
 
       if (anaChi2[ia] != 0.0) {
 	ostringstream msg;
-	msg << anaName << " (\\chi^{2}=" <<setprecision(3) << anaChi2[ia] << ")";
+	msg << anaName << " (\\chi^{2}/N_{DOF}=" <<setprecision(3) << anaChi2[ia] << ")";
 	plotAnalysisName.push_back(msg.str());
       } else {
 	plotAnalysisName.push_back(anaName);
