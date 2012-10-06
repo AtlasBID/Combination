@@ -218,7 +218,7 @@ struct NameStringParser : qi::grammar<Iterator, std::string(), ascii::space_type
     unquoted %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_(allChars))])];
 
     quoted %= '"'
-      > lexeme[*qi::char_(allChars + " ")]
+      > lexeme[*qi::char_(allChars + ", ")]
       > '"';
 
     start %= quoted | unquoted;
