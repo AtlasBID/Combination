@@ -106,14 +106,14 @@ void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *te
 {
   //  printf("**myMarker: text= %s\ m ",text);
 
-  Double_t tsize=0.06;
+  Double_t tsize=0.03;
   TMarker *marker = new TMarker(x-(0.4*tsize),y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
   marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(2.0);
+  marker->SetMarkerSize(2.0*tsize/0.05);
   marker->Draw();
 
-  TLatex l; l.SetTextAlign(12); //l.SetTextSize(tsize); 
+  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
   l.SetNDC();
   l.DrawLatex(x,y,text);
 }

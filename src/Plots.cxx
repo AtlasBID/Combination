@@ -31,6 +31,16 @@ namespace {
   typedef set<CalibrationBinBoundary> t_BBSet;
   typedef map<string, t_BBSet> t_BinSet;
 
+  // A few global constants...
+  const double c_legendXStart = 0.55;
+  const double c_legendYStart = 0.90;
+  const double c_legendYDelta = 0.037;
+
+  const double c_binXStart = 0.20;
+  const double c_binYStart = 0.85;
+  const double c_binYDelta = 0.05;
+  
+
   ///
   /// Many of these routines could be moved into the global namespace if their
   /// utility was needed.
@@ -104,9 +114,9 @@ namespace {
     // Some setup and defs that make life simpler below.
     string binName (axisBins.begin()->variable);
 
-    double legendYPos = 0.85;
-    double legendYDelta = 0.05;
-    double legendXPos = 0.60;
+    double legendYPos = c_legendYStart;
+    double legendYDelta = c_legendYDelta;
+    double legendXPos = c_legendXStart;
 
     string flavorName (anas[0].flavor);
     string taggerName (anas[0].tagger);
@@ -361,9 +371,9 @@ namespace {
       // Plot the actual guys
 
       size_t m_index = 0;
-      double lYPos = 0.85;
-      double lYDelta = 0.05;
-      double lXPos = 0.60;
+      double lYPos = c_legendYStart;
+      double lYDelta = c_legendYDelta;
+      double lXPos = c_legendXStart;
 
       for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
 	
@@ -436,13 +446,14 @@ namespace {
     // Last thing to do is add to the legend all the bin coordinates that we have
     // fixed for this plot.
 
-    legendYPos -= 0.3*legendYDelta;
+    double binYPos = c_binYStart;
+    double binXPos = c_binXStart;
     for (t_BBSet::const_iterator i = specifiedBins.begin(); i != specifiedBins.end(); i++) {
       ostringstream buf;
       buf << CalibrationBinBoundaryFormat(CalibrationBinBoundary::kROOTFormatted)
 	  << *i;
-      myText(legendXPos, legendYPos, 1, buf.str().c_str());
-      legendYPos -= legendYDelta;
+      myText(binXPos, binYPos, 1, buf.str().c_str());
+      binYPos -= c_binYDelta;
     }
 
     //
