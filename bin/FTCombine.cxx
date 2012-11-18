@@ -27,7 +27,7 @@ int main (int argc, char **argv)
 
     bool verbose = false;
 
-    for (int i = 0; i < otherFlags.size(); i++) {
+    for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "verbose") {
 	verbose = true;
       } else {
