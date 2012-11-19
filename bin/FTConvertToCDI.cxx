@@ -26,6 +26,30 @@ void Usage (void);
 TDirectory *get_sub_dir (TDirectory *parent, const string &name);
 string convert_flavor (const string &flavor);
 
+namespace {
+  // Very simple wild-card matching
+  bool wCompare (const string &s1, const string &s2)
+  {
+    if (s1 == "*" || s2 == "*")
+      return true;
+    return s1 == s2;
+  }
+
+  // Match with some basic wildcard info
+  bool isAMatch (const vector<DefaultAnalysis> &defaults, const CalibrationAnalysis &ana)
+  {
+    for (unsigned int i = 0; i < defaults.size(); i++) {
+      const DefaultAnalysis &d(defaults[i]);
+      if (wCompare(ana.jetAlgorithm, d.jetAlgorithm)
+	  && wCompare(ana.operatingPoint, d.operatingPoint)
+	  && wCompare(ana.flavor, d.flavor)
+	  && wCompare(ana.tagger, d.tagger))
+	return true;
+    }
+    return false;
+  }
+}
+
 int main(int argc, char **argv)
 {
   //
@@ -75,16 +99,6 @@ int main(int argc, char **argv)
   }
 
   //
-  // Next, index the defaults so we can quickly decide who is a default
-  // analysis and who isn't.
-  //
-
-  set<string> defaultAnalysisNames;
-  for (vector<DefaultAnalysis>::const_iterator itr = info.Defaults.begin(); itr != info.Defaults.end(); itr++) {
-    defaultAnalysisNames.insert(OPFullName(*itr));
-  }
-
-  //
   // Now, write out everything. If the analysis is a default re-run the conversion
   // (to make sure that we are not doing somethign funny in ROOT).
   //
@@ -103,8 +117,7 @@ int main(int argc, char **argv)
 
     loc->WriteTObject(container);
 
-
-    if (defaultAnalysisNames.find(OPFullName(c)) != defaultAnalysisNames.end()) {
+    if (isAMatch(info.Defaults, c)) {
       CalibrationDataContainer *def_c = ConvertToCDI (c, "default_SF");
       loc->WriteTObject(def_c);
     }

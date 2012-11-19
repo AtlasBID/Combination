@@ -65,6 +65,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseCopyRoundtrip);
 
   CPPUNIT_TEST(testParseDefault);
+  CPPUNIT_TEST(testParseDefaultWildCard);
   CPPUNIT_TEST(testParseDefaultRoundtrip);
 
   CPPUNIT_TEST_SUITE_END();
@@ -616,6 +617,23 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("MV1"), d.tagger);
     CPPUNIT_ASSERT_EQUAL(string("0.9"), d.operatingPoint);
     CPPUNIT_ASSERT_EQUAL(string("AntiKt"), d.jetAlgorithm);
+  }
+
+  void testParseDefaultWildCard()
+  {
+    cout << "Test testParseDefault" << endl;
+    CalibrationInfo result (Parse("Default (ptrel, bottom, *, *,*)"));
+    
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)0, result.Correlations.size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Defaults.size());
+
+    DefaultAnalysis d (result.Defaults[0]);
+    CPPUNIT_ASSERT_EQUAL(string("ptrel"), d.name);
+    CPPUNIT_ASSERT_EQUAL(string("bottom"), d.flavor);
+    CPPUNIT_ASSERT_EQUAL(string("*"), d.tagger);
+    CPPUNIT_ASSERT_EQUAL(string("*"), d.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL(string("*"), d.jetAlgorithm);
   }
 
   void testParseDefaultRoundtrip()
