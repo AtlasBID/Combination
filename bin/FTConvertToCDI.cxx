@@ -66,7 +66,6 @@ namespace {
     // Do a simple depth copy.
     //
 
-    cout << "  Doing sub-dir " << in->GetName() << endl;
     TClass *directory (TDirectory::Class());
     TIter next(in->GetListOfKeys());
     TKey *k;
@@ -78,8 +77,7 @@ namespace {
       } else {
 	out->cd();
 	TObject *o = k->ReadObj();
-	o->Write(k->GetName());
-	cout << "    Just copied " << k->GetName() << endl;
+	out->WriteTObject(o, k->GetName());
       }
     }
   }
@@ -137,26 +135,15 @@ int main(int argc, char **argv)
   }
 
   //
-  // The other mc files may need copying in... We do the funny open/close
-  // sequence in order to keep the objects from going a bit nuts in the file
-  // and not having to keep all the input files open at once.
+  // The other mc files may need copying in...
   //
 
-  //output->Close();
-  //delete output;
   for (unsigned int i = 0; i < other_mcfiles.size(); i++) {
-    //output = TFile::Open(outputROOTName.c_str(), "UPDATE");
-    cout << "Opening file " << other_mcfiles[i] << endl;
     TFile *in = TFile::Open(other_mcfiles[i].c_str(), "READ");
     copy_directory_structure(output, in);
-    cout << "Done file " << other_mcfiles[i] << endl;
-    //output->Write();
-    //output->Close();
     in->Close();
     delete in;
-    //delete output;
   }
-  //output = TFile::Open(outputROOTName.c_str(), "UPDATE");
 
   //
   // Now, write out everything. If the analysis is a default re-run the conversion
