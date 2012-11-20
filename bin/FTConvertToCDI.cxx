@@ -10,6 +10,8 @@
 #include <TFile.h>
 #include <TDirectory.h>
 #include <TH1.h>
+#include <TKey.h>
+#include <TClass.h>
 
 #include <iostream>
 #include <fstream>
@@ -48,6 +50,39 @@ namespace {
     }
     return false;
   }
+
+  //
+  // We are copying these objects, so we have to be able to reference them
+  // to make sure they are linked in.
+  //
+
+  Analysis::CalibrationDataFunctionContainer *__c1;
+  Analysis::CalibrationDataContainer *__c2;
+
+  // Do a deep copy of the in directory into the out directory
+  void copy_directory_structure (TDirectory *out, TDirectory *in)
+  {
+    //
+    // Do a simple depth copy.
+    //
+
+    cout << "  Doing sub-dir " << in->GetName() << endl;
+    TClass *directory (TDirectory::Class());
+    TIter next(in->GetListOfKeys());
+    TKey *k;
+    while ((k = (TKey*)next())) {
+      if (TClass::GetClass(k->GetClassName())->InheritsFrom(directory)) {
+	TDirectory *out_subdir = get_sub_dir(out, k->GetName());
+	TDirectory *in_subdir = (TDirectory*) get_sub_dir(in, k->GetName());
+	copy_directory_structure(out_subdir, in_subdir);
+      } else {
+	out->cd();
+	TObject *o = k->ReadObj();
+	o->Write(k->GetName());
+	cout << "    Just copied " << k->GetName() << endl;
+      }
+    }
+  }
 }
 
 int main(int argc, char **argv)
@@ -63,12 +98,15 @@ int main(int argc, char **argv)
 
   CalibrationInfo info;
   bool updateROOTFile = false;
+  vector<string> other_mcfiles;
   try {
     vector<string> otherFlags;
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "update") {
 	updateROOTFile = true;
+      } else if (otherFlags[i].find("copy") == 0) {
+	other_mcfiles.push_back(otherFlags[i].substr(4));
       } else {
 	cerr << "Unknown command line flag '" << otherFlags[i] << "'." << endl;
 	Usage();
@@ -97,6 +135,28 @@ int main(int argc, char **argv)
     cerr << "Unable to open 'output.root' for output!" << endl;
     return 1;
   }
+
+  //
+  // The other mc files may need copying in... We do the funny open/close
+  // sequence in order to keep the objects from going a bit nuts in the file
+  // and not having to keep all the input files open at once.
+  //
+
+  //output->Close();
+  //delete output;
+  for (unsigned int i = 0; i < other_mcfiles.size(); i++) {
+    //output = TFile::Open(outputROOTName.c_str(), "UPDATE");
+    cout << "Opening file " << other_mcfiles[i] << endl;
+    TFile *in = TFile::Open(other_mcfiles[i].c_str(), "READ");
+    copy_directory_structure(output, in);
+    cout << "Done file " << other_mcfiles[i] << endl;
+    //output->Write();
+    //output->Close();
+    in->Close();
+    delete in;
+    //delete output;
+  }
+  //output = TFile::Open(outputROOTName.c_str(), "UPDATE");
 
   //
   // Now, write out everything. If the analysis is a default re-run the conversion
