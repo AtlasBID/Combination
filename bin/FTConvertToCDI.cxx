@@ -52,6 +52,18 @@ namespace {
   }
 
   //
+  // Sometimes we need to kludge a directry name translation in the CDI efficiency files
+  // (we can't easily edit those - they are ROOT files, not text files). This provides for
+  // a very simple extension point to enable that.
+  //
+  string TranslateDirectoryName(const string &sName)
+  {
+    if(sName == "1_01")
+      return "1_00";
+    return sName;
+  }
+
+  //
   // We are copying these objects, so we have to be able to reference them
   // to make sure they are linked in.
   //
@@ -71,7 +83,8 @@ namespace {
     TKey *k;
     while ((k = (TKey*)next())) {
       if (TClass::GetClass(k->GetClassName())->InheritsFrom(directory)) {
-	TDirectory *out_subdir = get_sub_dir(out, k->GetName());
+	string outname(TranslateDirectoryName(k->GetName()));
+	TDirectory *out_subdir = get_sub_dir(out, outname);
 	TDirectory *in_subdir = (TDirectory*) get_sub_dir(in, k->GetName());
 	copy_directory_structure(out_subdir, in_subdir);
       } else {
