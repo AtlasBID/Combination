@@ -123,8 +123,6 @@ namespace BTagCombination
 			 kFullInfo = 2,
 			 kROOTFormatted = 4};
     static unsigned int gForNextPrinting;
-
-
   };
 
   inline double relativeErrorCalc (double central, double err) {
