@@ -51,6 +51,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseRoundTrip5);
   CPPUNIT_TEST(testParseRoundTrip6);
   CPPUNIT_TEST(testParseRoundTrip7);
+  CPPUNIT_TEST(testParseRoundTrip8);
 
   CPPUNIT_TEST(testParseCorrelation);
   CPPUNIT_TEST(testParseCorrelation2);
@@ -527,6 +528,27 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("ISR FSR"), v.first);
     CPPUNIT_ASSERT_EQUAL(-0.1, v.second.first);
     CPPUNIT_ASSERT_EQUAL(0.05, v.second.second);
+  }
+
+  void testParseRoundTrip8()
+  {
+    cout << "Test testParseRoundTri8" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) meta_data(dude, 0.1, 0.2)}}"));
+    
+    ostringstream buffer;
+    cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+
+    CalibrationAnalysis ana = result2.Analyses[0];
+    CalibrationBin bin0 = ana.bins[0];
+
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, bin0.metadata.size());
+    pair<string, pair<double, double> > rmeta = *(bin0.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL(string("dude"), rmeta.first);
+    CPPUNIT_ASSERT_EQUAL(0.1, rmeta.second.first);
+    CPPUNIT_ASSERT_EQUAL(0.2, rmeta.second.second);
   }
 
   void testParseMetadata1()

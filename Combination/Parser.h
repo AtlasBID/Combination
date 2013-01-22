@@ -162,6 +162,7 @@ namespace BTagCombination
 	out << b.binSpec[i];
       }
       out << ") {" << std::endl;
+
       out << "    central_value (" << b.centralValue
 	  << ", ";
       if (b.centralValue != 0.0) {
@@ -183,6 +184,12 @@ namespace BTagCombination
 	    << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
 	    << "%)";
       }
+
+      for (std::map<std::string, std::pair<double,double> >::const_iterator itr = b.metadata.begin(); itr != b.metadata.end(); itr++) {
+	out << std::endl;
+	out << "    meta_data(" << itr->first << ", " << itr->second.first << ", " << itr->second.second << ")";
+      }
+
       out << std::endl << "  }";
 
     } else if (CalibrationBin::gForNextPrinting & CalibrationBin::kBinInfoOnly) {
