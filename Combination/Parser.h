@@ -104,15 +104,19 @@ namespace BTagCombination
   // Data for a single bin (central value, stat error, sys errors, etc.)
   struct CalibrationBin
   {
-	  // What the bin boundary is
-	std::vector<CalibrationBinBoundary> binSpec;
+    // What the bin boundary is
+    std::vector<CalibrationBinBoundary> binSpec;
 
-	// The central value and its error
-	double centralValue;
-	double centralValueStatisticalError;
+    // The central value and its error
+    double centralValue;
+    double centralValueStatisticalError;
 
-	// Systematic Errors
-	std::vector<SystematicError> systematicErrors;	
+    // A property bag of meta data that might or might not be there. We keep the name
+    // a value, and a possible error (or set to zero).
+    std::map<std::string, std::pair<double,double> > metadata;
+
+    // Systematic Errors
+    std::vector<SystematicError> systematicErrors;	
    
     // Helper for printing
     enum BinFormatEnum { kBinInfoOnly = 1,

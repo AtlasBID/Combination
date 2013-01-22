@@ -313,10 +313,17 @@ struct CentralValueParser : qi::grammar<Iterator, centralvalue(), ascii::space_t
     qi::rule<Iterator, centralvalue(), ascii::space_type> start;
 };
 
+// Helper struct for parsing  meta data... can parse both kinds of meta-data, with
+// and without an error.
 struct metadata
 {
   string name;
   double value;
+  double error;
+
+  metadata()
+    : value(0.0), error(0.0)
+  { }
 
   void SetName(const std::string &n)
   {
@@ -326,6 +333,10 @@ struct metadata
   {
     value = v;
   }
+  void SetError (const double e)
+  {
+    error = e;
+  }
 };
 
 //
@@ -333,7 +344,7 @@ struct metadata
 template <typename Iterator>
 struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
 {
-  MetaDataParser() : MetaDataParser::base_type(start, "Meta Data") {
+  MetaDataParser(bool allowError) : MetaDataParser::base_type(start, "Meta Data") {
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
@@ -342,12 +353,23 @@ struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
     using qi::labels::_1;
     using boost::phoenix::bind;
 
-    start = lit("meta_data")
-      > '('
-      > name_string[bind(&metadata::SetName, _val, _1)] >> *qi::lit(' ')
-      > ','
-      > double_[bind(&metadata::SetValue, _val, _1)]
-      > ')';
+    if (allowError) {
+      start = lit("meta_data")
+	> '('
+	> name_string[bind(&metadata::SetName, _val, _1)] >> *qi::lit(' ')
+	> ','
+	> double_[bind(&metadata::SetValue, _val, _1)]
+	> ','
+	> double_[bind(&metadata::SetError, _val, _1)]
+	> ')';
+    } else {
+      start = lit("meta_data")
+	> '('
+	> name_string[bind(&metadata::SetName, _val, _1)] >> *qi::lit(' ')
+	> ','
+	> double_[bind(&metadata::SetValue, _val, _1)]
+	> ')';
+    }
 
     start.name("Meta data");
   }
@@ -365,6 +387,7 @@ struct localCalibBin
   std::vector<BTagCombination::CalibrationBinBoundary> binSpec;
   std::vector<ErrorValue> sysErrors;
   std::vector<centralvalue> centralvalues;
+  std::vector<metadata> metaData;
 
   void Convert (CalibrationBin &result)
   {
@@ -388,6 +411,10 @@ struct localCalibBin
 	  }
 	result.systematicErrors.push_back(e);
       }
+
+    for (unsigned int i = 0; i < metaData.size(); i++) {
+      result.metadata[metaData[i].name] = make_pair(metaData[i].value, metaData[i].error);
+    }
   }
 
   void AddSysError (const ErrorValue &v)
@@ -397,6 +424,10 @@ struct localCalibBin
   void AddCentralValue (const centralvalue &c)
   {
     centralvalues.push_back(c);
+  }
+  void AddMetaData (const metadata &m)
+  {
+    metaData.push_back(m);
   }
 
   void SetBins(const vector<BTagCombination::CalibrationBinBoundary> &b)
@@ -415,7 +446,9 @@ BOOST_FUSION_ADAPT_STRUCT(
 template <typename Iterator>
 struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::space_type>
 {
-  CalibrationBinParser() : CalibrationBinParser::base_type(converter, "Bin")
+  CalibrationBinParser() :
+    CalibrationBinParser::base_type(converter, "Bin"),
+    metaFinder(true)
     {
       using qi::lit;
       using namespace qi::labels;
@@ -432,7 +465,10 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
       localBinFinder = lit("bin") 
 	> '(' > boundary_list [bind(&localCalibBin::SetBins, _val, _1)] > ')'
 	> '{'
-	> *(sysErrors[bind(&localCalibBin::AddSysError, _val, _1)] | cvFinder[bind(&localCalibBin::AddCentralValue, _val, _1)])
+	> *(sysErrors[bind(&localCalibBin::AddSysError, _val, _1)]
+	    | cvFinder[bind(&localCalibBin::AddCentralValue, _val, _1)]
+	    | metaFinder[bind(&localCalibBin::AddMetaData, _val, _1)]
+	    )
 	> '}';
 
       converter = localBinFinder[bind(&localCalibBin::Convert, _1, _val)];
@@ -446,8 +482,11 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 
     CalibrationBinBoundaryParser<Iterator> boundary;
     qi::rule<Iterator, std::vector<BTagCombination::CalibrationBinBoundary>(), ascii::space_type>  boundary_list;
+
     SystematicErrorParser<Iterator> sysErrors;
     CentralValueParser<Iterator> cvFinder;
+    MetaDataParser<Iterator> metaFinder;
+
     qi::rule<Iterator, localCalibBin(), ascii::space_type> localBinFinder;
     qi::rule<Iterator, CalibrationBin(), ascii::space_type> converter;
 };
@@ -472,7 +511,10 @@ private:
 template <typename Iterator>
 struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), ascii::space_type>
 {
-  CalibrationAnalysisParser() : CalibrationAnalysisParser::base_type(start, "Analysis") {
+  CalibrationAnalysisParser()
+    : CalibrationAnalysisParser::base_type(start, "Analysis"),
+    metadataParser(false)
+    {
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
