@@ -31,6 +31,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION( testParseSyntaxBasicErrorThrows, std::runtime_error );
   CPPUNIT_TEST( testParseEmptyAnalysisString );
   CPPUNIT_TEST( testParseSimpleAnalysis );
+  CPPUNIT_TEST( testParseSimpleAnalysisNotEqual );
   CPPUNIT_TEST( testParseSimpleAnalysisFunnySpaces );
   CPPUNIT_TEST( testParseSimpleAnalysisWithOneBinOneArg );
   //CPPUNIT_TEST( testParseSimpleAnalysisWithOneBinTwoArg );
@@ -101,6 +102,21 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.Analyses[0].name == "ptrel");
     CPPUNIT_ASSERT_MESSAGE(result.Analyses[0].operatingPoint, result.Analyses[0].operatingPoint == "0.50");
     //CPPUNIT_ASSERT(result[0].flavor == FBottom);
+    CPPUNIT_ASSERT(result.Analyses[0].tagger == "SV0");
+    CPPUNIT_ASSERT(result.Analyses[0].jetAlgorithm == "MyJets");
+    CPPUNIT_ASSERT(result.Analyses[0].flavor == "bottom");
+    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 0);
+  }
+
+  void testParseSimpleAnalysisNotEqual()
+  {
+    cout << "Test testParseSimpleAnalysisNotEqual" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, !=0, MyJets){}"));
+    stringstream str;
+    str << "Result:" << endl << result << endl;
+    CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
+    CPPUNIT_ASSERT(result.Analyses[0].name == "ptrel");
+    CPPUNIT_ASSERT_MESSAGE(result.Analyses[0].operatingPoint, result.Analyses[0].operatingPoint == "!=0");
     CPPUNIT_ASSERT(result.Analyses[0].tagger == "SV0");
     CPPUNIT_ASSERT(result.Analyses[0].jetAlgorithm == "MyJets");
     CPPUNIT_ASSERT(result.Analyses[0].flavor == "bottom");

@@ -103,7 +103,7 @@ struct CalibrationBinBoundaryParser :
     using boost::spirit::qi::alpha;
     using qi::double_;
 
-    name_string %= lexeme[+alpha];
+    name_string %= lexeme[+(alpha)];
     name_string.name("variable name");
 
     start %= 
@@ -213,7 +213,7 @@ struct NameStringParser : qi::grammar<Iterator, std::string(), ascii::space_type
     using qi::lexeme;
     using ascii::char_;
 
-    string allChars("-_a-zA-Z0-9+:.*/");
+    string allChars("-_a-zA-Z0-9+:.*/!=");
 
     unquoted %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_(allChars))])];
 
