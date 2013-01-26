@@ -97,7 +97,7 @@ namespace BTagCombination {
   /// Creates a new combination context.
   ///
   CombinationContext::CombinationContext(void)
-    : _doPlots (false), _verbose(true)
+    : _verbose(true), _doPlots (false)
   {
   }
 

@@ -1,6 +1,6 @@
 package Combination
 
-use AtlasPolicy                 AtlasPolicy-01-*
+use AtlasPolicy                 AtlasPolicy-*
 
 # We are using the combinator parser, spirit, in boost
 # to parse our text files.
@@ -35,36 +35,36 @@ apply_pattern application_alias FTExploreFit
 
 apply_pattern installed_library
 
-private
-
-#
-# The boost templates get a little deep! :-)
-#
-
-macro_append Combination_cppflags " -ftemplate-depth-200"
-
-#
-# We need the boost library
-#
-use AtlasBoost                  AtlasBoost-*             External
 use AtlasROOT			AtlasROOT-*		 External
 
 apply_tag ROOTRooFitLibs
 apply_tag ROOTGraphicsLibs
 apply_tag ROOTMathLibs
 
+private
+
+#
+# We need the boost library
+#
+use AtlasBoost                  AtlasBoost-*             External
+
+#
+# The boost templates get a little deep! :-)
+#
+
+macro_append Combination_cppflags " -ftemplate-depth-200"
 #
 # Use "make CppUnit" to run the unit tests for this
 # package
 #
 
-use TestPolicy			TestPolicy-00-*
-use TestTools			TestTools-*		AtlasTest
+use TestPolicy			TestPolicy-*
+#use TestTools			TestTools-*		AtlasTest
 apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx BinBoundaryUtilsTest_CppUnit.cxx CDIConverterTest_CppUnit.cxx MeasurementTest_CppUnit.cxx MeasurementUtilsTest_CppUnit.cxx BinUtilsTest_CppUnit.cxx"
 
 #
 # Turn on debugging if it is needed!!
 #
 
-macro cppdebugflags '$(cppdebugflags_s)'
-macro_remove componentshr_linkopts "-Wl,-s"
+#macro cppdebugflags '$(cppdebugflags_s)'
+q#macro_remove componentshr_linkopts "-Wl,-s"
