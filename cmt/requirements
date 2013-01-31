@@ -67,4 +67,4 @@ apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest
 #
 
 #macro cppdebugflags '$(cppdebugflags_s)'
-q#macro_remove componentshr_linkopts "-Wl,-s"
+#macro_remove componentshr_linkopts "-Wl,-s"
