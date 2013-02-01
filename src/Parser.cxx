@@ -219,7 +219,9 @@ struct NameStringParser : qi::grammar<Iterator, std::string(), ascii::space_type
       > lexeme[*qi::char_(allChars + ", ")]
       > '"';
 
-    unquoted %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(' ')) >> +(qi::char_(allChars))])];
+    // This next line is problematic when you move to 17.2.4. The hold predicate below causes an
+    // explosion in boost - where it can't figure out the char.
+    unquoted %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(" ")) >> +(qi::char_(allChars))])];
 
 
     start %= quoted | unquoted;
