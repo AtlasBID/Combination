@@ -44,6 +44,8 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseSimpleAnalysisWithNSys);
   CPPUNIT_TEST(testParseSimpleAnalysisWithSpaceSys);
   CPPUNIT_TEST(testParseSimpleAnalysisWithSlashSys);
+  CPPUNIT_TEST( testParseSimpleAnalysisWithFunnyBinning );
+
   CPPUNIT_TEST(testParseRoundTrip);
   CPPUNIT_TEST(testParseRoundTrip2);
   CPPUNIT_TEST(testParseRoundTrip3);
@@ -182,6 +184,22 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(bb.lowvalue == 20);
     CPPUNIT_ASSERT(bb.variable == "pt");
     CPPUNIT_ASSERT(bb.highvalue == 30);
+  }
+
+  void testParseSimpleAnalysisWithFunnyBinning()
+  {
+    CalibrationInfo result (Parse("Analysis(negative tags,light, SV0, 0.50, MyJets){bin( 20<pt< 30, 0.0<abseta<1.2){central_value(0.5,0.01) meta_data(N jets tagger,    589, 24.3)}}"));
+    
+    CPPUNIT_ASSERT(result.Analyses.size() == 1);
+    CalibrationAnalysis ana = result.Analyses[0];
+    stringstream str;
+    str << "  Found " << ana.bins.size() << endl;
+    CPPUNIT_ASSERT_MESSAGE(str.str(), ana.bins.size() == 1);
+    CalibrationBin bin0 = ana.bins[0];
+    cout << "  Found bins to do spec in: " << bin0.binSpec.size() << endl;
+    stringstream str1;
+    str1 << "The number of bin boundaries is " << bin0.binSpec.size() << endl;
+    CPPUNIT_ASSERT_MESSAGE(str1.str(), bin0.binSpec.size() == 2);
   }
 
   void testParseSimpleAnalysisWithOneBinTwoArg()
