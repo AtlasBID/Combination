@@ -40,6 +40,7 @@ int main (int argc, char **argv)
     bool doDump = true;
     bool doNames = false;
     bool doQNames = false;
+    bool printAsInput = false;
 
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "check") {
@@ -53,6 +54,8 @@ int main (int argc, char **argv)
 	doDump = false;
 	doQNames = true;
 	doNames = false;
+      } else if (otherFlags[i] == "asInput") {
+	printAsInput = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
 	Usage();
@@ -61,6 +64,12 @@ int main (int argc, char **argv)
     }
 
     const vector<CalibrationAnalysis> &calibs(info.Analyses);
+
+    // Dump out everything if asked
+    if (printAsInput) {
+      cout << info << endl;
+      return 0;
+    }
 
     // Dump out a list of comma seperated values
     if (doDump)
@@ -247,4 +256,5 @@ void Usage(void)
   cout << "  --check - check if the binning of the input is self consistent" << endl;
   cout << "  --names - print out the names used for the --ignore command of everything" << endl;
   cout << "  --qnames - print out the names used in a fully qualified, and easily computer parsable format" << endl;
+  cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
 }

@@ -43,9 +43,11 @@ namespace {
     for (unsigned int i = 0; i < defaults.size(); i++) {
       const DefaultAnalysis &d(defaults[i]);
       if (wCompare(ana.jetAlgorithm, d.jetAlgorithm)
-	  && wCompare(ana.operatingPoint, d.operatingPoint)
 	  && wCompare(ana.flavor, d.flavor)
-	  && wCompare(ana.tagger, d.tagger))
+	  && wCompare(ana.tagger, d.tagger)
+	  && wCompare(ana.operatingPoint, d.operatingPoint)
+	  && wCompare(ana.name, d.name)
+	  )
 	return true;
     }
     return false;
