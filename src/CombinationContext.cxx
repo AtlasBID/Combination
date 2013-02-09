@@ -479,7 +479,6 @@ namespace BTagCombination {
     ///
 
     vector<RooAbsPdf*> measurementGaussians;
-    vector<RooAbsReal*> todelete;
     for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
 
@@ -498,7 +497,6 @@ namespace BTagCombination {
 	const string &errName(*isyserr);
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
 	varAddition.add(*weight);
-	todelete.push_back(weight);
       }
 
       string internalName = "InternalAddition" + m->Name();
@@ -536,21 +534,18 @@ namespace BTagCombination {
       //(*itr)->Print();
     }
 
-    //cout << "Product Gaussian:" << endl;
-    //products.Print();
-
     RooConstVar *zero = new RooConstVar("zero", "zero", 0.0);
     RooConstVar *one = new RooConstVar("one", "one", 1.0);
     vector<string> allVars = _systematicErrors.GetAllVars();
 
-    //cout << "Constraint guassians" << endl;
+    vector<RooGaussian*> toDeleteGaussians;
+
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
       string cName = *iVar + "ConstraintGaussian";
       RooRealVar *c = _systematicErrors.FindRooVar(*iVar);
-      //RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *zero, *c, *one);
       RooGaussian *constraint = new RooGaussian (cName.c_str(), cName.c_str(), *c, *zero, *one);
       products.add(*constraint);
-      //constraint->Print();
+      toDeleteGaussians.push_back(constraint);
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
@@ -953,8 +948,8 @@ namespace BTagCombination {
     // Clean up some memory
     //
 
-    for(size_t i = 0; i < todelete.size(); i++) {
-      delete todelete[i];
+    for (size_t i = 0; i < toDeleteGaussians.size(); i++) {
+      delete toDeleteGaussians[i];
     }
 
     //

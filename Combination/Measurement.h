@@ -16,6 +16,7 @@
 
 
 class RooAbsReal;
+class RooProduct;
 
 namespace BTagCombination {
   class CombinationContext;
@@ -78,6 +79,9 @@ namespace BTagCombination {
 
     RooRealVar *GetActualMeasurement() {return &_actualValue;}
     RooConstVar *GetStatisticalError() {return _statError;}
+
+    std::map<std::string, RooProduct*> _innerWidthCache;
+    std::vector<RooConstVar*> _widthCache;
 
   private:
     /// The context is allowed access to everything.

@@ -36,9 +36,17 @@ namespace {
 
 namespace BTagCombination {
 
+  // Clean up some of the roo stuff we are holding onto. Ugh in the extreeme.
   Measurement::~Measurement(void)
   {
+    for (map<string, RooProduct*>::const_iterator itr = _innerWidthCache.begin(); itr != _innerWidthCache.end(); itr++) {
+      delete itr->second;
+    }
+    for (vector<RooConstVar*>::const_iterator itr = _widthCache.begin(); itr != _widthCache.end(); itr++) {
+      delete *itr;
+    }
   }
+
   Measurement::Measurement(const string &measurementName, const string &what, const double val, const double statError)
     : _name(measurementName), _what(what),
       _actualValue(_name.c_str(), _name.c_str(), val),
@@ -149,11 +157,16 @@ namespace BTagCombination {
 
     /// Q: Why is innerWidht allowed as a pointer, but that causes a crash?
 
-    RooConstVar *s1Width = new RooConstVar(s1WidthName.c_str(), s1WidthName.c_str(), GetSystematicErrorWidth(error.GetName()));
-    
-    RooProduct *innerWidth = new RooProduct (s1WidthProduct.c_str(), s1WidthProduct.c_str(), RooArgList(error, *s1Width));
-
-    return innerWidth;
+    map<string, RooProduct*>::const_iterator itr = _innerWidthCache.find(s1WidthProduct);
+    if (itr != _innerWidthCache.end()) {
+      return itr->second;
+    } else {
+      RooConstVar *s1Width = new RooConstVar(s1WidthName.c_str(), s1WidthName.c_str(), GetSystematicErrorWidth(error.GetName()));
+      _widthCache.push_back(s1Width);
+      RooProduct *innerWidth = new RooProduct (s1WidthProduct.c_str(), s1WidthProduct.c_str(), RooArgList(error, *s1Width));
+      _innerWidthCache[s1WidthProduct] = innerWidth;
+      return innerWidth;
+    }
   }
 
   ///
