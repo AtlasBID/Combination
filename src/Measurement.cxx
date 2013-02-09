@@ -150,6 +150,7 @@ namespace BTagCombination {
     /// Q: Why is innerWidht allowed as a pointer, but that causes a crash?
 
     RooConstVar *s1Width = new RooConstVar(s1WidthName.c_str(), s1WidthName.c_str(), GetSystematicErrorWidth(error.GetName()));
+    
     RooProduct *innerWidth = new RooProduct (s1WidthProduct.c_str(), s1WidthProduct.c_str(), RooArgList(error, *s1Width));
 
     return innerWidth;

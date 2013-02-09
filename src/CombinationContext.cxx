@@ -490,24 +490,16 @@ namespace BTagCombination {
       RooRealVar *var = _whatMeasurements.FindRooVar(m->What());
 
       RooArgList varAddition;
-      //cout << "What goes into the addition:" << endl;
-      //cout << "The main variable" << endl;
-      //var->Print();
       varAddition.add(*var);
 
       vector<string> errorNames (m->GetSystematicErrorNames());
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &errName(*isyserr);
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
-	//cout << "A weight:" << endl;
-	//weight->Print();
 
 	varAddition.add(*weight);
       }
 
-      //cout << "The addition:" << endl;
-      //varAddition.Print();
-      
       string internalName = "InternalAddition" + m->Name();
       RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
 
@@ -519,11 +511,6 @@ namespace BTagCombination {
       RooRealVar *actualValue = (m->GetActualMeasurement());
       RooConstVar *statValue = (m->GetStatisticalError());
 
-      //cout << "Actual value: " << endl;
-      //actualValue->Print();
-      //cout << "Stat value" << endl;
-      //statValue->Print();
-
       ///
       /// Finally, built the gaussian. Make sure that its name is not
       /// the same as anything else... or *very* odd errors (with/out error messages)
@@ -533,9 +520,6 @@ namespace BTagCombination {
       string gName = m->Name() + "Gaussian";
       RooGaussian *g = new RooGaussian(gName.c_str(), gName.c_str(),
 				       *actualValue, *varSumed, *statValue);
-
-      //cout << "Measurement " << gName << endl;
-      //g->Print();
 
       measurementGaussians.push_back(g);
     }

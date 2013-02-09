@@ -81,4 +81,29 @@ namespace BTagCombination {
     }
     return results;
   }
+
+  // Make a systematic error uncorrelated
+  vector<CalibrationAnalysis> makeSysErrorUncorrelated(const vector<CalibrationAnalysis> &analyses, const string &sysErrorName)
+  {
+    vector<CalibrationAnalysis> results;
+    for(vector<CalibrationAnalysis>::const_iterator itr = analyses.begin(); itr != analyses.end(); itr++) {
+      CalibrationAnalysis a (*itr);
+      a.bins.clear();
+
+      for(vector<CalibrationBin>::const_iterator i_bin = itr->bins.begin(); i_bin != itr->bins.end(); i_bin++) {
+	CalibrationBin b(*i_bin);
+	b.systematicErrors.clear();
+	for(vector<SystematicError>::const_iterator i_sys = i_bin->systematicErrors.begin(); i_sys != i_bin->systematicErrors.end(); i_sys++) {
+	  SystematicError t (*i_sys);
+	  if (i_sys->name == sysErrorName) {
+	    t.uncorrelated = true;
+	  }
+	  b.systematicErrors.push_back(t);
+	}
+	a.bins.push_back(b);
+      }
+      results.push_back(a);
+    }
+    return results;
+  }
 }

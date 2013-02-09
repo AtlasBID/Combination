@@ -470,7 +470,7 @@ namespace {
   }
 
   ///
-  /// Recursive routien to look at all the variables and walk down until there
+  /// Recursive routine to look at all the variables and walk down until there
   /// is just one left for the axis.
   ///
   void GenerateCommonAnalysisPlots (TDirectory *out,
