@@ -787,7 +787,8 @@ namespace BTagCombination {
 	sysErr->setError(0.0);
 
 	//cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
-	finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
+	RooFitResult *r = finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
+	delete r;
 
 	// Loop over all measurements. If the measurement knows about
 	// this systematic error, then extract a number from it.
