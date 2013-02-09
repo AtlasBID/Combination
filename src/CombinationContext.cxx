@@ -479,6 +479,7 @@ namespace BTagCombination {
     ///
 
     vector<RooAbsPdf*> measurementGaussians;
+    vector<RooAbsReal*> todelete;
     for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
 
@@ -496,8 +497,8 @@ namespace BTagCombination {
       for (vector<string>::const_iterator isyserr = errorNames.begin(); isyserr != errorNames.end(); isyserr++) {
 	const string &errName(*isyserr);
 	RooAbsReal *weight = m->GetSystematicErrorWeight(*_systematicErrors.FindRooVar(errName));
-
 	varAddition.add(*weight);
+	todelete.push_back(weight);
       }
 
       string internalName = "InternalAddition" + m->Name();
@@ -946,6 +947,14 @@ namespace BTagCombination {
 	  }
 	}
       }
+    }
+
+    //
+    // Clean up some memory
+    //
+
+    for(size_t i = 0; i < todelete.size(); i++) {
+      delete todelete[i];
     }
 
     //
