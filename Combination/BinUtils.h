@@ -26,6 +26,9 @@ namespace BTagCombination {
   // Remove a sys error from all analyses...
   std::vector<CalibrationAnalysis> removeSysError(const std::vector<CalibrationAnalysis> &analyses, const std::string &sysErrorName);
 
+  // Alter a sys error to be correlated
+  std::vector<CalibrationAnalysis> makeSysErrorUncorrelated(const std::vector<CalibrationAnalysis> &analyses, const std::string &sysErrorName);
+  
 }
 
 #endif
