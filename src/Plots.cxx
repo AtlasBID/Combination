@@ -397,6 +397,13 @@ namespace {
 
       c->Write();
       delete c;
+      delete h;
+
+      for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
+	delete h_itr->second;
+      }
+      
+
     }
 
     // Build a canvas that will contain the final plot of the fit results and the inputs and systematic
@@ -467,6 +474,7 @@ namespace {
 
     c->Write();
     delete c;
+
   }
 
   ///
