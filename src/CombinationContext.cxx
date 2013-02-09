@@ -479,6 +479,7 @@ namespace BTagCombination {
     ///
 
     vector<RooAbsPdf*> measurementGaussians;
+    vector<RooAddition*> toDeleteAddition;
     for (vector<Measurement*>::const_iterator imeas = gMeas.begin(); imeas != gMeas.end(); imeas++) {
       Measurement *m(*imeas);
 
@@ -501,6 +502,7 @@ namespace BTagCombination {
 
       string internalName = "InternalAddition" + m->Name();
       RooAddition *varSumed = new RooAddition (internalName.c_str(), internalName.c_str(), varAddition);
+      toDeleteAddition.push_back(varSumed);
 
       ///
       /// The actual variable and th esystematic error are also inputs into this
@@ -531,7 +533,6 @@ namespace BTagCombination {
     RooArgList products;
     for (vector<RooAbsPdf*>::iterator itr = measurementGaussians.begin(); itr != measurementGaussians.end(); itr++) {
       products.add(**itr);
-      //(*itr)->Print();
     }
 
     RooConstVar *zero = new RooConstVar("zero", "zero", 0.0);
@@ -577,7 +578,8 @@ namespace BTagCombination {
 
     if (_verbose)
       cout << "Starting the master fit..." << endl;
-    finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
+    RooFitResult *r = finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
+    delete r;
 
     ///
     /// Dump out the graph-viz tree
@@ -951,6 +953,9 @@ namespace BTagCombination {
 
     for (size_t i = 0; i < toDeleteGaussians.size(); i++) {
       delete toDeleteGaussians[i];
+    }
+    for (size_t i = 0; i < toDeleteAddition.size(); i++) {
+      delete toDeleteAddition[i];
     }
 
     //

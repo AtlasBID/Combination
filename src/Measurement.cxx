@@ -45,6 +45,7 @@ namespace BTagCombination {
     for (vector<RooConstVar*>::const_iterator itr = _widthCache.begin(); itr != _widthCache.end(); itr++) {
       delete *itr;
     }
+    delete _statError;
   }
 
   Measurement::Measurement(const string &measurementName, const string &what, const double val, const double statError)
