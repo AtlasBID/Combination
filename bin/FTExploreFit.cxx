@@ -421,7 +421,7 @@ int main (int argc, char **argv)
       if (rootClassDir.size() > 0)
 	outClassDir = FindRootSubDir (outDir, rootClassDir);
 
-      //DumpPlotResults (outClassDir->mkdir(fit->StudyDirName().c_str()), info, result);
+      DumpPlotResults (outClassDir->mkdir(fit->StudyDirName().c_str()), info, result);
     }
   }
 
