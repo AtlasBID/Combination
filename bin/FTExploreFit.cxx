@@ -186,6 +186,57 @@ namespace {
     string _studyDir;
   };
 
+  // Take a given systematic error and make it uncorrelated.
+  class MakeSysUncorrelatedFit : public FitTask {
+  public:
+    MakeSysUncorrelatedFit (int sysErrorsToAlter, const set<string> &errToRemove)
+      : _remove (errToRemove)
+    {
+
+      // Get the main directory name that will be used
+      ostringstream msg;
+      msg << "remove-" << sysErrorsToAlter << "-errors";
+      _dirName = msg.str();
+
+      // Next, the name of the study and the directory name for the study
+      ostringstream studyName, studyDir;
+      studyName << " with sys errors ";
+      bool first = true;
+
+      for (set<string>::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
+	if (!first) {
+	  studyName << ", ";
+	  studyDir << "-";
+	}
+	first = false;
+
+	studyName << *itr;
+	studyDir << Normalize(*itr);
+      }
+      studyName << " made uncorrelated";
+      _studyName = studyName.str();
+      _studyDir = studyDir.str();
+    }
+
+    string UserTitle () const { return _studyName; }
+    string StudyClassDirName (void) const { return _dirName; }
+    string StudyDirName (void) const { return _studyDir; }
+
+    CalibrationInfo GetAnalyses (const CalibrationInfo &info) const {
+      CalibrationInfo missingInfo (info);
+      for (set<string>::const_iterator itr = _remove.begin(); itr != _remove.end(); itr++) {
+	missingInfo.Analyses = makeSysErrorUncorrelated (missingInfo.Analyses, *itr);
+      }
+      return missingInfo;
+    }
+
+  private:
+    const set<string> _remove;
+    string _dirName;
+    string _studyName;
+    string _studyDir;
+  };
+
   // We are given a set of bin names (or objects, whatever) - as long as they are listed in a
   // set. We will then will return a list of them to remove, numberToRemove at a time.
   template <typename ST>
@@ -226,6 +277,7 @@ int main (int argc, char **argv)
 
   vector<int> removeBins;
   vector<int> removeSys;
+  vector<int> uncorSys;
   bool verbose = false;
 
   try {
@@ -243,6 +295,11 @@ int main (int argc, char **argv)
 	int r;
 	buf >> r;
 	removeSys.push_back(r);
+      } else if (itr->find("uncorrelated-sys-") == 0) {
+	istringstream buf (itr->substr(17).c_str());
+	int r;
+	buf >> r;
+	uncorSys.push_back(r);
       } else if (*itr == "verbose") {
 	verbose = true;
       } else {
@@ -328,6 +385,19 @@ int main (int argc, char **argv)
     }
 
     //
+    // Systematic errors uncorrelated?
+    //
+
+    for (vector<int>::const_iterator i_sys = uncorSys.begin(); i_sys != uncorSys.end(); i_sys++) {
+
+      // Get the remove list for this one.
+      set<set<string> > binPerm (permutationsWithoutNItems (allSysErrors, *i_sys));
+      for (set<set<string> >::const_iterator i_p = binPerm.begin(); i_p != binPerm.end(); i_p++) {
+	fits.push_back (new MakeSysUncorrelatedFit (*i_sys, *i_p));
+      }
+    }
+
+    //
     // Now that all the fits are queued up, time to run them!
     //
 
@@ -351,7 +421,7 @@ int main (int argc, char **argv)
       if (rootClassDir.size() > 0)
 	outClassDir = FindRootSubDir (outDir, rootClassDir);
 
-      DumpPlotResults (outClassDir->mkdir(fit->StudyDirName().c_str()), info, result);
+      //DumpPlotResults (outClassDir->mkdir(fit->StudyDirName().c_str()), info, result);
     }
   }
 
