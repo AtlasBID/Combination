@@ -41,6 +41,7 @@ int main (int argc, char **argv)
     bool doNames = false;
     bool doQNames = false;
     bool printAsInput = false;
+    bool printCorr = false;
 
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "check") {
@@ -56,6 +57,8 @@ int main (int argc, char **argv)
 	doNames = false;
       } else if (otherFlags[i] == "asInput") {
 	printAsInput = true;
+      } else if (otherFlags[i] == "corr") {
+	printCorr = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
 	Usage();
@@ -64,6 +67,27 @@ int main (int argc, char **argv)
     }
 
     const vector<CalibrationAnalysis> &calibs(info.Analyses);
+
+    // Print out the correlation stuff
+    if (printCorr) {
+      for (size_t i_c = 0; i_c < info.Correlations.size(); i_c++) {
+	const AnalysisCorrelation &c(info.Correlations[i_c]);
+	for (size_t i_b = 0; i_b < c.bins.size(); i_b++) {
+	  BinCorrelation b (c.bins[i_b]);
+	  cout 
+	    << c.analysis1Name
+	    << ", " << c.analysis2Name
+	    << ", " << c.flavor
+	    << ", " << c.tagger
+	    << ", " << c.operatingPoint
+	    << ", " << c.jetAlgorithm
+	    << ", " << OPBinName(b.binSpec)
+	    << ", " << b.statCorrelation
+	    << endl;
+	}
+      }
+      return 0;
+    }
 
     // Dump out everything if asked
     if (printAsInput) {
@@ -257,4 +281,5 @@ void Usage(void)
   cout << "  --names - print out the names used for the --ignore command of everything" << endl;
   cout << "  --qnames - print out the names used in a fully qualified, and easily computer parsable format" << endl;
   cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
+  cout << "  --corr - print out the correlation inputs in a CSV command format" << endl;
 }
