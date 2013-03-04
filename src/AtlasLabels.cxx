@@ -108,6 +108,7 @@ void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *te
 
   Double_t tsize=0.03;
   TMarker * marker = new TMarker (x-(0.4*tsize),y,8);
+  marker->SetBit(kCanDelete);
   marker->SetMarkerColor(color);
   marker->SetNDC();
   marker->SetMarkerStyle(mstyle);
