@@ -11,6 +11,7 @@
 #include <set>
 #include <iostream>
 #include <stdexcept>
+#include <sstream>
 
 using namespace std;
 using namespace BTagCombination;
@@ -37,34 +38,42 @@ int main (int argc, char **argv)
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
     bool doCheck = false;
-    bool doDump = true;
+    bool doDump = false;
     bool doNames = false;
     bool doQNames = false;
     bool printAsInput = false;
     bool printCorr = false;
+    bool dumpMetaDataForCPU = false;
 
+    bool sawFlag = false;
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "check") {
 	doCheck = true;
-	doDump = false;
+	sawFlag = true;
       } else if (otherFlags[i] == "names") {
-	doDump = false;
 	doNames = true;
-	doQNames = false;
+	sawFlag = true;
       } else if (otherFlags[i] == "qnames") {
-	doDump = false;
 	doQNames = true;
-	doNames = false;
+	sawFlag = true;
       } else if (otherFlags[i] == "asInput") {
 	printAsInput = true;
+	sawFlag = true;
       } else if (otherFlags[i] == "corr") {
 	printCorr = true;
+	sawFlag = true;
+      } else if (otherFlags[i] == "meta") {
+	dumpMetaDataForCPU = true;
+	sawFlag = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
 	Usage();
 	return 1;
       }
     }
+
+    if (!sawFlag)
+      doDump = true;
 
     const vector<CalibrationAnalysis> &calibs(info.Analyses);
 
@@ -87,6 +96,24 @@ int main (int argc, char **argv)
 	}
       }
       return 0;
+    }
+
+    // Dump the meta data for the analysis that has run. We do this
+    // just one at a time. This is meant to be ready in by someone else
+    // and processed approprately.
+
+    if (dumpMetaDataForCPU) {
+      for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
+	const CalibrationAnalysis &c(calibs[i_a]);
+
+	stringstream bname;
+	bname << c.name << " ** " << c.flavor << " ** " << c.tagger << " ** " << c.operatingPoint << " ** " << c.jetAlgorithm << " ** ";
+
+	const map<string, double> &md (c.metadata);
+	for (map<string,double>::const_iterator i_md = md.begin(); i_md != md.end(); i_md++) {
+	  cout << bname.str() << i_md->first << " ** " << i_md->second << endl;
+	}
+      }
     }
 
     // Dump out everything if asked
