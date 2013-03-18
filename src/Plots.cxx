@@ -351,8 +351,8 @@ namespace {
 
       TH1F *h = new TH1F("sys", "",
 			 binlabels.size(), 0.0, binlabels.size());
-      h->SetMaximum(maxV*1.10);
-      h->SetMinimum(minV);
+      h->SetMaximum(maxV+fabs(maxV)*0.10);
+      h->SetMinimum(minV-fabs(minV)*0.10);
       h->SetStats(false);
       {
 	ostringstream buf;
@@ -377,8 +377,8 @@ namespace {
 
       for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
 	
-	h_itr->second->SetMaximum (maxV*1.10);
-	h_itr->second->SetMinimum (minV);
+	h_itr->second->SetMaximum (maxV+fabs(maxV)*0.10);
+	h_itr->second->SetMinimum (minV-fabs(minV)*0.10);
 
 	h_itr->second->SetMarkerStyle(markerID[m_index]);
 	h_itr->second->SetMarkerColor(colorID[m_index]);
@@ -415,8 +415,8 @@ namespace {
     TH1F *h = new TH1F("SF", "",
 		       binlabels.size(), 0.0, binlabels.size());
 
-    h->SetMinimum (yCentralTotMin * 0.9);
-    h->SetMaximum (yCentralTotMax * 1.1);
+    h->SetMinimum (yCentralTotMin-fabs(yCentralTotMin)*0.1);
+    h->SetMaximum (yCentralTotMax+fabs(yCentralTotMax)*0.1);
     h->SetStats(false);
 
     {
