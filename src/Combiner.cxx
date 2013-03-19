@@ -300,6 +300,9 @@ namespace BTagCombination
 	for (map<string,double>::const_iterator i_p = extraInfo._pulls.begin(); i_p != extraInfo._pulls.end(); i_p++) {
 	  r.metadata[string("Pull ") + i_p->first] = i_p->second;
 	}
+	for (map<string,double>::const_iterator i_p = extraInfo._nuisance.begin(); i_p != extraInfo._nuisance.end(); i_p++) {
+	  r.metadata[string("Nuisance ") + i_p->first] = i_p->second;
+	}
 	result.push_back(r);
       }
     }

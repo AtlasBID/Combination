@@ -655,7 +655,8 @@ namespace BTagCombination {
       RooRealVar *c (_systematicErrors.FindRooVar(*iVar));
       if (_verbose)
 	cout << " Sys " << *iVar << " pull: " << c->getVal() << " +- " << c->getError() << endl;
-      _extraInfo._pulls[*iVar] = c->getVal();
+      _extraInfo._nuisance[*iVar] = c->getVal();
+      _extraInfo._pulls[*iVar] = c->getVal()/c->getError();
     }
 
     ///

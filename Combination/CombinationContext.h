@@ -36,6 +36,7 @@ namespace BTagCombination {
       double _ndof; // The degrees of freedom
 
       std::map<std::string, double> _pulls; // Pulls from the fit.
+      std::map<std::string, double> _nuisance; // Nuisance from the fit.
 
       void clear();
     };
