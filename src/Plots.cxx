@@ -10,6 +10,8 @@
 #include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TH1F.h"
+#include "TObject.h"
+#include "TStyle.h"
 
 #include <map>
 #include <cmath>
@@ -532,12 +534,93 @@ namespace {
     }
   }
 
+  pair<int, double> inc_average_counter (pair<int, double> v, double inc)
+  {
+    return make_pair (v.first + 1, v.second + inc);
+  }
+
+  ///
+  /// Put a pull plot into the output
+  ///
+  void GeneratePullPlot (TDirectory *out, const CalibrationAnalysis &ana)
+  {
+    map<string, pair<int, double> > pulls;
+    for(map<string, double>::const_iterator i = ana.metadata.begin(); i != ana.metadata.end(); i++) {
+      string name (i->first);
+      if (name.find("Pull ") == 0) {
+	name = name.substr(5);
+	if (name.find("Correlated") != 0) {
+
+	  // These are split, so we need to deal with getting the proper name.
+	  if (name.find("UNCORBIN-") == 0) {
+	    name = name.substr(9);
+	    size_t e = name.find("-**");
+	    name = name.substr(0, e);
+	  }
+
+	  if (pulls.find(name) != pulls.end()) {
+	    pulls[name] = make_pair(0, 0.0);
+	  }
+	  pulls[name] = inc_average_counter (pulls[name], i->second);
+	}
+      }
+    }
+
+    // Now, build the histo
+
+    TH1F *h = new TH1F (("pull_" + ana.name).c_str(), ("Pulls for fit " + ana.name).c_str(),
+			pulls.size(), 0.0, pulls.size());
+    h->SetDirectory(0);
+    
+    TAxis *a = h->GetXaxis();
+    int ibin = 1;
+    for (map<string, pair<int, double> >::const_iterator i = pulls.begin(); i != pulls.end(); i++, ibin++) {
+      a->SetBinLabel(ibin, i->first.c_str());
+      double value = i->second.second / ((double)i->second.first);
+      h->SetBinContent(ibin, value);
+    }
+    a->LabelsOption("v");
+
+    h->SetFillColor(4);
+    h->SetStats(0);
+    h->SetMinimum(-2.0);
+    h->SetMaximum(2.0);
+
+    TCanvas *c = new TCanvas(("pull_" + ana.name).c_str(), ("Pull for " + ana.name).c_str());
+    c->SetBottomMargin(0.55);
+
+    h->Draw(); // We really want hbar here, but it doesn't quite work when filling in a histo
+    c->SetGrid();
+
+    out->cd();
+    c->Write();
+    delete c;
+    delete h;
+  }
+
+
+  ///
+  /// Generate the plots that are global to a single analysis
+  ///
+  void GenerateAnalysisPlots (TDirectory *out, const CalibrationAnalysis &ana)
+  {
+    GeneratePullPlot (out, ana);
+  }
+
   ///
   /// Split plots up by binning
   ///
   void GenerateCommonAnalysisPlots (TDirectory *out,
 				    const vector<CalibrationAnalysis> &anas)
   {
+    //
+    // Do the plots that are for a single analysis
+    //
+
+    for (size_t i = 0; i < anas.size(); i++) {
+      GenerateAnalysisPlots (out, anas[i]);
+    }
+
     // Get a list of all the axes that we have for bins, and the binning.
     t_BinSet binAxes;
     for (unsigned int i = 0; i < anas.size(); i++) {
