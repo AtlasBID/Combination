@@ -92,7 +92,7 @@ namespace {
       } else {
 	out->cd();
 	TObject *o = k->ReadObj();
-	out->WriteTObject(o, k->GetName());
+	out->WriteTObject(o, k->GetName(), "SingleKey");
       }
     }
   }
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     loc = get_sub_dir(loc, c.operatingPoint);
     loc = get_sub_dir(loc, convert_flavor(c.flavor));
 
-    loc->WriteTObject(container);
+    loc->WriteTObject(container, 0, "SingleKey");
 
     if (isAMatch(info.Defaults, c)) {
       CalibrationDataContainer *def_c = ConvertToCDI (c, "default_SF");
