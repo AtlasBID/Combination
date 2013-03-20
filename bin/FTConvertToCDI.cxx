@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 
     if (isAMatch(info.Defaults, c)) {
       CalibrationDataContainer *def_c = ConvertToCDI (c, "default_SF");
-      loc->WriteTObject(def_c);
+      loc->WriteTObject(def_c, 0, "SingleKey");
     }
   }
 
