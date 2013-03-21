@@ -258,10 +258,10 @@ namespace BTagCombination {
   //
   // What are the good measruements? Return them.
   //
-  vector<Measurement*> CombinationContextBase::GoodMeasurements(vector<Measurement*> &all)
+  vector<Measurement*> CombinationContextBase::GoodMeasurements(void)
   {
     vector<Measurement*> gMeas;
-    for (vector<Measurement*>::const_iterator imeas = all.begin(); imeas != all.end(); imeas++) {
+    for (vector<Measurement*>::const_iterator imeas = _measurements.begin(); imeas != _measurements.end(); imeas++) {
       if (!(*imeas)->doNotUse())
 	gMeas.push_back(*imeas);
     }
@@ -335,7 +335,7 @@ namespace BTagCombination {
     map<string, double> result;
 
     // Get the sub-set of measurements that we can use.
-    vector<Measurement*> gMeas (GoodMeasurements(_measurements));
+    vector<Measurement*> gMeas (GoodMeasurements());
 
     // Catalog them by what is being measured.
     map<string, vector<Measurement*> > byItem;

@@ -81,12 +81,12 @@ namespace BTagCombination {
   protected:
     // Helper method that scans the intenral list of measruements to get
     // a list of the good ones (i.e. that are participating in the fit).
-    std::vector<Measurement*> GoodMeasurements(std::vector<Measurement*> &all);
+    std::vector<Measurement*> GoodMeasurements(void);
 
     // Is this sys error connected by this measurement?
     bool sysErrorUsedBy(const std::string &sysErrName, const std::string &what);
 
-  private:
+    // Cache is shared between machines.
     ExtraFitInfo _extraInfo;
 
     // Keep track of all the measurements.
@@ -94,10 +94,6 @@ namespace BTagCombination {
 
     // Keep track fo all the systematic errors between the various measurements.
     RooRealVarCache _systematicErrors;
-
-    // Keep a list of all measurements
-    std::vector<Measurement*> _measurements;
-
 
     // Keep a list of the correlations we are dealing with so we can put them back
     // together after a fit!
@@ -108,6 +104,11 @@ namespace BTagCombination {
       std::string _sharedSysName;
     };
     std::vector<CorrInfo> _correlations;
+
+  private:
+
+    // Keep a list of all measurements
+    std::vector<Measurement*> _measurements;
   };
 
   // Dump a fit result out.
