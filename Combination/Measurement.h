@@ -20,6 +20,7 @@ class RooProduct;
 
 namespace BTagCombination {
   class CombinationContext;
+  class CombinationContextBase;
 
   class Measurement
   {
@@ -86,6 +87,7 @@ namespace BTagCombination {
   private:
     /// The context is allowed access to everything.
     friend class CombinationContext;
+    friend class CombinationContextBase;
 
     /// Only the Context can create a new measurement.
     Measurement(const std::string &measurementName, const std::string &what, const double val, const double statError);
