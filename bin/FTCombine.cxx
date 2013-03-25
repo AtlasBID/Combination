@@ -26,10 +26,21 @@ int main (int argc, char **argv)
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
     bool verbose = false;
+    bool doProfile = true;
+    bool doBinByBin = false;
+    string prefix = "";
 
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "verbose") {
 	verbose = true;
+      } else if (otherFlags[i] == "profile") {
+	doProfile = true;
+	doBinByBin = false;
+      } else if (otherFlags[i] == "binbybin") {
+	doProfile = false;
+	doBinByBin = true;
+      } else if (otherFlags[i].substr(0, 6) == "prefix") {
+	prefix = otherFlags[i].substr(6);
       } else {
 	usage();
 	return 1;
@@ -43,8 +54,19 @@ int main (int argc, char **argv)
     }
 
     // Now that we have the calibrations, just combine them!
-    vector<CalibrationAnalysis> result (CombineAnalyses(info));
+    vector<CalibrationAnalysis> result;
+    if (doProfile) {
+      result = CombineAnalyses(info);
+    } else {
+      result = CombineAnalyses(info, true, kCombineBySingleBin);
+    }
     
+    if (prefix != "") {
+      for (vector<CalibrationAnalysis>::iterator itr = result.begin(); itr != result.end(); itr++) {
+	itr->name = prefix + itr->name;
+      }
+    }
+
     // Dump them out to an output file.
     ofstream out ("combined.txt");
     for (unsigned int i = 0; i < result.size(); i++) {
@@ -61,5 +83,5 @@ int main (int argc, char **argv)
 
 void usage (void)
 {
-  cerr << "Usage: FTCombine <files, --ignore> --verbose" << endl;
+  cerr << "Usage: FTCombine <files, --ignore> --verbose [--profile | --binbybin] --prefixXXX" << endl;
 }
