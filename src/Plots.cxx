@@ -542,13 +542,13 @@ namespace {
   ///
   /// Put a pull plot into the output
   ///
-  void GenerateMetaDataListPlot (TDirectory *out, const CalibrationAnalysis &ana,
+  void GenerateMetaDataListPlot (TDirectory *out, const map<string,double> &metadata,
 				 const string &meta_name_prefix,
-				 const string &th1_name_prefix,
-				 const string &th1_title_prefix)
+				 const string &th1_name,
+				 const string &th1_title)
   {
     map<string, pair<int, double> > pulls;
-    for(map<string, double>::const_iterator i = ana.metadata.begin(); i != ana.metadata.end(); i++) {
+    for(map<string, double>::const_iterator i = metadata.begin(); i != metadata.end(); i++) {
       string name (i->first);
       if (name.find(meta_name_prefix) == 0) {
 	name = name.substr(meta_name_prefix.size());
@@ -573,7 +573,7 @@ namespace {
 
     if (pulls.size() > 0) {
 
-      TH1F *h = new TH1F ((th1_name_prefix + ana.name).c_str(), (th1_title_prefix + ana.name).c_str(),
+      TH1F *h = new TH1F (th1_name.c_str(), th1_title.c_str(),
 			  pulls.size(), 0.0, pulls.size());
       h->SetDirectory(0);
     
@@ -591,7 +591,7 @@ namespace {
       h->SetMinimum(-2.0);
       h->SetMaximum(2.0);
 
-      TCanvas *c = new TCanvas((th1_name_prefix + ana.name).c_str(), (th1_title_prefix + ana.name).c_str());
+      TCanvas *c = new TCanvas(th1_name.c_str(), th1_title.c_str());
       c->SetBottomMargin(0.55);
 
       h->Draw(); // We really want hbar here, but it doesn't quite work when filling in a histo
@@ -610,8 +610,8 @@ namespace {
   ///
   void GenerateAnalysisPlots (TDirectory *out, const CalibrationAnalysis &ana)
   {
-    GenerateMetaDataListPlot(out, ana, "Pull ", "pull_", "Pulls for fit ");
-    GenerateMetaDataListPlot(out, ana, "Nuisance ", "nuisance_", "Nuisance values for fit ");
+    GenerateMetaDataListPlot(out, ana.metadata, "Pull ", "pull_" + ana.name, "Pulls for fit " + ana.name);
+    GenerateMetaDataListPlot(out, ana.metadata, "Nuisance ", "nuisance_" + ana.name, "Nuisance values for fit " + ana.name);
   }
 
   ///
