@@ -20,9 +20,16 @@ namespace BTagCombination
   // Given a list of analyses, combine them all at once!
   CalibrationAnalysis CombineSimilarAnalyses (std::vector<CalibrationAnalysis> &anas);
 
+  // Type of combination
+  enum CombinationType {
+    kCombineByFullAnalysis, // Combine the whole analysis, doing cross-bin correlations
+    kCombineBySingleBin // Combine each bin seperately from all other bins
+  };
+
   // Given a list of analses (diff jet alg, dif tags, dif, etc.), with bins all equal on boundaries,
   // combine them and return the total new combined analysis.
-  std::vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info, bool verbose = true);
+  std::vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info, bool verbose = true,
+						    CombinationType combineType = kCombineByFullAnalysis);
 }
 
 #endif

@@ -5,6 +5,7 @@
 
 #include "Combination/Combiner.h"
 #include "Combination/BinBoundaryUtils.h"
+#include "Combination/BinUtils.h"
 #include "Combination/CombinationContext.h"
 #include "Combination/Measurement.h"
 #include "Combination/CommonCommandLineUtils.h"
@@ -138,7 +139,9 @@ namespace {
     }
     return result;
   }
-
+  
+  // Nice way of sorting analyses for fitting.
+  typedef map<string, vector<CalibrationAnalysis> > t_anaMap;
 }
 
 namespace BTagCombination
@@ -223,15 +226,103 @@ namespace BTagCombination
     return result;
   }
 
-  // Given a list of analyses, sort them, and combine everything, and return
-  // all the new ones.
-  vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info, bool verbose)
+  // Merge the meta data from all the analyses into the current meta data stream.
+  void MergeMetadata (map<string,double> &meta, const vector<CalibrationAnalysis> &anas)
   {
-    //
-    // First step, divide up the analyses by fittable catagory
-    //
+    for(vector<CalibrationAnalysis>::const_iterator i_ana = anas.begin(); i_ana != anas.end(); i_ana++) {
+      for(map<string,double>::const_iterator i_m = i_ana->metadata.begin(); i_m != i_ana->metadata.end(); i_m++) {
+	string name (i_m->first);
+	if (i_ana->name != "") {
+	  name = name + " (from " + i_ana->name + ")";
+	}
+	int index = 0;
+	while (meta.find(name) != meta.end()) {
+	  if (meta[name] == i_m->second)
+	    break;
+	  index++;
+	  ostringstream n;
+	  n << name << " " << index;
+	  name = n.str();
+	}
+	meta[name] = i_m->second;
+      }
+    }
+  }
 
-    typedef map<string, vector<CalibrationAnalysis> > t_anaMap;
+  // We plunk everythign we are given here into a single context, and return the new
+  // fit.
+  CalibrationAnalysis CombineAnalysesInOneContext(const vector<CalibrationAnalysis> &anas,
+				   const vector<AnalysisCorrelation> &correlations,
+				   const string &resultFitName,
+				   bool verbose)
+  {
+    CombinationContext ctx;
+    ctx.SetVerbose(verbose);
+    map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, anas, "", verbose);
+      
+    // We make an assumption about the fit name here, and the way the fit is being done (const over flavor, tag, OP).
+    string fitName = anas[0].flavor
+      + ":" + anas[0].tagger
+      + ":" + anas[0].operatingPoint;
+
+    // Now, go look for any correlations that might apply here.
+    for (size_t i_cor = 0; i_cor < correlations.size(); i_cor++) {
+      for (size_t i_cbin = 0; i_cbin < correlations[i_cor].bins.size(); i_cbin++) {
+	const BinCorrelation &bin(correlations[i_cor].bins[i_cbin]);
+	pair<string, string> aNames (OPIgnoreCorrelatedFormat(correlations[i_cor], bin));
+
+	Measurement *m1 = ctx.FindMeasurement(aNames.first);
+	Measurement *m2 = ctx.FindMeasurement(aNames.second);
+
+	if (m1 == 0 || m2 == 0) {
+	  if (!(m1 == 0 && m2 == 0)) {
+	    ostringstream out;
+	    out << "Both analyses not present for correlation " << OPFullName(correlations[i_cor]) << " - but at least one is!";
+	    throw runtime_error (out.str());
+	  }
+	  continue;
+	}
+
+	if (verbose)
+	  cout << "--> Adding correlation " << OPIgnoreFormat(correlations[i_cor], bin)
+	       << std::endl;
+
+	//
+	// Now, do the correlations
+	//
+
+	if (bin.hasStatCorrelation) {
+	  ctx.AddCorrelation("statistical", m1, m2, bin.statCorrelation);
+	}
+      }
+    }
+      
+    // Do the fit.
+    map<string, CombinationContext::FitResult> fitResult = ctx.Fit(fitName);
+    CombinationContext::ExtraFitInfo extraInfo = ctx.GetExtraFitInformation();
+
+    // Dummy analysis that we will fill in with the results.
+    CalibrationAnalysis r(anas[0]);
+    r.name = resultFitName;
+
+    r.bins = ExtractBinsResult(bins, fitResult);
+    r.metadata.clear();
+    r.metadata["gchi2"] = extraInfo._globalChi2;
+    r.metadata["gndof"] = extraInfo._ndof;
+    for (map<string,double>::const_iterator i_p = extraInfo._pulls.begin(); i_p != extraInfo._pulls.end(); i_p++) {
+      r.metadata[string("Pull ") + i_p->first] = i_p->second;
+    }
+    for (map<string,double>::const_iterator i_p = extraInfo._nuisance.begin(); i_p != extraInfo._nuisance.end(); i_p++) {
+      r.metadata[string("Nuisance ") + i_p->first] = i_p->second;
+    }
+
+    MergeMetadata (r.metadata, anas);
+    return r;
+  }
+
+  // Do the combination, doing everythign accross bins.
+  vector<CalibrationAnalysis> CombineAnalysesAllBins (const CalibrationInfo &info, bool verbose)
+  {
     t_anaMap binnedAnalyses (BinAnalysesByJetTagFlavOp(info.Analyses));
 
     //
@@ -242,73 +333,82 @@ namespace BTagCombination
     vector<CalibrationAnalysis> result;
     for(t_anaMap::const_iterator i_ana = binnedAnalyses.begin(); i_ana != binnedAnalyses.end(); i_ana++) {
       if (i_ana->second.size() > 1) {
-	CombinationContext ctx;
-	ctx.SetVerbose(verbose);
-	map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, i_ana->second, "", verbose);
-      
-	string fitName = i_ana->second[0].flavor
-	  + ":" + i_ana->second[0].tagger
-	  + ":" + i_ana->second[0].operatingPoint;
+	CalibrationAnalysis r (CombineAnalysesInOneContext(i_ana->second,
+							   info.Correlations,
+							   info.CombinationAnalysisName,
+							   verbose));
 
-	// Now, go look for any correlations that might apply here.
-	for (size_t i_cor = 0; i_cor < info.Correlations.size(); i_cor++) {
-	  for (size_t i_cbin = 0; i_cbin < info.Correlations[i_cor].bins.size(); i_cbin++) {
-	    const BinCorrelation &bin(info.Correlations[i_cor].bins[i_cbin]);
-	    pair<string, string> aNames (OPIgnoreCorrelatedFormat(info.Correlations[i_cor],
-								  bin));
-
-	    Measurement *m1 = ctx.FindMeasurement(aNames.first);
-	    Measurement *m2 = ctx.FindMeasurement(aNames.second);
-
-	    //cout << "  m1 = " << m1 << " m2 = " << m2 << endl;
-
-	    if (m1 == 0 || m2 == 0) {
-	      if (!(m1 == 0 && m2 == 0)) {
-		ostringstream out;
-		out << "Both analyses not present for correlation " << OPFullName(info.Correlations[i_cor]) << " - but at least one is!";
-		throw runtime_error (out.str());
-	      }
-	      continue;
-	    }
-
-	    if (verbose)
-	      cout << "--> Adding correlation " << OPIgnoreFormat(info.Correlations[i_cor], bin)
-		   << std::endl;
-
-	    //
-	    // Now, do the correlations
-	    //
-
-	    if (bin.hasStatCorrelation) {
-	      //cout << "  Stat Correlation is " << bin.statCorrelation << endl;
-	      ctx.AddCorrelation("statistical", m1, m2, bin.statCorrelation);
-	    }
-	  }
-	}
-      
-	// Do the fit.
-	map<string, CombinationContext::FitResult> fitResult = ctx.Fit(fitName);
-	CombinationContext::ExtraFitInfo extraInfo = ctx.GetExtraFitInformation();
-
-	// Dummy analysis that we will fill in with the results.
-	CalibrationAnalysis r(i_ana->second[0]);
-	r.name = info.CombinationAnalysisName;
-	r.bins = ExtractBinsResult(bins, fitResult);
-	r.metadata.clear();
-	r.metadata["gchi2"] = extraInfo._globalChi2;
-	r.metadata["gndof"] = extraInfo._ndof;
-	for (map<string,double>::const_iterator i_p = extraInfo._pulls.begin(); i_p != extraInfo._pulls.end(); i_p++) {
-	  r.metadata[string("Pull ") + i_p->first] = i_p->second;
-	}
-	for (map<string,double>::const_iterator i_p = extraInfo._nuisance.begin(); i_p != extraInfo._nuisance.end(); i_p++) {
-	  r.metadata[string("Nuisance ") + i_p->first] = i_p->second;
-	}
 	result.push_back(r);
       }
     }
 
     return result;
   }
+
+  // Merge the resulting analyses. Assume all bins are mutually exclusive, undefine result
+  // if that isn't the case!
+  CalibrationAnalysis MergeAnalyses(const vector<CalibrationAnalysis> &anas, string anaName)
+  {
+    CalibrationAnalysis ana(anas[0]);
+    ana.bins.clear();
+    ana.metadata.clear();
+    ana.name = anaName;
+
+    for (vector<CalibrationAnalysis>::const_iterator itr = anas.begin(); itr != anas.end(); itr++) {
+      for (vector<CalibrationBin>::const_iterator i_bin = itr->bins.begin(); i_bin != itr->bins.end(); i_bin++) {
+	ana.bins.push_back(*i_bin);
+      }
+    }
+    MergeMetadata(ana.metadata, anas);
+
+    return ana;
+  }
+
+  // Do the fits bin-by-bin.
+  vector<CalibrationAnalysis> CombineAnalysesByBin (const CalibrationInfo &info, bool verbose)
+  {
+    // Split this list of analyses by bin, do the fit, and then recombine.
+    t_anaMap analysesInCommon (BinAnalysesByJetTagFlavOp(info.Analyses));
+    vector<CalibrationAnalysis> result;
+    for(t_anaMap::const_iterator i_ana = analysesInCommon.begin(); i_ana != analysesInCommon.end(); i_ana++) {
+      if (i_ana->second.size() > 1) {
+	set<set<CalibrationBinBoundary> > allBins (listAllBins(i_ana->second));
+	vector<CalibrationAnalysis> binByBinFits;
+	for (set<set<CalibrationBinBoundary> >::const_iterator i_bin = allBins.begin(); i_bin != allBins.end(); i_bin++) {
+	  vector<CalibrationAnalysis> anaForBin (removeAllBinsButBin(i_ana->second, *i_bin));
+	  
+	  CalibrationAnalysis r (CombineAnalysesInOneContext(anaForBin,
+							     info.Correlations,
+							     "",
+							     verbose));
+	  binByBinFits.push_back(r);
+	}
+	result.push_back(MergeAnalyses(binByBinFits, info.CombinationAnalysisName));
+      }
+    }    
+
+    return result;
+  }
+
+  //
+  // Master entry to do the fitting. Shell routine that calls out depending on the type of fit
+  // desired.
+  //
+  vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info, bool verbose, CombinationType combineType)
+  {
+    switch(combineType) {
+    case kCombineByFullAnalysis:
+      return CombineAnalysesAllBins(info, verbose);
+
+    case kCombineBySingleBin:
+      return CombineAnalysesByBin (info, verbose);
+
+    default:
+      throw runtime_error ("Unknown combination type!");
+      break;
+    }
+  }
+
 
 }
 

@@ -43,6 +43,8 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTwoWeirdBins );
 
   CPPUNIT_TEST ( testAnaDifOne );
+  CPPUNIT_TEST ( testAnaDifOneByBin );
+  CPPUNIT_TEST ( testAnaTwoBinsByBin );
   //CPPUNIT_TEST ( testAnaDifTwoSameBins );
   //CPPUNIT_TEST ( testAnaDifTwoDifAndSameBins );
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor );
@@ -50,9 +52,13 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor3 );
 
   CPPUNIT_TEST ( testAnaTwoSameBinsStatCor );
+  CPPUNIT_TEST ( testAnaTwoSameBinsStatCorByBin );
   CPPUNIT_TEST ( testAnaTwoSameBinsStatCorBad );
 
   CPPUNIT_TEST ( testAnaTwoDifBinsNoFit );
+
+  CPPUNIT_TEST ( testAnaTrackMetadataByBin );
+  CPPUNIT_TEST ( testAnaTrackMetadata );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -626,6 +632,66 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());
   }
 
+  void testAnaTwoSameBinsStatCorByBin()
+  {
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 1.0;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    AnalysisCorrelation c1;
+    c1.analysis1Name = "s8";
+    c1.analysis2Name = "ptrel";
+    c1.flavor = "bottom";
+    c1.tagger = "comb";
+    c1.operatingPoint = "0.50";
+    c1.jetAlgorithm = "AntiKt4Topo";
+
+    BinCorrelation bc1;
+    bc1.hasStatCorrelation = true;
+    bc1.statCorrelation = 1.0;
+    bc1.binSpec.push_back(bound);
+    c1.bins.push_back(bc1);
+
+    CalibrationInfo info;
+    info.Analyses.push_back (ana1);
+    info.Analyses.push_back (ana2);
+    info.Correlations.push_back(c1);
+
+    setupRoo();
+    vector<CalibrationAnalysis> result (CombineAnalyses(info, true, kCombineBySingleBin));
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.size());
+
+    CalibrationBin b (result[0].bins[0]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), b.binSpec.size());
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, b.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, b.centralValueStatisticalError, 0.001);
+
+    // Make sure the systematic errors that came back are "good" too.
+    CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());
+  }
+
   void testAnaTwoSameBinsStatCorBad()
   {
     // Combine with statistical correlation - but the correlation is bad.
@@ -755,6 +821,236 @@ class CombinerTest : public CppUnit::TestFixture
     SystematicError e2 (b_2.systematicErrors[0]);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e1.value, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e2.value, 0.01);
+  }
+
+  void testAnaTwoBinsByBin()
+  {
+    // Two analyses, and 2 bins in each.
+    // Combine by bin, shoudl ignore any correlation
+    // with sys errors.
+
+    cout << "Starting testAnaTwoBinsByBin" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationBin b2;
+    b2.centralValue = 0.75;
+    b2.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound2;
+    bound2.variable = "eta";
+    bound2.lowvalue = 2.5;
+    bound2.highvalue = 5.0;
+    b2.binSpec.push_back(bound2);
+
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+    b2.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+    ana1.bins.push_back(b2);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs, true, kCombineBySingleBin));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_EQUAL (string("combined"), result.name);
+    CPPUNIT_ASSERT_EQUAL (string("bottom"), result.flavor);
+    CPPUNIT_ASSERT_EQUAL (string("comb"), result.tagger);
+    CPPUNIT_ASSERT_EQUAL (string("0.50"), result.operatingPoint);
+    CPPUNIT_ASSERT_EQUAL (string("AntiKt4Topo"), result.jetAlgorithm);
+    CPPUNIT_ASSERT_EQUAL (size_t(2), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CalibrationBin b_2 (result.bins[1]);
+    CPPUNIT_ASSERT_EQUAL (size_t(1), b_1.binSpec.size());
+    CPPUNIT_ASSERT_EQUAL (size_t(1), b_2.binSpec.size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_1.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.75, b_2.centralValue, 0.01);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1/sqrt(2), b_1.centralValueStatisticalError, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1/sqrt(2), b_2.centralValueStatisticalError, 0.001);
+
+    CPPUNIT_ASSERT_EQUAL(size_t(1), b_1.systematicErrors.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), b_2.systematicErrors.size());
+    SystematicError e1 (b_1.systematicErrors[0]);
+    SystematicError e2 (b_2.systematicErrors[0]);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e1.value, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e2.value, 0.001);
+    cout << "Finishing testAnaTwoBinsByBin" << endl;
+
+  }
+
+  void testAnaTrackMetadataByBin()
+  {
+    // Two analyses, and 2 bins in each.
+    // Combine by bin, shoudl ignore any correlation
+    // with sys errors. Make sure that meta data flows correclty.
+
+    cout << "Starting testAnaTrackMetadataByBin" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationBin b2;
+    b2.centralValue = 0.75;
+    b2.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound2;
+    bound2.variable = "eta";
+    bound2.lowvalue = 2.5;
+    bound2.highvalue = 5.0;
+    b2.binSpec.push_back(bound2);
+
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+    b2.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+    ana1.bins.push_back(b2);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    ana1.metadata["m1"] = 5.0;
+    ana1.metadata["m3"] = 6.0;
+    ana2.metadata["m2"] = 7.0;
+    ana2.metadata["m3"] = 10.0;
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs, true, kCombineBySingleBin));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.metadata["m1 (from s8)"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(6.0, result.metadata["m3 (from s8)"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(7.0, result.metadata["m2 (from ptrel)"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(10.0, result.metadata["m3 (from ptrel)"], 0.001);
+  }
+
+  void testAnaTrackMetadata()
+  {
+    // Two analyses, and 2 bins in each.
+    // Combine by bin, shoudl ignore any correlation
+    // with sys errors. Make sure that meta data flows correclty.
+
+    cout << "Starting testAnaTrackMetadataByBin" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationBin b2;
+    b2.centralValue = 0.75;
+    b2.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound2;
+    bound2.variable = "eta";
+    bound2.lowvalue = 2.5;
+    bound2.highvalue = 5.0;
+    b2.binSpec.push_back(bound2);
+
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+    b2.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+    ana1.bins.push_back(b2);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    ana1.metadata["m1"] = 5.0;
+    ana1.metadata["m3"] = 6.0;
+    ana2.metadata["m2"] = 7.0;
+    ana2.metadata["m3"] = 10.0;
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.metadata["m1 (from s8)"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(6.0, result.metadata["m3 (from s8)"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(7.0, result.metadata["m2 (from ptrel)"], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(10.0, result.metadata["m3 (from ptrel)"], 0.001);
   }
 
   void testAnaTwoWeirdBins()
@@ -915,6 +1211,41 @@ class CombinerTest : public CppUnit::TestFixture
 
     setupRoo();
     vector<CalibrationAnalysis> results (CombineAnalyses(info));
+    CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
+  }
+
+  void testAnaDifOneByBin()
+  {
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana;
+    ana.name = "s8";
+    ana.flavor = "bottom";
+    ana.tagger = "comb";
+    ana.operatingPoint = "0.50";
+    ana.jetAlgorithm = "AntiKt4Topo";
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana);
+
+    CalibrationInfo info;
+    info.Analyses = inputs;
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(info, true, kCombineBySingleBin));
     CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
   }
 

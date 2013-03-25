@@ -14,6 +14,7 @@
 #include <RooMsgService.h>
 #include <TFile.h>
 #include <TKey.h>
+#include <Compression.h>
 
 #include <algorithm>
 #include <sstream>
@@ -326,7 +327,7 @@ int main (int argc, char **argv)
   // We will store the outputs in file.
   //
 
-  TFile *outputPlots = TFile::Open("explore.root", "RECREATE");
+  TFile *outputPlots = TFile::Open("explore.root", "RECREATE", "Fit Exploration Output", ROOT::CompressionSettings(ROOT::kLZMA, 9));
 
   // What we do can only be done by looking at one fit at a time. So we
   // have to split everything by flavor, tagger, op, and jet algorithm.

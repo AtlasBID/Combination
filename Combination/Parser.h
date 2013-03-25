@@ -385,7 +385,6 @@ namespace BTagCombination
 
     // The resulting combination should be stored as this analysis name.
     std::string CombinationAnalysisName;
-
   };
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {

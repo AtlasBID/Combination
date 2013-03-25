@@ -26,6 +26,8 @@ class BinUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testRemoveBin );
   CPPUNIT_TEST( testRemoveOnlyBins );
 
+  CPPUNIT_TEST( testRemoveAllButBinMetadata );
+  CPPUNIT_TEST( testRemoveBinMetadata );
   CPPUNIT_TEST_SUITE_END();
 
   void testListNoBins()
@@ -133,6 +135,68 @@ class BinUtilsTest : public CppUnit::TestFixture
     const CalibrationAnalysis a1 (r[0]);
     CPPUNIT_ASSERT_EQUAL ((size_t) 1, a1.bins.size());
     CPPUNIT_ASSERT_DOUBLES_EQUAL (4.0, a1.bins[0].binSpec[0].highvalue, 0.1);
+  }
+
+  void testRemoveBinMetadata()
+  {
+    CalibrationAnalysis ana;
+
+    CalibrationBin b;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b.binSpec.push_back(bound);
+    ana.bins.push_back(b);
+
+    b.binSpec[0].lowvalue = 2.5;
+    b.binSpec[0].highvalue = 4.0;
+    ana.bins.push_back(b);
+
+    ana.metadata["m1"] = 10.0;
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+    anas.push_back(ana);
+
+    set<CalibrationBinBoundary> boundset;
+    boundset.insert(bound);
+    vector<CalibrationAnalysis> r (removeBin(anas, boundset));
+
+    CPPUNIT_ASSERT_EQUAL ((size_t) 2, r.size());
+    CalibrationAnalysis a1 (r[0]);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (10.0, a1.metadata["m1"], 0.1);
+  }
+
+  void testRemoveAllButBinMetadata()
+  {
+    CalibrationAnalysis ana;
+
+    CalibrationBin b;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b.binSpec.push_back(bound);
+    ana.bins.push_back(b);
+
+    b.binSpec[0].lowvalue = 2.5;
+    b.binSpec[0].highvalue = 4.0;
+    ana.bins.push_back(b);
+
+    ana.metadata["m1"] = 10.0;
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+    anas.push_back(ana);
+
+    set<CalibrationBinBoundary> boundset;
+    boundset.insert(bound);
+    vector<CalibrationAnalysis> r (removeAllBinsButBin(anas, boundset));
+
+    CPPUNIT_ASSERT_EQUAL ((size_t) 2, r.size());
+    CalibrationAnalysis a1 (r[0]);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (10.0, a1.metadata["m1"], 0.1);
   }
 
   void testRemoveOnlyBins()
