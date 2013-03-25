@@ -233,15 +233,17 @@ namespace BTagCombination
       for(map<string,double>::const_iterator i_m = i_ana->metadata.begin(); i_m != i_ana->metadata.end(); i_m++) {
 	string name (i_m->first);
 	if (i_ana->name != "") {
-	  name = name + " (from " + i_ana->name + ")";
+	  name = name + " [from " + i_ana->name + "]";
 	}
+	string bname (name);
+
 	int index = 0;
 	while (meta.find(name) != meta.end()) {
 	  if (meta[name] == i_m->second)
 	    break;
 	  index++;
 	  ostringstream n;
-	  n << name << " " << index;
+	  n << bname << " " << index;
 	  name = n.str();
 	}
 	meta[name] = i_m->second;
@@ -379,7 +381,7 @@ namespace BTagCombination
 	  
 	  CalibrationAnalysis r (CombineAnalysesInOneContext(anaForBin,
 							     info.Correlations,
-							     "",
+							     OPBinName(*i_bin),
 							     verbose));
 	  binByBinFits.push_back(r);
 	}

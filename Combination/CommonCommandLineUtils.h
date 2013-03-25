@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 namespace BTagCombination {
 
@@ -29,6 +30,7 @@ namespace BTagCombination {
   std::string OPFullName (const AliasAnalysis &ana);
   std::string OPBinName (const CalibrationBin &bin);
   std::string OPBinName (const std::vector<CalibrationBinBoundary> &binspec);
+  std::string OPBinName (const std::set<CalibrationBinBoundary> &binspec);
   std::string OPBinName (const BinCorrelation &bin);
   std::string OPIgnoreFormat(const CalibrationAnalysis &ana, const CalibrationBin &bin);
   std::string OPIgnoreFormat(const AnalysisCorrelation &ana, const BinCorrelation &bin);

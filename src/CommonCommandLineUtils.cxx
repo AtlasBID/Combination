@@ -393,6 +393,22 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  string OPBinName (const set<CalibrationBinBoundary> &binspec)
+  {
+    ostringstream msg;
+    bool first = true;
+    for (set<CalibrationBinBoundary>::const_iterator i = binspec.begin(); i != binspec.end(); i++) {
+      if (!first)
+	msg << ":";
+      first = false;
+
+      msg << i->lowvalue
+	  << "-" << i->variable
+	  << "-" << i->highvalue;
+    }
+    return msg.str();
+  }
+
   string OPBinName (const BinCorrelation &bin)
   {
     ostringstream msg;

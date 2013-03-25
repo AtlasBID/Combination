@@ -605,6 +605,23 @@ namespace {
   }
 
 
+  //
+  // Extract all the from claues from the list of 
+  set<string> ExtractAllFromClauses(const map<string,double> &meta)
+  {
+    set<string> result;
+    for (map<string,double>::const_iterator itr = meta.begin(); itr != meta.end(); itr++) {
+      size_t itx = itr->first.find("[from");
+      if (itx != string::npos) {
+	string fromClause = itr->first.substr(itx+1);
+	fromClause = fromClause.substr(5, fromClause.size()-1-5);
+	result.insert(fromClause);
+      }
+    }
+
+    return result;
+  }
+
   ///
   /// Generate the plots that are global to a single analysis
   ///
@@ -612,6 +629,25 @@ namespace {
   {
     GenerateMetaDataListPlot(out, ana.metadata, "Pull ", "pull_" + ana.name, "Pulls for fit " + ana.name);
     GenerateMetaDataListPlot(out, ana.metadata, "Nuisance ", "nuisance_" + ana.name, "Nuisance values for fit " + ana.name);
+
+    // Pull out the systematic errors so we can see what happens bin-by-bin for pulls and nuisance parameters
+
+    set<string> fromClauses (ExtractAllFromClauses(ana.metadata));
+    for (set<string>::const_iterator fc = fromClauses.begin(); fc != fromClauses.end(); fc++) {
+      string fcSearch (string("[from ") + *fc + "]");
+      map<string, double> skimmed_metadata;
+      for(map<string,double>::const_iterator md = ana.metadata.begin(); md != ana.metadata.end(); md++) {
+	size_t index = md->first.find(fcSearch);
+	if (index != string::npos) {
+	  string name(md->first.substr(0, index-1));
+	  skimmed_metadata[name] = md->second;
+	}
+      }
+
+      GenerateMetaDataListPlot(out, skimmed_metadata, "Pull ", "pull_" + ana.name + *fc, "Pulls for fit " + ana.name + " [" + *fc + "]");
+      GenerateMetaDataListPlot(out, skimmed_metadata, "Nuisance ", "nuisance_" + ana.name + *fc, "Nuisancs values for fit " + ana.name + " [" + *fc + "]");
+    }
+
   }
 
   ///

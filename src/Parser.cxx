@@ -213,7 +213,7 @@ struct NameStringParser : qi::grammar<Iterator, std::string(), ascii::space_type
     using qi::lexeme;
     using ascii::char_;
 
-    string allChars("-_a-zA-Z0-9+:.*/!=");
+    string allChars("-_a-zA-Z0-9+:.*/!=][");
 
     quoted %= '"'
       > lexeme[*qi::char_(allChars + ", ")]
