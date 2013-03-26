@@ -44,6 +44,12 @@ namespace {
   const double c_binYStart = 0.85;
   const double c_binYDelta = 0.05;
   
+  //const int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
+  const int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 20, 30, 40, 21, 31, 41,
+			   12, 22, 32, 42, 13, 23, 33, 43, 14, 24, 34, 44,
+			   15, 25, 35, 45, 16, 26, 36, 46, 17, 27, 37, 47,
+			   18, 28, 38, 48, 19, 29, 39, 49
+  };
 
   ///
   /// Many of these routines could be moved into the global namespace if their
@@ -108,6 +114,63 @@ namespace {
     return left.second->GetBinContent(1) < right.second->GetBinContent(1);
   }
 
+  // Plot the plots.
+  void stack_sys_error_plots (vector<pair<string,TH1F*> > &plots, const string &fitname,
+			      const string &name_modifier = "",
+			      const string &title_modifier = "")
+  {
+      ostringstream name, title;
+      name << "ana_sys_" << fitname << name_modifier;
+      title << "Systematic Error " << title_modifier << "(\\sigma^{2}) for " << fitname << " SFs; ; \\sigma^{2}";
+
+
+    // Now that they are sorted, color them for "easy" viewing.
+
+    int index = 0;
+    int nColor = sizeof(colorID)/sizeof(int);
+    for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
+      ip->second->SetLineColor(colorID[index % nColor]);
+      ip->second->SetFillColor(colorID[index % nColor]);
+      index++;
+    }
+
+    THStack *h = new THStack (name.str().c_str(), title.str().c_str());
+
+    for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
+      h->Add(ip->second);
+    }
+
+    // The legends. So many sys errors, split them up in three.
+    vector<TLegend*> legends;
+    float xmin = 0.19;
+    float xmax = 0.39;
+    float ymin = 0.45;
+    float ymax = 0.92;
+    legends.push_back(new TLegend(xmin, ymin, xmax, ymax));
+    legends.push_back(new TLegend(xmin+0.2, ymin, xmax+0.2, ymax));
+    legends.push_back(new TLegend(xmin+0.4, ymin, xmax+0.4, ymax));
+
+    float divisor = plots.size() / (float)legends.size();
+
+    int counter = 0;
+    for(vector<pair<string,TH1F*> >::const_reverse_iterator ip = plots.rbegin(); ip != plots.rend(); ip++) {
+      legends[(int)(counter/divisor)]->AddEntry(ip->second, ip->first.c_str(), "f");
+      counter++;
+    }
+
+    TCanvas *c = new TCanvas(name.str().c_str(), title.str().c_str());
+    h->Draw();
+    for(vector<TLegend*>::const_iterator l = legends.begin(); l != legends.end(); l++)
+      (*l)->Draw();
+
+    //
+    // Write everything out and clean it up.
+    //
+
+    c->Write();
+    delete c;
+  }
+
   ///
   /// Actually generate the plots for a particular bin
   ///
@@ -119,7 +182,6 @@ namespace {
     out -> cd();
 
     int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
-    int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
 
     // Some setup and defs that make life simpler below.
     string binName (axisBins.begin()->variable);
@@ -342,17 +404,16 @@ namespace {
 
     // Build a canvas for each analysis with a stacked histo
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlotsByAna.begin(); itr != sysErrorPlotsByAna.end(); itr++) {
-      ostringstream name, title;
-      name << "ana_sys_" << itr->first;
-      title << "Systematic Error(\\sigma^{2}) for " << itr->first << " SFs; ; \\sigma^{2}";
 
       // Square them and sort by size.
       vector<pair<string,TH1F*> > plots;
+      map<int,double> total_error2;
       for(vector<pair<string,TH1F*> >::const_iterator ip = itr->second.begin(); ip != itr->second.end(); ip++) {
 	TH1F *h2 = static_cast<TH1F*>(ip->second->Clone());
 	for (int i = 1; i <= h2->GetNbinsX(); i++) {
 	  double bc = h2->GetBinContent(i);
 	  h2->SetBinContent(i, bc*bc);
+	  total_error2[i] += bc*bc;
 	}
 
 	TAxis *a = h2->GetXaxis();
@@ -365,56 +426,28 @@ namespace {
 
       sort (plots.begin(), plots.end(), CompareHistoPairs);
 
-      // Now that they are sorted, color them for "easy" viewing.
+      // Filter out a second list that contains only plots that make up
+      // 5% or more of the total error squared.
 
-      int index = 0;
-      int nColor = sizeof(colorID)/sizeof(int);
+      vector<pair<string,TH1F*> > plots_filtered_by_size;
       for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-	ip->second->SetLineColor(colorID[index % nColor]);
-	ip->second->SetFillColor(colorID[index % nColor]);
-	index++;
-      }
+	bool above_threshold = false;
+	for (int i = 1; i <= ip->second->GetNbinsX(); i++) {
+	  if (ip->second->GetBinContent(i) > 0.05*total_error2[i]) {
+	    above_threshold = true;
+	    plots_filtered_by_size.push_back(*ip);
+	    break;
+	  }
+	}
+      }      
 
-      THStack *h = new THStack (name.str().c_str(), title.str().c_str());
-
-      for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-	h->Add(ip->second);
-      }
-
-      // The legends. So many sys errors, split them up in three.
-      vector<TLegend*> legends;
-      float xmin = 0.19;
-      float xmax = 0.39;
-      float ymin = 0.45;
-      float ymax = 0.92;
-      legends.push_back(new TLegend(xmin, ymin, xmax, ymax));
-      legends.push_back(new TLegend(xmin+0.2, ymin, xmax+0.2, ymax));
-      legends.push_back(new TLegend(xmin+0.4, ymin, xmax+0.4, ymax));
-
-      float divisor = plots.size() / (float)legends.size();
-
-      int counter = 0;
-      for(vector<pair<string,TH1F*> >::const_reverse_iterator ip = plots.rbegin(); ip != plots.rend(); ip++) {
-	legends[(int)(counter/divisor)]->AddEntry(ip->second, ip->first.c_str(), "f");
-	counter++;
-      }
-
-      TCanvas *c = new TCanvas(name.str().c_str(), title.str().c_str());
-      h->Draw();
-      for(vector<TLegend*>::const_iterator l = legends.begin(); l != legends.end(); l++)
-	(*l)->Draw();
-
-      //
-      // Write everything out and clean it up.
-      //
-
-      c->Write();
-      delete c;
+      stack_sys_error_plots (plots, itr->first);
+      stack_sys_error_plots (plots_filtered_by_size, itr->first,
+			     "_5p", "> 5% of Total ");
 
       for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
 	delete ip->second;
       }
-
     }
 
     // Build a canvas that will store each systematic error, all plotted on top of each other.
