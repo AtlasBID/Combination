@@ -369,9 +369,7 @@ namespace {
 
       int index = 0;
       int nColor = sizeof(colorID)/sizeof(int);
-      cout << "Number of colors is " << nColor << endl;
       for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-	cout << "Using color " << index % nColor << endl;
 	ip->second->SetLineColor(colorID[index % nColor]);
 	ip->second->SetFillColor(colorID[index % nColor]);
 	index++;
@@ -397,7 +395,6 @@ namespace {
 
       int counter = 0;
       for(vector<pair<string,TH1F*> >::const_reverse_iterator ip = plots.rbegin(); ip != plots.rend(); ip++) {
-	cout << "Legend index " << (int)(counter/divisor) << endl;
 	legends[(int)(counter/divisor)]->AddEntry(ip->second, ip->first.c_str(), "f");
 	counter++;
       }
@@ -407,8 +404,17 @@ namespace {
       for(vector<TLegend*>::const_iterator l = legends.begin(); l != legends.end(); l++)
 	(*l)->Draw();
 
+      //
+      // Write everything out and clean it up.
+      //
+
       c->Write();
       delete c;
+
+      for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
+	delete ip->second;
+      }
+
     }
 
     // Build a canvas that will store each systematic error, all plotted on top of each other.
