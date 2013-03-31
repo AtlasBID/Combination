@@ -577,9 +577,10 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.Analyses.size() == 1);
     CalibrationAnalysis ana = result.Analyses[0];
     CPPUNIT_ASSERT_EQUAL((size_t)1, ana.metadata.size());
-    pair<string, double> v = *(ana.metadata.begin());
+    pair<string, vector<double> > v = *(ana.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, v.second.size());
     CPPUNIT_ASSERT_EQUAL(string("ISR FSR"), v.first);
-    CPPUNIT_ASSERT_EQUAL(-0.1, v.second);
+    CPPUNIT_ASSERT_EQUAL(-0.1, v.second[0]);
   }
 
   void testParseMetadata2()
@@ -607,9 +608,10 @@ class ParserTest : public CppUnit::TestFixture
     CalibrationInfo result2 (Parse(buffer.str()));
  
     CalibrationAnalysis ana(result2.Analyses[0]);
-    pair<string, double> v = *(ana.metadata.begin());
+    pair<string, vector<double> > v = *(ana.metadata.begin());
     CPPUNIT_ASSERT_EQUAL(string("junk"), v.first);
-    CPPUNIT_ASSERT_EQUAL(0.2, v.second);
+    CPPUNIT_ASSERT_EQUAL((size_t)1, v.second.size());
+    CPPUNIT_ASSERT_EQUAL(0.2, v.second[0]);
   }
 
   void testParseRoundTrip7()
@@ -624,9 +626,10 @@ class ParserTest : public CppUnit::TestFixture
     CalibrationInfo result2 (Parse(buffer.str()));
  
     CalibrationAnalysis ana(result2.Analyses[0]);
-    pair<string, double> v = *(ana.metadata.begin());
+    pair<string, vector<double> > v = *(ana.metadata.begin());
     CPPUNIT_ASSERT_EQUAL(string("junk,f"), v.first);
-    CPPUNIT_ASSERT_EQUAL(0.2, v.second);
+    CPPUNIT_ASSERT_EQUAL((size_t)1, v.second.size());
+    CPPUNIT_ASSERT_EQUAL(0.2, v.second[0]);
   }
 
   void testParseRoundTrip4()

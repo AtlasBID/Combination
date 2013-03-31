@@ -410,7 +410,7 @@ int main (int argc, char **argv)
       cout << "Doing fit " << fit->UserTitle() << endl;
       vector<CalibrationAnalysis> result (CombineAnalyses(info, verbose));
 
-      double chi2 = result[0].metadata["gchi2"]/result[0].metadata["gndof"];
+      double chi2 = result[0].metadata["gchi2"][0]/result[0].metadata["gndof"][0];
       cout << "  chi2/ndof = " << chi2 << endl;
 
       // Analysis directory. There are two levels, one, what we are investigating,

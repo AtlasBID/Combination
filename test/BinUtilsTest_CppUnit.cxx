@@ -153,7 +153,7 @@ class BinUtilsTest : public CppUnit::TestFixture
     b.binSpec[0].highvalue = 4.0;
     ana.bins.push_back(b);
 
-    ana.metadata["m1"] = 10.0;
+    ana.metadata["m1"].push_back(10.0);
 
     vector<CalibrationAnalysis> anas;
     anas.push_back(ana);
@@ -165,7 +165,7 @@ class BinUtilsTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL ((size_t) 2, r.size());
     CalibrationAnalysis a1 (r[0]);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (10.0, a1.metadata["m1"], 0.1);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (10.0, a1.metadata["m1"][0], 0.1);
   }
 
   void testRemoveAllButBinMetadata()
@@ -184,7 +184,7 @@ class BinUtilsTest : public CppUnit::TestFixture
     b.binSpec[0].highvalue = 4.0;
     ana.bins.push_back(b);
 
-    ana.metadata["m1"] = 10.0;
+    ana.metadata["m1"].push_back(10.0);
 
     vector<CalibrationAnalysis> anas;
     anas.push_back(ana);
@@ -196,7 +196,7 @@ class BinUtilsTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_EQUAL ((size_t) 2, r.size());
     CalibrationAnalysis a1 (r[0]);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (10.0, a1.metadata["m1"], 0.1);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (10.0, a1.metadata["m1"][0], 0.1);
   }
 
   void testRemoveOnlyBins()

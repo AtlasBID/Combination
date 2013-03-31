@@ -227,10 +227,10 @@ namespace BTagCombination
   }
 
   // Merge the meta data from all the analyses into the current meta data stream.
-  void MergeMetadata (map<string,double> &meta, const vector<CalibrationAnalysis> &anas)
+  void MergeMetadata (map<string,vector<double> > &meta, const vector<CalibrationAnalysis> &anas)
   {
     for(vector<CalibrationAnalysis>::const_iterator i_ana = anas.begin(); i_ana != anas.end(); i_ana++) {
-      for(map<string,double>::const_iterator i_m = i_ana->metadata.begin(); i_m != i_ana->metadata.end(); i_m++) {
+      for(map<string,vector<double> >::const_iterator i_m = i_ana->metadata.begin(); i_m != i_ana->metadata.end(); i_m++) {
 	string name (i_m->first);
 	if (i_ana->name != "") {
 	  name = name + " [from " + i_ana->name + "]";
@@ -309,13 +309,13 @@ namespace BTagCombination
 
     r.bins = ExtractBinsResult(bins, fitResult);
     r.metadata.clear();
-    r.metadata["gchi2"] = extraInfo._globalChi2;
-    r.metadata["gndof"] = extraInfo._ndof;
+    r.metadata["gchi2"].push_back(extraInfo._globalChi2);
+    r.metadata["gndof"].push_back(extraInfo._ndof);
     for (map<string,double>::const_iterator i_p = extraInfo._pulls.begin(); i_p != extraInfo._pulls.end(); i_p++) {
-      r.metadata[string("Pull ") + i_p->first] = i_p->second;
+      r.metadata[string("Pull ") + i_p->first].push_back(i_p->second);
     }
     for (map<string,double>::const_iterator i_p = extraInfo._nuisance.begin(); i_p != extraInfo._nuisance.end(); i_p++) {
-      r.metadata[string("Nuisance ") + i_p->first] = i_p->second;
+      r.metadata[string("Nuisance ") + i_p->first].push_back(i_p->second);
     }
 
     MergeMetadata (r.metadata, anas);

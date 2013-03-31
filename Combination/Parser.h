@@ -199,6 +199,7 @@ namespace BTagCombination
 	out << b.binSpec[i];
       }
     }
+
     CalibrationBin::gForNextPrinting = CalibrationBin::kFullInfo;
 
     return out;
@@ -219,7 +220,7 @@ namespace BTagCombination
 
     std::vector<CalibrationBin> bins; // List of bins with the actual 
 
-    std::map<std::string, double> metadata; // Meta data that we might pull along. Basically a property bag.
+    std::map<std::string, std::vector<double> > metadata; // Meta data that we might pull along. Basically a property bag, with a list of numbers.
   };
 
   //
@@ -236,11 +237,14 @@ namespace BTagCombination
 	<< std::endl;
     for (unsigned int i = 0; i < ana.bins.size(); i++)
       out << "  " << ana.bins[i] << std::endl;
-    for (std::map<std::string, double>::const_iterator itr = ana.metadata.begin(); itr != ana.metadata.end(); itr++) {
+    for (std::map<std::string, std::vector<double> >::const_iterator itr = ana.metadata.begin(); itr != ana.metadata.end(); itr++) {
       std::string t (itr->first);
       if (t.find(',') != std::string::npos)
 	t = "\"" + t + "\"";
-      out << "  meta_data (" << t << ", " << itr->second << ")" << std::endl;
+      out << "  meta_data (" << t;
+      for (size_t i = 0; i < itr->second.size(); i++)
+	out << ", " << itr->second[i];
+      out << ")" << std::endl;
     }
     out << "}" << std::endl;
     return out;

@@ -230,10 +230,10 @@ namespace {
       if (seenAnaNames.find(anaName) == seenAnaNames.end()) {
 	seenAnaNames.insert(anaName);
 	anaNames.push_back(anaName);
-	map<string, double>::const_iterator i_chi2 = anas[ia].metadata.find("gchi2");
-	map<string, double>::const_iterator i_ndof = anas[ia].metadata.find("gndof");
+	map<string, vector<double> >::const_iterator i_chi2 = anas[ia].metadata.find("gchi2");
+	map<string, vector<double> >::const_iterator i_ndof = anas[ia].metadata.find("gndof");
 	if (i_chi2 != anas[ia].metadata.end()) {
-	  anaChi2.push_back((i_chi2->second)/(i_ndof->second));
+	  anaChi2.push_back((i_chi2->second[0])/(i_ndof->second[0]));
 	} else {
 	  anaChi2.push_back(0.0);
 	}
@@ -662,13 +662,13 @@ namespace {
   ///
   /// Put a pull plot into the output
   ///
-  void GenerateMetaDataListPlot (TDirectory *out, const map<string,double> &metadata,
+  void GenerateMetaDataListPlot (TDirectory *out, const map<string, vector<double> > &metadata,
 				 const string &meta_name_prefix,
 				 const string &th1_name,
 				 const string &th1_title)
   {
     map<string, pair<int, double> > pulls;
-    for(map<string, double>::const_iterator i = metadata.begin(); i != metadata.end(); i++) {
+    for(map<string, vector<double> >::const_iterator i = metadata.begin(); i != metadata.end(); i++) {
       string name (i->first);
       if (name.find(meta_name_prefix) == 0) {
 	name = name.substr(meta_name_prefix.size());
@@ -684,7 +684,7 @@ namespace {
 	  if (pulls.find(name) != pulls.end()) {
 	    pulls[name] = make_pair(0, 0.0);
 	  }
-	  pulls[name] = inc_average_counter (pulls[name], i->second);
+	  pulls[name] = inc_average_counter (pulls[name], i->second[0]);
 	}
       }
     }
@@ -727,10 +727,10 @@ namespace {
 
   //
   // Extract all the from claues from the list of 
-  set<string> ExtractAllFromClauses(const map<string,double> &meta)
+  set<string> ExtractAllFromClauses(const map<string,vector<double> > &meta)
   {
     set<string> result;
-    for (map<string,double>::const_iterator itr = meta.begin(); itr != meta.end(); itr++) {
+    for (map<string,vector<double> >::const_iterator itr = meta.begin(); itr != meta.end(); itr++) {
       size_t itx = itr->first.find("[from");
       if (itx != string::npos) {
 	string fromClause = itr->first.substr(itx+1);
@@ -755,8 +755,8 @@ namespace {
     set<string> fromClauses (ExtractAllFromClauses(ana.metadata));
     for (set<string>::const_iterator fc = fromClauses.begin(); fc != fromClauses.end(); fc++) {
       string fcSearch (string("[from ") + *fc + "]");
-      map<string, double> skimmed_metadata;
-      for(map<string,double>::const_iterator md = ana.metadata.begin(); md != ana.metadata.end(); md++) {
+      map<string, vector<double> > skimmed_metadata;
+      for(map<string,vector<double> >::const_iterator md = ana.metadata.begin(); md != ana.metadata.end(); md++) {
 	size_t index = md->first.find(fcSearch);
 	if (index != string::npos) {
 	  string name(md->first.substr(0, index-1));

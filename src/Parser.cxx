@@ -369,8 +369,7 @@ struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
       start = lit("meta_data")
 	> '('
 	> name_string[bind(&metadata::SetName, _val, _1)] >> *qi::lit(' ')
-	> ','
-	> double_[bind(&metadata::SetValue, _val, _1)]
+	> +(',' > double_[bind(&metadata::SetValue, _val, _1)])
 	> ')';
     }
 
@@ -504,7 +503,7 @@ class CAHolder {
   inline void SetOP (const std::string &op) { result.operatingPoint = op; }
   inline void SetJet (const std::string &j) { result.jetAlgorithm = j; }
   inline void AddBin (const CalibrationBin &b) { result.bins.push_back(b); }
-  inline void AddMD (const metadata &m) { result.metadata[m.name] = m.value; }
+  inline void AddMD (const metadata &m) { result.metadata[m.name].push_back(m.value); }
 
   inline void Convert(CalibrationAnalysis &holder) { holder = result; }
 private:

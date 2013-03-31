@@ -109,9 +109,12 @@ int main (int argc, char **argv)
 	stringstream bname;
 	bname << c.name << " ** " << c.flavor << " ** " << c.tagger << " ** " << c.operatingPoint << " ** " << c.jetAlgorithm << " ** ";
 
-	const map<string, double> &md (c.metadata);
-	for (map<string,double>::const_iterator i_md = md.begin(); i_md != md.end(); i_md++) {
-	  cout << bname.str() << i_md->first << " ** " << i_md->second << endl;
+	const map<string, vector<double> > &md (c.metadata);
+	for (map<string,vector<double> >::const_iterator i_md = md.begin(); i_md != md.end(); i_md++) {
+	  cout << bname.str() << i_md->first << " **";
+	  for(vector<double>::const_iterator i_val = i_md->second.begin(); i_val != i_md->second.end(); i_val++)
+	    cout << *i_val << " ";
+	  cout << endl;
 	}
       }
     }

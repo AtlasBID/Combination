@@ -957,10 +957,10 @@ class CombinerTest : public CppUnit::TestFixture
     CalibrationAnalysis ana2 (ana1);
     ana2.name = "ptrel";
 
-    ana1.metadata["m1"] = 5.0;
-    ana1.metadata["m3"] = 6.0;
-    ana2.metadata["m2"] = 7.0;
-    ana2.metadata["m3"] = 10.0;
+    ana1.metadata["m1"].push_back(5.0);
+    ana1.metadata["m3"].push_back(6.0);
+    ana2.metadata["m2"].push_back(7.0);
+    ana2.metadata["m3"].push_back(10.0);
 
     CalibrationInfo inputs;
     inputs.Analyses.push_back (ana1);
@@ -976,10 +976,15 @@ class CombinerTest : public CppUnit::TestFixture
     cout << "Result: " << endl;
     cout << result << endl;
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.metadata["m1 (from s8)"], 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(6.0, result.metadata["m3 (from s8)"], 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(7.0, result.metadata["m2 (from ptrel)"], 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(10.0, result.metadata["m3 (from ptrel)"], 0.001);
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m1 [from s8] [from 0-eta-2.5]"].size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m3 [from s8] [from 0-eta-2.5]"].size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m2 [from ptrel] [from 0-eta-2.5]"].size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m3 [from ptrel] [from 0-eta-2.5]"].size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.metadata["m1 [from s8] [from 0-eta-2.5]"][0], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(6.0, result.metadata["m3 [from s8] [from 0-eta-2.5]"][0], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(7.0, result.metadata["m2 [from ptrel] [from 0-eta-2.5]"][0], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(10.0, result.metadata["m3 [from ptrel] [from 0-eta-2.5]"][0], 0.001);
   }
 
   void testAnaTrackMetadata()
@@ -1028,10 +1033,10 @@ class CombinerTest : public CppUnit::TestFixture
     CalibrationAnalysis ana2 (ana1);
     ana2.name = "ptrel";
 
-    ana1.metadata["m1"] = 5.0;
-    ana1.metadata["m3"] = 6.0;
-    ana2.metadata["m2"] = 7.0;
-    ana2.metadata["m3"] = 10.0;
+    ana1.metadata["m1"].push_back(5.0);
+    ana1.metadata["m3"].push_back(6.0);
+    ana2.metadata["m2"].push_back(7.0);
+    ana2.metadata["m3"].push_back(10.0);
 
     CalibrationInfo inputs;
     inputs.Analyses.push_back (ana1);
@@ -1047,10 +1052,15 @@ class CombinerTest : public CppUnit::TestFixture
     cout << "Result: " << endl;
     cout << result << endl;
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.metadata["m1 (from s8)"], 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(6.0, result.metadata["m3 (from s8)"], 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(7.0, result.metadata["m2 (from ptrel)"], 0.001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(10.0, result.metadata["m3 (from ptrel)"], 0.001);
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m1 [from s8]"].size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m3 [from s8]"].size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m2 [from ptrel]"].size());
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.metadata["m3 [from ptrel]"].size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, result.metadata["m1 [from s8]"][0], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(6.0, result.metadata["m3 [from s8]"][0], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(7.0, result.metadata["m2 [from ptrel]"][0], 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(10.0, result.metadata["m3 [from ptrel]"][0], 0.001);
   }
 
   void testAnaTwoWeirdBins()
