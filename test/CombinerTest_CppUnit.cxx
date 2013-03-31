@@ -39,7 +39,7 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTwoDifBinsDiffSys );
   //CPPUNIT_TEST_EXCPETION ( testAnaTwoBinsBad1, std::runtime_error );
   CPPUNIT_TEST ( testAnaTwoSamBins );
-
+  CPPUNIT_TEST ( testAnaTwoDiffFitMetaData );
   CPPUNIT_TEST ( testAnaTwoWeirdBins );
 
   CPPUNIT_TEST ( testAnaDifOne );
@@ -821,6 +821,61 @@ class CombinerTest : public CppUnit::TestFixture
     SystematicError e2 (b_2.systematicErrors[0]);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e1.value, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e2.value, 0.01);
+  }
+
+
+  void testAnaTwoDiffFitMetaData()
+  {
+    cout << "Starting testAnaTwoDiffFitMetaData" << endl;
+    // Simple fit, but make sure the meta data comes out as we expect.
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    SystematicError s1;
+    s1.name = "s1";
+    s1.value = 0.1;
+    b1.systematicErrors.push_back(s1);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+    ana2.bins[0].binSpec[0].lowvalue = 2.5;
+    ana2.bins[0].binSpec[0].highvalue = 4.5;
+    ana2.bins[0].centralValue = 1.0;
+    ana2.bins[0].centralValueStatisticalError = 0.2;
+    ana2.bins[0].systematicErrors[0].value = 0.2;
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana1);
+    inputs.push_back (ana2);
+
+    setupRoo();
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
+
+    cout << result << endl;
+
+    CalibrationBin b_1 (result.bins[0]);
+    CalibrationBin b_2 (result.bins[1]);
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_1.metadata["CV Shift s1"].first, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_2.metadata["CV Shift s1"].first, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_1.metadata["CV Shift s1"].second, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_2.metadata["CV Shift s1"].second, 0.001);
+
+    //CPPUNIT_ASSERT_EQUAL(size_t(1), result.metadata["Pull s1"].size());
+    //CPPUNIT_ASSERT_EQUAL(size_t(2), result.metadata["Nuisance s1"].size());
   }
 
   void testAnaTwoBinsByBin()

@@ -388,8 +388,7 @@ namespace BTagCombination {
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
       RooRealVar *c (_systematicErrors.FindRooVar(*iVar));
       if (_verbose)
-	cout << " Sys " << *iVar << " pull: " << c->getVal() << " +- " << c->getError() << endl;
-      _extraInfo._nuisance[*iVar] = c->getVal();
+      _extraInfo._nuisance[*iVar] = make_pair(c->getVal(), c->getError());
       _extraInfo._pulls[*iVar] = c->getVal()/c->getError();
     }
 
@@ -398,6 +397,7 @@ namespace BTagCombination {
     ///
 
     {
+#ifdef notyet
       TFile output ("output.root", "RECREATE");
 
       ///
@@ -432,6 +432,7 @@ namespace BTagCombination {
 	hRel->Scale(1.0/item->GetActualMeasurement()->getVal()*100.0);
 	hRel->Write();
       }
+#endif
 
       ///
       /// First, the measurements, with and w/out errors
@@ -529,7 +530,6 @@ namespace BTagCombination {
 
 	// Loop over all measurements. If the measurement knows about
 	// this systematic error, then extract a number from it.
-	//
 
 	for (size_t i_mn = 0; i_mn < allMeasureNames.size(); i_mn++) {
 	  const string &item(allMeasureNames[i_mn]);
@@ -552,11 +552,17 @@ namespace BTagCombination {
 	    result[item].sysErrors[sysErrorName] = errDiff;
 	    runningErrorXCheck[item] += errDiff*errDiff;
 
-	    sysErr->setConstant(false);
-	    sysErr->setVal(sysErrOldVal);
-	    sysErr->setError(sysErrOldError);
+	    // Save the change in the central value
+	    result[item].cvShifts[sysErrorName] = result[item].centralValue - m->getVal();
 	  }
 	}
+
+	// Restore the systematic errors to their former glory
+
+	sysErr->setConstant(false);
+	sysErr->setVal(sysErrOldVal);
+	sysErr->setError(sysErrOldError);
+
       }
 
       //

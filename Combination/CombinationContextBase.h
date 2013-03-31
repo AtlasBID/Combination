@@ -27,6 +27,7 @@ namespace BTagCombination {
       double statisticalError;
 
       std::map<std::string, double> sysErrors;
+      std::map<std::string, double> cvShifts;
     };
 
     class ExtraFitInfo
@@ -36,7 +37,7 @@ namespace BTagCombination {
       double _ndof; // The degrees of freedom
 
       std::map<std::string, double> _pulls; // Pulls from the fit.
-      std::map<std::string, double> _nuisance; // Nuisance from the fit.
+      std::map<std::string, std::pair<double, double> > _nuisance; // Nuisance from the fit, along with the error
 
       void clear();
     };

@@ -114,6 +114,11 @@ namespace {
 
       if (e.value != 0.0)
 	result.systematicErrors.push_back(e);
+
+      // And the central value change associated with this systematic error
+      map<string,double>::const_iterator cv_s = binResult.cvShifts.find(i_sys->first);
+      if (cv_s != binResult.cvShifts.end())
+	result.metadata["CV Shift " + e.name] = make_pair(cv_s->second, 0.0);
     }
 
     return result;
@@ -314,8 +319,9 @@ namespace BTagCombination
     for (map<string,double>::const_iterator i_p = extraInfo._pulls.begin(); i_p != extraInfo._pulls.end(); i_p++) {
       r.metadata[string("Pull ") + i_p->first].push_back(i_p->second);
     }
-    for (map<string,double>::const_iterator i_p = extraInfo._nuisance.begin(); i_p != extraInfo._nuisance.end(); i_p++) {
-      r.metadata[string("Nuisance ") + i_p->first].push_back(i_p->second);
+    for (map<string,pair<double,double> >::const_iterator i_p = extraInfo._nuisance.begin(); i_p != extraInfo._nuisance.end(); i_p++) {
+      r.metadata[string("Nuisance ") + i_p->first].push_back(i_p->second.first);
+      r.metadata[string("Nuisance ") + i_p->first].push_back(i_p->second.second);
     }
 
     MergeMetadata (r.metadata, anas);
