@@ -54,6 +54,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseRoundTrip6);
   CPPUNIT_TEST(testParseRoundTrip7);
   CPPUNIT_TEST(testParseRoundTrip8);
+  CPPUNIT_TEST(testParseRoundTrip9);
 
   CPPUNIT_TEST(testParseCorrelation);
   CPPUNIT_TEST(testParseCorrelation2);
@@ -66,6 +67,7 @@ class ParserTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST(testParseMetadata1);
   CPPUNIT_TEST(testParseMetadata2);
+  CPPUNIT_TEST(testParseMetadata3);
 
   CPPUNIT_TEST(testParseCopy);
   CPPUNIT_TEST(testParseCopy2);
@@ -596,6 +598,21 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(ana.metadata.find("ISR FSR") != ana.metadata.end());
   }
 
+  void testParseMetadata3()
+  {
+    cout << "Test testParseMetadata" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){meta_data (ISR FSR, -0.1, 5.1) bin(20<pt<30){central_value(0.5,0.01)}}"));
+    
+    CPPUNIT_ASSERT(result.Analyses.size() == 1);
+    CalibrationAnalysis ana = result.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.metadata.size());
+    pair<string, vector<double> > v = *(ana.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL((size_t)2, v.second.size());
+    CPPUNIT_ASSERT_EQUAL(string("ISR FSR"), v.first);
+    CPPUNIT_ASSERT_EQUAL(-0.1, v.second[0]);
+    CPPUNIT_ASSERT_EQUAL(5.1, v.second[1]);
+  }
+
   void testParseRoundTrip6()
   {
     cout << "Test testParseRoundTrip6" << endl;
@@ -630,6 +647,25 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("junk,f"), v.first);
     CPPUNIT_ASSERT_EQUAL((size_t)1, v.second.size());
     CPPUNIT_ASSERT_EQUAL(0.2, v.second[0]);
+  }
+
+  void testParseRoundTrip9()
+  {
+    cout << "Test testParseRoundTrip9" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}meta_data(junk, 0.2, 3.3)}"));
+    
+    ostringstream buffer;
+    //cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+ 
+    CalibrationAnalysis ana(result2.Analyses[0]);
+    pair<string, vector<double> > v = *(ana.metadata.begin());
+    CPPUNIT_ASSERT_EQUAL(string("junk"), v.first);
+    CPPUNIT_ASSERT_EQUAL((size_t)2, v.second.size());
+    CPPUNIT_ASSERT_EQUAL(0.2, v.second[0]);
+    CPPUNIT_ASSERT_EQUAL(3.3, v.second[1]);
   }
 
   void testParseRoundTrip4()

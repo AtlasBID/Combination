@@ -321,7 +321,7 @@ struct CentralValueParser : qi::grammar<Iterator, centralvalue(), ascii::space_t
 struct metadata
 {
   string name;
-  double value;
+  vector<double> value;
   double error;
 
   metadata()
@@ -334,7 +334,7 @@ struct metadata
   }
   void SetValue (const double v)
   {
-    value = v;
+    value.push_back(v);
   }
   void SetError (const double e)
   {
@@ -415,7 +415,7 @@ struct localCalibBin
       }
 
     for (unsigned int i = 0; i < metaData.size(); i++) {
-      result.metadata[metaData[i].name] = make_pair(metaData[i].value, metaData[i].error);
+      result.metadata[metaData[i].name] = make_pair(metaData[i].value[0], metaData[i].error);
     }
   }
 
@@ -503,7 +503,7 @@ class CAHolder {
   inline void SetOP (const std::string &op) { result.operatingPoint = op; }
   inline void SetJet (const std::string &j) { result.jetAlgorithm = j; }
   inline void AddBin (const CalibrationBin &b) { result.bins.push_back(b); }
-  inline void AddMD (const metadata &m) { result.metadata[m.name].push_back(m.value); }
+  inline void AddMD (const metadata &m) { result.metadata[m.name] = m.value; }
 
   inline void Convert(CalibrationAnalysis &holder) { holder = result; }
 private:
