@@ -111,17 +111,24 @@ namespace {
   // Ordering for historams based on the size in their first bin.
   bool CompareHistoPairs (const pair<string, TH1F*> &left, const pair<string, TH1F*> &right)
   {
-    return left.second->GetBinContent(1) < right.second->GetBinContent(1);
+    for (int i = 1; i <= left.second->GetNbinsX(); i++) {
+      if (fabs(left.second->GetBinContent(i)) != fabs(right.second->GetBinContent(i)))
+	return fabs(left.second->GetBinContent(i)) < fabs(right.second->GetBinContent(i));
+    }
+    return false;
   }
 
   // Plot the plots.
   void stack_sys_error_plots (vector<pair<string,TH1F*> > &plots, const string &fitname,
 			      const string &name_modifier = "",
-			      const string &title_modifier = "")
+			      const string &title_modifier = "",
+			      const string &base_name = "ana_sys_",
+			      const string &base_title = "Systematic Error (\\sigma^{2})",
+			      const string &yaxis_title = "\\sigma^{2}")
   {
       ostringstream name, title;
-      name << "ana_sys_" << fitname << name_modifier;
-      title << "Systematic Error " << title_modifier << "(\\sigma^{2}) for " << fitname << " SFs; ; \\sigma^{2}";
+      name << base_name << fitname << name_modifier;
+      title << base_title << title_modifier << " for " << fitname << " SFs; ; " << yaxis_title;
 
 
     // Now that they are sorted, color them for "easy" viewing.
@@ -134,21 +141,65 @@ namespace {
       index++;
     }
 
-    THStack *h = new THStack (name.str().c_str(), title.str().c_str());
+    //
+    // Build the stack. We have to build a postiive and negative stack. The ROOT code
+    // can't deal, correctly, with histograms that have both postivie and negative components
+    // in them.
+    //
+
+    THStack *hpos = new THStack (name.str().c_str(), title.str().c_str());
+    THStack *hneg = new THStack (name.str().c_str(), title.str().c_str());
+
+    double maxV = 0;
+    double minV = 0;
 
     for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-      h->Add(ip->second);
+      double lmax = ip->second->GetMaximum();
+      double lmin = ip->second->GetMinimum();
+      if (lmax > 0)
+	maxV += lmax;
+      if (lmin < 0)
+	minV += lmin;
+
+      // Clone the histogram, and zero out everything that is postiive or negative
+      TH1F* hp = static_cast<TH1F*>(ip->second->Clone());
+      TH1F* hn = static_cast<TH1F*>(ip->second->Clone());
+      for (int ib = 1; ib <= hp->GetNbinsX(); ib++) {
+	double bc = hp->GetBinContent(ib);
+	if (bc > 0) {
+	  hn->SetBinContent(ib, 0.0);
+	} else {
+	  hp->SetBinContent(ib, 0.0);
+	}
+      }
+      hpos->Add(hp);
+      hneg->Add(hn);
     }
 
+    hpos->SetMaximum(maxV+fabs(maxV)*0.1);
+    hpos->SetMinimum(minV-fabs(minV)*0.1);
+    hneg->SetMaximum(maxV+fabs(maxV)*0.1);
+    hneg->SetMinimum(minV-fabs(minV)*0.1);
+
+    //
     // The legends. So many sys errors, split them up in three.
+    //
+
     vector<TLegend*> legends;
     float xmin = 0.19;
     float xmax = 0.39;
     float ymin = 0.45;
     float ymax = 0.92;
-    legends.push_back(new TLegend(xmin, ymin, xmax, ymax));
-    legends.push_back(new TLegend(xmin+0.2, ymin, xmax+0.2, ymax));
-    legends.push_back(new TLegend(xmin+0.4, ymin, xmax+0.4, ymax));
+
+    int nLegends = (int) (plots.size()/15.0);
+    if (nLegends > 3)
+      nLegends = 3;
+    if (nLegends == 0)
+      nLegends = 1;
+
+    for (int il = 0; il < nLegends; il++) {
+      legends.push_back(new TLegend(xmin+0.2*il, ymin, xmax+0.2*il, ymax));
+    }
 
     float divisor = plots.size() / (float)legends.size();
 
@@ -159,7 +210,8 @@ namespace {
     }
 
     TCanvas *c = new TCanvas(name.str().c_str(), title.str().c_str());
-    h->Draw();
+    hpos->Draw();
+    hneg->Draw("SAME");
     for(vector<TLegend*>::const_iterator l = legends.begin(); l != legends.end(); l++)
       (*l)->Draw();
 
@@ -169,6 +221,64 @@ namespace {
 
     c->Write();
     delete c;
+  }
+
+  //
+  // Given a set of named plots organized by analysis, produce a stacked histogram of each one.
+  //
+  void plot_stacked_by_ana(map<string, vector<pair<string, TH1F*> > > &plotsByAna, const vector<string> &binlabels,
+			   bool squareit, const string &base_name, const string &base_title, const string &yaxis_title)
+  {
+    for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = plotsByAna.begin(); itr != plotsByAna.end(); itr++) {
+
+      // Square them and sort by size.
+      vector<pair<string,TH1F*> > plots;
+      map<int,double> total_error2;
+      for(vector<pair<string,TH1F*> >::const_iterator ip = itr->second.begin(); ip != itr->second.end(); ip++) {
+	TH1F *h2 = static_cast<TH1F*>(ip->second->Clone());
+	for (int i = 1; i <= h2->GetNbinsX(); i++) {
+	  double bc = h2->GetBinContent(i);
+	  if (squareit) {
+	    bc = bc*bc;
+	    h2->SetBinContent(i, bc);
+	  }
+	  total_error2[i] += fabs(bc);
+	}
+
+	TAxis *a = h2->GetXaxis();
+	for (size_t ib = 0; ib < binlabels.size(); ib++) {
+	  a->SetBinLabel(ib+1, binlabels[ib].c_str());
+	}
+
+	plots.push_back(make_pair(ip->first, h2));
+      }
+
+      sort (plots.begin(), plots.end(), CompareHistoPairs);
+
+      // Filter out a second list that contains only plots that make up
+      // 5% or more of the total error squared.
+
+      vector<pair<string,TH1F*> > plots_filtered_by_size;
+      for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
+	bool above_threshold = false;
+	for (int i = 1; i <= ip->second->GetNbinsX(); i++) {
+	  if (fabs(ip->second->GetBinContent(i)) > 0.05*total_error2[i]) {
+	    above_threshold = true;
+	    plots_filtered_by_size.push_back(*ip);
+	    break;
+	  }
+	}
+      }      
+
+      stack_sys_error_plots (plots, itr->first, "", "", base_name, base_title, yaxis_title);
+      stack_sys_error_plots (plots_filtered_by_size, itr->first,
+			     "_5p", "> 5% of Total ", base_name, base_title, yaxis_title);
+
+      for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
+	delete ip->second;
+      }
+    }
+
   }
 
   ///
@@ -262,6 +372,7 @@ namespace {
     vector<string> binlabels;
     map<string, vector<pair<string, TH1F*> > > sysErrorPlots;
     map<string, vector<pair<string, TH1F*> > > sysErrorPlotsByAna;
+    map<string, vector<pair<string, TH1F*> > > cvShiftPlotsByAna;
     Double_t *v_bin = new Double_t[axisBins.size()];
     Double_t *v_binError = new Double_t[axisBins.size()];
     Double_t *v_central = new Double_t[axisBins.size()];
@@ -310,6 +421,7 @@ namespace {
 
       // Create the plots we are going to be filling as we go
       map<string, TH1F*> singlePlots;
+      map<string, TH1F*> cvShiftPlotsSingle;
       singlePlots["central"] = DeclareSingleHist(anaName,  "_cv", "Central values for ", axisBins.size(), out);
       singlePlots["statistical"] = DeclareSingleHist(anaName,  "_stat", "Statistical errors for ", axisBins.size(), out);
       singlePlots["total"] = DeclareSingleHist(anaName,  "_totalerror", "Total errors for ", axisBins.size(), out);
@@ -323,10 +435,14 @@ namespace {
       }
 
       for (set<string>::const_iterator i = allSys.begin(); i != allSys.end(); i++) {
-	TH1F *h = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);;
+	TH1F *h = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);
 	singlePlots[*i] = h;
 	sysErrorPlots[*i].push_back(make_pair(anaName,h));
 	sysErrorPlotsByAna[anaName].push_back(make_pair(*i,h));
+
+	h = DeclareSingleHist(anaName, string("_cvShift_") + *i, string ("Central Value shifts caused by ") + *i + " ", axisBins.size(), out);
+	cvShiftPlotsSingle[*i] = h;
+	cvShiftPlotsByAna[anaName].push_back(make_pair(*i,h));
       }
 
       // Now, loop over all the bins filling everything in
@@ -350,6 +466,15 @@ namespace {
 	singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
 	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
 	  singlePlots[cb.systematicErrors[i].name]->SetBinContent(ibin+1, cb.systematicErrors[i].value);
+	}
+
+	for (map<string, pair<double, double> >::const_iterator i_meta = cb.metadata.begin(); i_meta != cb.metadata.end(); i_meta++) {
+	  if (i_meta->first.find("CV Shift ") == 0) {
+	    string name(i_meta->first.substr(9));
+	    if (cvShiftPlotsSingle.find(name) == cvShiftPlotsSingle.end())
+	      throw runtime_error (("Unexpected systematic error " + name).c_str());
+	    cvShiftPlotsSingle[name]->SetBinContent(ibin+1, i_meta->second.first);
+	  }
 	}
 
 	// Record min and max for later use with limit setting
@@ -402,55 +527,20 @@ namespace {
     delete[] v_centralStatError;
     delete[] v_centralTotError;
 
-    // Build a canvas for each analysis with a stacked histo
-    for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlotsByAna.begin(); itr != sysErrorPlotsByAna.end(); itr++) {
+    //
+    // Build a set of stacked histograms of the systeamtic errors^2 contribution in each plot.
+    // Also, window out only those that contribute at least 5%.
+    // This would be a lot simpler with C++011!!!
+    //
 
-      // Square them and sort by size.
-      vector<pair<string,TH1F*> > plots;
-      map<int,double> total_error2;
-      for(vector<pair<string,TH1F*> >::const_iterator ip = itr->second.begin(); ip != itr->second.end(); ip++) {
-	TH1F *h2 = static_cast<TH1F*>(ip->second->Clone());
-	for (int i = 1; i <= h2->GetNbinsX(); i++) {
-	  double bc = h2->GetBinContent(i);
-	  h2->SetBinContent(i, bc*bc);
-	  total_error2[i] += bc*bc;
-	}
+    plot_stacked_by_ana(sysErrorPlotsByAna, binlabels, true, "ana_sys_", "Systematic Error (\\sigma^{2})",  "\\sigma^{2}");
+    plot_stacked_by_ana(cvShiftPlotsByAna, binlabels, false, "cv_shift_", "Central Value Shift", "CV Shift");
 
-	TAxis *a = h2->GetXaxis();
-	for (size_t ib = 0; ib < binlabels.size(); ib++) {
-	  a->SetBinLabel(ib+1, binlabels[ib].c_str());
-	}
-
-	plots.push_back(make_pair(ip->first, h2));
-      }
-
-      sort (plots.begin(), plots.end(), CompareHistoPairs);
-
-      // Filter out a second list that contains only plots that make up
-      // 5% or more of the total error squared.
-
-      vector<pair<string,TH1F*> > plots_filtered_by_size;
-      for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-	bool above_threshold = false;
-	for (int i = 1; i <= ip->second->GetNbinsX(); i++) {
-	  if (ip->second->GetBinContent(i) > 0.05*total_error2[i]) {
-	    above_threshold = true;
-	    plots_filtered_by_size.push_back(*ip);
-	    break;
-	  }
-	}
-      }      
-
-      stack_sys_error_plots (plots, itr->first);
-      stack_sys_error_plots (plots_filtered_by_size, itr->first,
-			     "_5p", "> 5% of Total ");
-
-      for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-	delete ip->second;
-      }
-    }
-
-    // Build a canvas that will store each systematic error, all plotted on top of each other.
+    //
+    // Plot the systematic errors for each bin for all contributing analyses on one plot. This way
+    // one can easily compare the contributions of one systeamtic error to all different analyses, and
+    // see how fitting controls them.
+    //
 
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
       string name = "sys_" + itr->first;
