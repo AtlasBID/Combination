@@ -153,6 +153,7 @@ namespace {
     double maxV = 0;
     double minV = 0;
 
+    vector<TH1F*> temp;
     for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
       double lmax = ip->second->GetMaximum();
       double lmin = ip->second->GetMinimum();
@@ -164,6 +165,9 @@ namespace {
       // Clone the histogram, and zero out everything that is postiive or negative
       TH1F* hp = static_cast<TH1F*>(ip->second->Clone());
       TH1F* hn = static_cast<TH1F*>(ip->second->Clone());
+      temp.push_back(hp);
+      temp.push_back(hn);
+
       for (int ib = 1; ib <= hp->GetNbinsX(); ib++) {
 	double bc = hp->GetBinContent(ib);
 	if (bc > 0) {
@@ -221,6 +225,10 @@ namespace {
 
     c->Write();
     delete c;
+
+    for (size_t i_p = 0; i_p < temp.size(); i_p++) {
+      delete temp[i_p];
+    }
   }
 
   //
@@ -229,6 +237,7 @@ namespace {
   void plot_stacked_by_ana(map<string, vector<pair<string, TH1F*> > > &plotsByAna, const vector<string> &binlabels,
 			   bool squareit, const string &base_name, const string &base_title, const string &yaxis_title)
   {
+    cout << "Entering plot_stacked_by_ana " << base_name << " - " << base_title << " (" << plotsByAna.size() << ")" << endl;
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = plotsByAna.begin(); itr != plotsByAna.end(); itr++) {
 
       // Square them and sort by size.
@@ -253,6 +262,7 @@ namespace {
 	plots.push_back(make_pair(ip->first, h2));
       }
 
+      cout << "  -> Doing a stacked histo of " << plots.size() << " plots" << endl;
       sort (plots.begin(), plots.end(), CompareHistoPairs);
 
       // Filter out a second list that contains only plots that make up
@@ -274,6 +284,7 @@ namespace {
       stack_sys_error_plots (plots_filtered_by_size, itr->first,
 			     "_5p", "> 5% of Total ", base_name, base_title, yaxis_title);
 
+      cout << "  Cleaning up" << endl;
       for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
 	delete ip->second;
       }
@@ -373,6 +384,7 @@ namespace {
     map<string, vector<pair<string, TH1F*> > > sysErrorPlots;
     map<string, vector<pair<string, TH1F*> > > sysErrorPlotsByAna;
     map<string, vector<pair<string, TH1F*> > > cvShiftPlotsByAna;
+    map<string, TH1F*> cvShiftPlotsSingle;
     Double_t *v_bin = new Double_t[axisBins.size()];
     Double_t *v_binError = new Double_t[axisBins.size()];
     Double_t *v_central = new Double_t[axisBins.size()];
@@ -405,6 +417,7 @@ namespace {
     // for the single values here.
     //
 
+    cout << "Goign to catalog by ana first" << endl;
     for (unsigned int ia = 0; ia < anaNames.size(); ia++) {
       const string &anaName (anaNames[ia]);
 
@@ -421,7 +434,6 @@ namespace {
 
       // Create the plots we are going to be filling as we go
       map<string, TH1F*> singlePlots;
-      map<string, TH1F*> cvShiftPlotsSingle;
       singlePlots["central"] = DeclareSingleHist(anaName,  "_cv", "Central values for ", axisBins.size(), out);
       singlePlots["statistical"] = DeclareSingleHist(anaName,  "_stat", "Statistical errors for ", axisBins.size(), out);
       singlePlots["total"] = DeclareSingleHist(anaName,  "_totalerror", "Total errors for ", axisBins.size(), out);
@@ -533,14 +545,27 @@ namespace {
     // This would be a lot simpler with C++011!!!
     //
 
+    cout << "Now going to do the stacked plots" << endl;
+
     plot_stacked_by_ana(sysErrorPlotsByAna, binlabels, true, "ana_sys_", "Systematic Error (\\sigma^{2})",  "\\sigma^{2}");
     plot_stacked_by_ana(cvShiftPlotsByAna, binlabels, false, "cv_shift_", "Central Value Shift", "CV Shift");
+
+    //
+    // Get rid fo the cv shift guy
+    //
+
+    for (map<string, TH1F*>::const_iterator i_p = cvShiftPlotsSingle.begin(); i_p != cvShiftPlotsSingle.end(); i_p++) {
+      delete i_p->second;
+    }
+    cvShiftPlotsSingle.clear();
 
     //
     // Plot the systematic errors for each bin for all contributing analyses on one plot. This way
     // one can easily compare the contributions of one systeamtic error to all different analyses, and
     // see how fitting controls them.
     //
+
+    cout << "Next job is to do all the various other types of plots..." << endl;
 
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
       string name = "sys_" + itr->first;
