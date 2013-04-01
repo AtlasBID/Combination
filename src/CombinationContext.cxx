@@ -552,9 +552,13 @@ namespace BTagCombination {
 	    result[item].sysErrors[sysErrorName] = errDiff;
 	    runningErrorXCheck[item] += errDiff*errDiff;
 
-	    // Save the change in the central value
-	    result[item].cvShifts[sysErrorName] = result[item].centralValue - m->getVal();
 	  }
+
+	  
+	  // Save the change in the central value, regardless if this sys error was part of this
+	  // fit bin!
+
+	  result[item].cvShifts[sysErrorName] = m->getVal() - result[item].centralValue;
 	}
 
 	// Restore the systematic errors to their former glory
