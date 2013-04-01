@@ -654,9 +654,17 @@ namespace {
     }
   }
 
-  pair<int, double> inc_average_counter (pair<int, double> v, double inc)
+  pair<int, vector<double> > inc_average_counter (pair<int, vector<double> > v, vector<double> inc)
   {
-    return make_pair (v.first + 1, v.second + inc);
+    if (v.second.size() != inc.size()) {
+      cout << "Internal error. Attempt to average vectors with size " << v.second.size() << " with " << inc.size() << endl;
+      throw runtime_error ("Averaging can't happen on things of different size, inconsitent pull or similar!");
+    }
+
+    vector<double> initial (v.second);
+    for (size_t i = 0; i < inc.size(); i++)
+      initial[i] += inc[i];
+    return make_pair (v.first + 1, initial);
   }
 
   ///
@@ -667,7 +675,7 @@ namespace {
 				 const string &th1_name,
 				 const string &th1_title)
   {
-    map<string, pair<int, double> > pulls;
+    map<string, pair<int, vector<double> > > pulls;
     for(map<string, vector<double> >::const_iterator i = metadata.begin(); i != metadata.end(); i++) {
       string name (i->first);
       if (name.find(meta_name_prefix) == 0) {
@@ -681,10 +689,10 @@ namespace {
 	    name = name.substr(0, e);
 	  }
 
-	  if (pulls.find(name) != pulls.end()) {
-	    pulls[name] = make_pair(0, 0.0);
+	  if (pulls.find(name) == pulls.end()) {
+	    pulls[name] = make_pair(0, vector<double>(i->second.size(), 0.0));
 	  }
-	  pulls[name] = inc_average_counter (pulls[name], i->second[0]);
+	  pulls[name] = inc_average_counter (pulls[name], i->second);
 	}
       }
     }
@@ -699,10 +707,14 @@ namespace {
     
       TAxis *a = h->GetXaxis();
       int ibin = 1;
-      for (map<string, pair<int, double> >::const_iterator i = pulls.begin(); i != pulls.end(); i++, ibin++) {
+      for (map<string, pair<int, vector<double> > >::const_iterator i = pulls.begin(); i != pulls.end(); i++, ibin++) {
 	a->SetBinLabel(ibin, i->first.c_str());
-	double value = i->second.second / ((double)i->second.first);
+	double value = i->second.second[0] / ((double)i->second.first);
 	h->SetBinContent(ibin, value);
+	if (i->second.second.size() > 1) {
+	  double error = i->second.second[1] / ((double)i->second.first);
+	  h->SetBinError(ibin, error);
+	}
       }
       a->LabelsOption("v");
 
