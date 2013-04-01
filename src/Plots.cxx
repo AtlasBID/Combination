@@ -229,6 +229,10 @@ namespace {
     for (size_t i_p = 0; i_p < temp.size(); i_p++) {
       delete temp[i_p];
     }
+
+    for (size_t i_l = 0; i_l < legends.size(); i_l++) {
+      delete legends[i_l];
+    }
   }
 
   //
