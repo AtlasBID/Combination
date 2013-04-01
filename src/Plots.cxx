@@ -653,8 +653,7 @@ namespace {
     // to fake the whole TGraph guy out.
 
     TCanvas *c = new TCanvas ("EffInfo");
-    TH1F *h = new TH1F("SF", "",
-		       binlabels.size(), 0.0, binlabels.size());
+    TH1F *h = new TH1F("SF", "", binlabels.size(), 0.0, binlabels.size());
 
     h->SetMinimum (yCentralTotMin-fabs(yCentralTotMin)*0.1);
     h->SetMaximum (yCentralTotMax+fabs(yCentralTotMax)*0.1);
@@ -715,7 +714,13 @@ namespace {
 
     c->Write();
     delete c;
-
+    delete h;
+    for (size_t i_p = 0; i_p < plotsSys.size(); i_p++) {
+      delete plotsSys[i_p];
+    }
+    for (size_t i_p = 0; i_p < plots.size(); i_p++) {
+      delete plots[i_p];
+    }
   }
 
   ///
