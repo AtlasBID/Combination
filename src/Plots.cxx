@@ -456,7 +456,7 @@ namespace {
 	sysErrorPlots[*i].push_back(make_pair(anaName,h));
 	sysErrorPlotsByAna[anaName].push_back(make_pair(*i,h));
 
-	h = DeclareSingleHist(anaName, string("_cvShift_") + *i, string ("Central Value shifts caused by ") + *i + " ", axisBins.size(), out);
+	h = DeclareSingleHist(anaName, string("_cvShift_") + *i, string ("Central Value shifts caused by ") + *i + " ", axisBins.size(), 0);
 	cvShiftPlotsSingle[*i] = h;
 	cvShiftPlotsByAna[anaName].push_back(make_pair(*i,h));
       }
