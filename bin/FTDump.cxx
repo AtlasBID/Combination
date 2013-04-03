@@ -44,6 +44,7 @@ int main (int argc, char **argv)
     bool printAsInput = false;
     bool printCorr = false;
     bool dumpMetaDataForCPU = false;
+    bool dumpMetaDataForBins = false;
 
     bool sawFlag = false;
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
@@ -64,6 +65,9 @@ int main (int argc, char **argv)
 	sawFlag = true;
       } else if (otherFlags[i] == "meta") {
 	dumpMetaDataForCPU = true;
+	sawFlag = true;
+      } else if (otherFlags[i] == "metaBins") {
+	dumpMetaDataForBins = true;
 	sawFlag = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
@@ -111,7 +115,7 @@ int main (int argc, char **argv)
 
 	const map<string, vector<double> > &md (c.metadata);
 	for (map<string,vector<double> >::const_iterator i_md = md.begin(); i_md != md.end(); i_md++) {
-	  cout << bname.str() << i_md->first << " **";
+	  cout << bname.str() << i_md->first << " ** ";
 	  for(vector<double>::const_iterator i_val = i_md->second.begin(); i_val != i_md->second.end(); i_val++)
 	    cout << *i_val << " ";
 	  cout << endl;
@@ -119,7 +123,35 @@ int main (int argc, char **argv)
       }
     }
 
-    // Dump out everything if asked
+    // Dump the meta data for the bins that have run. We do this
+    // just one at a time. This is meant to be ready in by someone else
+    // and processed approprately.
+
+    if (dumpMetaDataForBins) {
+      for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
+	const CalibrationAnalysis &c(calibs[i_a]);
+
+	stringstream bname;
+	bname << c.name << " ** " << c.flavor << " ** " << c.tagger << " ** " << c.operatingPoint << " ** " << c.jetAlgorithm << " ** ";
+
+	for (size_t i_b = 0; i_b < c.bins.size(); i_b++) {
+	  const CalibrationBin &b(c.bins[i_b]);
+	  string binname (OPBinName(b));
+	  for (map<string,pair<double,double> >::const_iterator i_m = b.metadata.begin(); i_m != b.metadata.end(); i_m++) {
+	    cout << bname.str()
+		 << i_m->first << " [from " << binname << "]"
+		 << " ** " << i_m->second.first
+		 << " ** " << i_m->second.second
+		 << endl;
+	  }
+	}
+      }
+    }
+
+    //
+    // Dump out everything in our normalized format.
+    //
+
     if (printAsInput) {
       cout << info << endl;
       return 0;
