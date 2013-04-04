@@ -901,7 +901,7 @@ namespace {
       }
 
       GenerateMetaDataListPlot(out, skimmed_metadata, "Pull ", "pull_" + ana.name + *fc, "Pulls for fit " + ana.name + " [" + *fc + "]");
-      GenerateMetaDataListPlot(out, skimmed_metadata, "Nuisance ", "nuisance_" + ana.name + *fc, "Nuisancs values for fit " + ana.name + " [" + *fc + "]");
+      GenerateMetaDataListPlot(out, skimmed_metadata, "Nuisance ", "nuisance_" + ana.name + *fc, "Nuisance values for fit " + ana.name + " [" + *fc + "]");
     }
 
   }
