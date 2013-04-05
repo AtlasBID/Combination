@@ -141,7 +141,7 @@ int main (int argc, char **argv)
 	    cout << bname.str()
 		 << i_m->first << " [from " << binname << "]"
 		 << " ** " << i_m->second.first
-		 << " ** " << i_m->second.second
+		 << " " << i_m->second.second
 		 << endl;
 	  }
 	}

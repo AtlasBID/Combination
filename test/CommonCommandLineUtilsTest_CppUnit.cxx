@@ -178,8 +178,13 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
 
     CalibrationAnalysis ana = results.Analyses[0];
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("calibration analysis name", string("ttbar_kin_ljets"), ana.name);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("# of bins", (size_t) 8, ana.bins.size());
+    for (size_t i = 0; i < ana.bins.size(); i++) {
+      const CalibrationBin &b(ana.bins[i]);
+      for (size_t i_sys = 0; i_sys < b.systematicErrors.size(); i_sys++) {
+	const SystematicError &s(b.systematicErrors[i_sys]);
+	CPPUNIT_ASSERT (s.name != "QCD");
+      }
+    }
   }
 
   void testIgnoreFlagWildcard()

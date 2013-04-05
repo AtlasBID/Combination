@@ -13,6 +13,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <fstream>
+#include <iterator>
+#include <algorithm>
 
 using namespace std;
 
@@ -101,6 +103,18 @@ namespace {
     }
     return false;
   }
+
+  // Helper predicate to look for a name in a list.
+  class SysErrorNameMatch {
+  public:
+    inline SysErrorNameMatch (const string &name)
+      : _name (name) {}
+    inline bool operator() (const SystematicError &test) {
+      return test.name == _name;
+    }
+  private:
+    const string &_name;
+  };
 }
 
 //
@@ -140,6 +154,7 @@ namespace BTagCombination {
 
     vector<string> OPsToIgnore;
     vector<string> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm, spOnlyAnalysis;
+    vector<string> ignoreSysError;
 
     for (int index = 0; index < argc; index++) {
       // is it a flag or a file containing operating points?
@@ -159,6 +174,11 @@ namespace BTagCombination {
 	      vector<string> alltoignore (loadIgnoreFile(ignore.substr(1)));
 	      OPsToIgnore.insert(OPsToIgnore.end(), alltoignore.begin(), alltoignore.end());
 	    }
+	  } else if (flag == "ignoreSysError") {
+	    if (index+1 == argc)
+	      throw runtime_error ("every --ignoreSysError must have a systematic error name");
+	    index++;
+	    ignoreSysError.push_back(argv[index]);
 	  } else if (flag == "flavor") {
 	    if (index+1 == argc) {
 	      throw runtime_error ("every --flavor must have an analysis name");
@@ -201,6 +221,24 @@ namespace BTagCombination {
 
 	} else {
 	  loadOPsFromFile(operatingPoints, a);
+	}
+      }
+    }
+
+    //
+    // Remove any systematic errors we've been asked to.
+    //
+
+    for (size_t i_sys = 0; i_sys < ignoreSysError.size(); i_sys++) {
+      for (vector<CalibrationAnalysis>::iterator anaItr = operatingPoints.Analyses.begin(); anaItr != operatingPoints.Analyses.end(); anaItr++) {
+	for (vector<CalibrationBin>::iterator i_bin = anaItr->bins.begin(); i_bin != anaItr->bins.end(); i_bin++) {
+	  vector<SystematicError> errs;
+	  // copy_if does not seem to be availible
+	  for (size_t i_se = 0; i_se < i_bin->systematicErrors.size(); i_se++) {
+	    if (ignoreSysError[i_sys] != i_bin->systematicErrors[i_se].name)
+	      errs.push_back(i_bin->systematicErrors[i_se]);
+	  }
+	  i_bin->systematicErrors = errs;
 	}
       }
     }
