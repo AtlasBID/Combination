@@ -241,7 +241,6 @@ namespace {
   void plot_stacked_by_ana(map<string, vector<pair<string, TH1F*> > > &plotsByAna, const vector<string> &binlabels,
 			   bool squareit, const string &base_name, const string &base_title, const string &yaxis_title)
   {
-    cout << "Entering plot_stacked_by_ana " << base_name << " - " << base_title << " (" << plotsByAna.size() << ")" << endl;
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = plotsByAna.begin(); itr != plotsByAna.end(); itr++) {
 
       // Square them and sort by size.
@@ -266,7 +265,6 @@ namespace {
 	plots.push_back(make_pair(ip->first, h2));
       }
 
-      cout << "  -> Doing a stacked histo of " << plots.size() << " plots" << endl;
       sort (plots.begin(), plots.end(), CompareHistoPairs);
 
       // Filter out a second list that contains only plots that make up
@@ -288,7 +286,6 @@ namespace {
       stack_sys_error_plots (plots_filtered_by_size, itr->first,
 			     "_5p", "> 5% of Total ", base_name, base_title, yaxis_title);
 
-      cout << "  Cleaning up" << endl;
       for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
 	delete ip->second;
       }
@@ -421,7 +418,6 @@ namespace {
     // for the single values here.
     //
 
-    cout << "Goign to catalog by ana first" << endl;
     for (unsigned int ia = 0; ia < anaNames.size(); ia++) {
       const string &anaName (anaNames[ia]);
 
@@ -549,8 +545,6 @@ namespace {
     // This would be a lot simpler with C++011!!!
     //
 
-    cout << "Now going to do the stacked plots" << endl;
-
     plot_stacked_by_ana(sysErrorPlotsByAna, binlabels, true, "ana_sys_", "Systematic Error (\\sigma^{2})",  "\\sigma^{2}");
     plot_stacked_by_ana(cvShiftPlotsByAna, binlabels, false, "cv_shift_", "Central Value Shift", "CV Shift");
 
@@ -568,8 +562,6 @@ namespace {
     // one can easily compare the contributions of one systeamtic error to all different analyses, and
     // see how fitting controls them.
     //
-
-    cout << "Next job is to do all the various other types of plots..." << endl;
 
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
       string name = "sys_" + itr->first;
