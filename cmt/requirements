@@ -12,6 +12,9 @@ use CalibrationDataInterface	CalibrationDataInterface-*	PhysicsAnalysis/JetTaggi
 
 library Combination *.cxx
 
+application FTManipSys ../bin/FTManipSys.cxx
+apply_pattern application_alias FTManipSys
+
 application FTGenerateSummary ../bin/FTGenerateSummary.cxx
 apply_pattern application_alias FTGenerateSummary
 
