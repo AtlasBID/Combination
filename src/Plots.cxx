@@ -789,7 +789,8 @@ namespace {
   void GenerateMetaDataListPlot (TDirectory *out, const map<string, vector<double> > &metadata,
 				 const string &meta_name_prefix,
 				 const string &th1_name,
-				 const string &th1_title)
+				 const string &th1_title,
+				 bool plotSigmaBands = false)
   {
     map<string, pair<int, vector<double> > > pulls;
     for(map<string, vector<double> >::const_iterator i = metadata.begin(); i != metadata.end(); i++) {
@@ -836,14 +837,31 @@ namespace {
 
       h->SetFillColor(4);
       h->SetStats(0);
-      h->SetMinimum(-2.0);
-      h->SetMaximum(2.0);
+      h->SetMinimum(-2.5);
+      h->SetMaximum(2.5);
 
       TCanvas *c = new TCanvas(th1_name.c_str(), th1_title.c_str());
       c->SetBottomMargin(0.55);
 
       h->Draw(); // We really want hbar here, but it doesn't quite work when filling in a histo
-      c->SetGrid();
+
+      if (plotSigmaBands) {
+	// Draw the yellow bands now
+	TBox *b1 = new TBox (0.0, -2.0, h->GetNbinsX(), 2.0);
+	b1->SetFillColor(kYellow);
+	b1->Draw();
+
+	TBox *b2 = new TBox (0.0, -1.0, h->GetNbinsX(), 1.0);
+	b2->SetFillColor(kGreen);
+	b2->Draw();
+
+
+	h->Draw("AXISSAME");
+	h->Draw("SAME");
+
+      } else {
+	c->SetGrid();
+      }
 
       out->cd();
       c->Write();
@@ -876,7 +894,7 @@ namespace {
   void GenerateAnalysisPlots (TDirectory *out, const CalibrationAnalysis &ana)
   {
     GenerateMetaDataListPlot(out, ana.metadata, "Pull ", "pull_" + ana.name, "Pulls for fit " + ana.name);
-    GenerateMetaDataListPlot(out, ana.metadata, "Nuisance ", "nuisance_" + ana.name, "Nuisance values for fit " + ana.name);
+    GenerateMetaDataListPlot(out, ana.metadata, "Nuisance ", "nuisance_" + ana.name, "Nuisance values for fit " + ana.name, true);
 
     // Pull out the systematic errors so we can see what happens bin-by-bin for pulls and nuisance parameters
 
@@ -893,7 +911,7 @@ namespace {
       }
 
       GenerateMetaDataListPlot(out, skimmed_metadata, "Pull ", "pull_" + ana.name + *fc, "Pulls for fit " + ana.name + " [" + *fc + "]");
-      GenerateMetaDataListPlot(out, skimmed_metadata, "Nuisance ", "nuisance_" + ana.name + *fc, "Nuisance values for fit " + ana.name + " [" + *fc + "]");
+      GenerateMetaDataListPlot(out, skimmed_metadata, "Nuisance ", "nuisance_" + ana.name + *fc, "Nuisance values for fit " + ana.name + " [" + *fc + "]", true);
     }
 
   }
