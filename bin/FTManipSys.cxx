@@ -42,7 +42,7 @@ int main (int argc, char **argv)
     // Parse the input args for commands
     vector<string> otherArgs;
     
-    string outputAna;
+    string outputAna, outputFlavor;
     string newsys;
     string newsysval;
 
@@ -50,6 +50,8 @@ int main (int argc, char **argv)
       string a(argv[i]);
       if (a == "outputAna") {
 	outputAna = eatArg(argv, i, argc);
+      } else if (a == "outputFlavor") {
+	outputFlavor = eatArg(argv, i, argc);
       } else if (a == "addSysError") {
 	newsys = eatArg(argv, i, argc);
 	newsysval = eatArg(argv, i, argc);
@@ -59,8 +61,8 @@ int main (int argc, char **argv)
     }
 
     // Check the arguments
-    if (outputAna == "") {
-      cout << "outputAna must be specified" << endl;
+    if (outputAna == "" && outputFlavor == "") {
+      cout << "outputAna or outputFlavor must be specified" << endl;
       Usage();
       return 1;
     }
@@ -124,7 +126,10 @@ int main (int argc, char **argv)
     //
 
     for (size_t i = 0; i < results.size(); i++) {
-      results[i].name = outputAna;
+      if (outputAna.size() > 0)
+	results[i].name = outputAna;
+      if (outputFlavor.size() > 0)
+	results[i].flavor = outputFlavor;
       cout << results[i];
     }
 
@@ -148,6 +153,7 @@ void Usage(void)
   cout << "FTManipSys <file-list-and-options>" << endl;
   cout << "  ouputAna <ana>                      - The new analysis should be called this." << endl;
   cout << "                                        Applied to the below guys" << endl;
+  cout << "  outputFlavor <flavor>               - Change to this flavor for output" << endl;
   cout << "  addSysError <newsys> <value>        - Add a systematic error name, and value." << endl;
   cout << "                                        Value has a % at the end if it is fractional." << endl;
   cout << "  calcRelDiff <ana1> <ana2> <newsys>  - Calculate the relative difference between" << endl;
