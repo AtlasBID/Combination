@@ -15,6 +15,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
+#include <cmath>
 
 using namespace std;
 using namespace BTagCombination;
@@ -30,6 +31,29 @@ string eatArg (char **argv, int &index, const int maxArg)
   return argv[index];
 }
 
+// Return an analysis from a list.
+bool getAnalysis (CalibrationAnalysis &foundAna, const string &aname, const vector<CalibrationAnalysis> &list)
+{
+  for (size_t i = 0; i < list.size(); i++) {
+    if (list[i].name == aname) {
+      foundAna = list[i];
+      return true;
+    }
+  }
+  return false;
+}
+
+bool getBin (CalibrationBin &bin, const CalibrationBin &proto, const vector<CalibrationBin> &list)
+{
+  for (size_t i = 0; i < list.size(); i++) {
+    if (proto.binSpec == list[i].binSpec) {
+      bin = list[i];
+      return true;
+    }
+  }
+  return false;
+}
+
 // Main program - run & control everything.
 int main (int argc, char **argv)
 {
@@ -43,8 +67,8 @@ int main (int argc, char **argv)
     vector<string> otherArgs;
     
     string outputAna, outputFlavor;
-    string newsys;
-    string newsysval;
+    string newsys, newsysval;
+    string relDifAna1, relDifAna2, relDifSys;
 
     for (int i = 1; i < argc; i++) {
       string a(argv[i]);
@@ -55,6 +79,10 @@ int main (int argc, char **argv)
       } else if (a == "addSysError") {
 	newsys = eatArg(argv, i, argc);
 	newsysval = eatArg(argv, i, argc);
+      } else if (a == "calcRelDiff") {
+	relDifAna1 = eatArg(argv, i, argc);
+	relDifAna2 = eatArg(argv, i, argc);
+	relDifSys = eatArg(argv, i, argc);
       } else {
 	otherArgs.push_back(a);
       }
@@ -67,7 +95,7 @@ int main (int argc, char **argv)
       return 1;
     }
 
-    if (newsysval == "") {
+    if (newsysval == "" && relDifAna1 == "") {
       cout << "No options for systematic error manipulation!" << endl;
       Usage();
       return 1;
@@ -87,11 +115,12 @@ int main (int argc, char **argv)
     }
 
     //
-    // If we are doing the add a sys, then just loop through
+    // Next, do the manipulation
     //
 
     vector<CalibrationAnalysis> results;
     if (newsys.size() != 0) {
+      // Adding a systematic error
       if (info.Analyses.size() != 1)
 	throw new runtime_error ("Can only add a systematice error to a single analysis!");
       
@@ -118,7 +147,29 @@ int main (int argc, char **argv)
 
       results.push_back(newAna);
 
-    } else {
+    } else if (relDifAna1.size() > 0) {
+      // Taking two guys, and in each common bin, using the difference as a new sys error
+      map<string, vector<CalibrationAnalysis> > splitAnas (BinAnalysesByJetTagFlavOp(info.Analyses));
+      for (map<string, vector<CalibrationAnalysis> >::const_iterator i_alist = splitAnas.begin(); i_alist != splitAnas.end(); i_alist++) {
+	CalibrationAnalysis a1, a2;
+	if (getAnalysis(a1, relDifAna1, i_alist->second) && getAnalysis(a2, relDifAna2, i_alist->second)) {
+	  bool good = true;
+	  for (size_t ib = 0; ib < a1.bins.size(); ib++) {
+	    CalibrationBin otherBin;
+	    if (!getBin(otherBin, a1.bins[ib], a2.bins)) {
+	      good = false;
+	    } else {
+	      SystematicError err;
+	      err.name = relDifSys;
+	      err.value = fabs(a1.bins[ib].centralValue - otherBin.centralValue);
+	      a1.bins[ib].systematicErrors.push_back(err);
+	    }
+	  }
+	  if (good)
+	    results.push_back(a1);
+	}
+      }
+      
     }
     
     //
