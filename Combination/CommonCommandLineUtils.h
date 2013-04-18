@@ -22,6 +22,10 @@ namespace BTagCombination {
 			 CalibrationInfo &operatingPoints,
 			 std::vector<std::string> &unknownFlags);
 
+  void ParseOPInputArgs (const std::vector<std::string> &args,
+			 CalibrationInfo &operatingPoints,
+			 std::vector<std::string> &unknownFlags);
+
   // Returns a common format name for teh analysis. Can be used in suppression
   // files, etc.
   std::string OPFullName (const CalibrationAnalysis &ana);

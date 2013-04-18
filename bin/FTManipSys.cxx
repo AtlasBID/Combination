@@ -22,6 +22,14 @@ using namespace BTagCombination;
 // Helper routines forward defined.
 void Usage(void);
 
+string eatArg (char **argv, int &index, const int maxArg)
+{
+  if (index == (maxArg-1)) 
+    throw runtime_error ("Not enough arguments.");
+  index++;
+  return argv[index];
+}
+
 // Main program - run & control everything.
 int main (int argc, char **argv)
 {
@@ -31,12 +39,41 @@ int main (int argc, char **argv)
   }
 
   try {
-    // Parse the input arguments
+    // Parse the input args for commands
+    vector<string> otherArgs;
+    
+    string outputAna;
+    string newsys;
+    string newsysval;
+
+    for (int i = 1; i < argc; i++) {
+      string a(argv[i]);
+      if (a == "outputAna") {
+	outputAna = eatArg(argv, i, argc);
+      } else if (a == "addSysError") {
+	newsys = eatArg(argv, i, argc);
+	newsysval = eatArg(argv, i, argc);
+      } else {
+	otherArgs.push_back(a);
+      }
+    }
+
+    // Check the arguments
+    if (outputAna == "") {
+      cout << "outputAna must be specified" << endl;
+      Usage();
+      return 1;
+    }
+
+    if (newsysval == "") {
+      cout << "No options for systematic error manipulation!" << endl;
+      Usage();
+      return 1;
+    }
+
     CalibrationInfo info;
     vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
-
-    bool sawFlag = false;
+    ParseOPInputArgs (otherArgs, info, otherFlags);
 
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "check") {
@@ -47,9 +84,48 @@ int main (int argc, char **argv)
       }
     }
 
-    if (!sawFlag) {
-      Usage();
-      return 1;
+    //
+    // If we are doing the add a sys, then just loop through
+    //
+
+    vector<CalibrationAnalysis> results;
+    if (newsys.size() != 0) {
+      if (info.Analyses.size() != 1)
+	throw new runtime_error ("Can only add a systematice error to a single analysis!");
+      
+      CalibrationAnalysis newAna (info.Analyses[0]);
+      
+      // Parse the error size
+      istringstream inParam (newsysval);
+      double amount;
+      char c;
+      inParam >> amount >> c;
+      bool isPercent = c == '%';
+
+      // Loop through all the bins and add what we need to add.
+      for (size_t ib = 0; ib < newAna.bins.size(); ib++) {
+	CalibrationBin &b(newAna.bins[ib]);
+	SystematicError err;
+	err.name = newsys;
+	err.value = amount;
+	if (isPercent)
+	  err.value *= b.centralValue / 100.0;
+	b.systematicErrors.push_back(err);
+      }
+      
+
+      results.push_back(newAna);
+
+    } else {
+    }
+    
+    //
+    // Get the results out
+    //
+
+    for (size_t i = 0; i < results.size(); i++) {
+      results[i].name = outputAna;
+      cout << results[i];
     }
 
   } catch (exception &e) {
@@ -69,7 +145,7 @@ int main (int argc, char **argv)
 
 void Usage(void)
 {
-  cout << "FTDump <file-list-and-options>" << endl;
+  cout << "FTManipSys <file-list-and-options>" << endl;
   cout << "  ouputAna <ana>                      - The new analysis should be called this." << endl;
   cout << "                                        Applied to the below guys" << endl;
   cout << "  addSysError <newsys> <value>        - Add a systematic error name, and value." << endl;

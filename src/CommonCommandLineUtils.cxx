@@ -129,6 +129,20 @@ namespace BTagCombination {
 			 CalibrationInfo &operatingPoints,
 			 vector<string> &unknownFlags)
   {
+    vector<string> args;
+    for (int i = 0; i < argc; i++) {
+      args.push_back(argv[i]);
+    }
+    ParseOPInputArgs(args, operatingPoints, unknownFlags);
+  }
+
+  //
+  // Parse a set of input args
+  //
+  void ParseOPInputArgs (const vector<string> &args,
+			 CalibrationInfo &operatingPoints,
+			 vector<string> &unknownFlags)
+  {
     //
     // Reset the intputs
     //
@@ -145,7 +159,7 @@ namespace BTagCombination {
     // Basic argument x-checks
     //
 
-    if (argc == 0 || argv == 0)
+    if (args.size() == 0)
       return;
 
     //
@@ -156,18 +170,18 @@ namespace BTagCombination {
     vector<string> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm, spOnlyAnalysis;
     vector<string> ignoreSysError;
 
-    for (int index = 0; index < argc; index++) {
+    for (size_t index = 0; index < args.size(); index++) {
       // is it a flag or a file containing operating points?
-      string a (argv[index]);
+      string a (args[index]);
       if (a.size() > 0) {
 	if (a.substr(0, 2) == "--") {
 	  string flag(a.substr(2));
 
 	  if (flag == "ignore") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("every --ignore must have an analysis name");
 	    }
-	    string ignore (argv[++index]);
+	    string ignore (args[++index]);
 	    if (ignore[0] != '@') {
 	      OPsToIgnore.push_back(ignore);
 	    } else {
@@ -175,46 +189,46 @@ namespace BTagCombination {
 	      OPsToIgnore.insert(OPsToIgnore.end(), alltoignore.begin(), alltoignore.end());
 	    }
 	  } else if (flag == "ignoreSysError") {
-	    if (index+1 == argc)
+	    if (index+1 == args.size())
 	      throw runtime_error ("every --ignoreSysError must have a systematic error name");
 	    index++;
-	    ignoreSysError.push_back(argv[index]);
+	    ignoreSysError.push_back(args[index]);
 	  } else if (flag == "flavor") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("every --flavor must have an analysis name");
 	    }
 	    index++;
-	    spOnlyFlavor.push_back(argv[index]);
+	    spOnlyFlavor.push_back(args[index]);
 	  } else if (flag == "tagger") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("every --tagger must have an analysis name");
 	    }
 	    index++;
-	    spOnlyTagger.push_back(argv[index]);
+	    spOnlyTagger.push_back(args[index]);
 	  } else if (flag == "operatingPoint") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("every --operatingPoint must have an analysis name");
 	    }
 	    index++;
-	    spOnlyOP.push_back(argv[index]);
+	    spOnlyOP.push_back(args[index]);
 	  } else if (flag == "jetAlgorithm") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("every --jetAlgorithm must have an analysis name");
 	    }
 	    index++;
-	    spOnlyJetAlgorithm.push_back(argv[index]);
+	    spOnlyJetAlgorithm.push_back(args[index]);
 	  } else if (flag == "analysis") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("every --analysis must have an analysis name");
 	    }
 	    index++;
-	    spOnlyAnalysis.push_back(argv[index]);
+	    spOnlyAnalysis.push_back(args[index]);
 	  } else if (flag == "combinedName") {
-	    if (index+1 == argc) {
+	    if (index+1 == args.size()) {
 	      throw runtime_error ("--combinedName must have a output combined name");
 	    }
 	    index++;
-	    operatingPoints.CombinationAnalysisName = argv[index];
+	    operatingPoints.CombinationAnalysisName = args[index];
 	  } else {
 	    unknownFlags.push_back(flag);
 	  }
