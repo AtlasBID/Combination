@@ -39,6 +39,13 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( TestBBMissingAxes1D, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestBBMissingAxes1D2, std::runtime_error );
 
+  CPPUNIT_TEST ( TestByBNoOverlap );
+  CPPUNIT_TEST ( TestByBExactOverlap );
+  CPPUNIT_TEST_EXCEPTION ( TestByBBadOverlap, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( TestByBBadMissingOverlap, std::runtime_error );
+  CPPUNIT_TEST ( TestByBEmpty );
+  CPPUNIT_TEST ( TestByBSingleAna );
+
   CPPUNIT_TEST_EXCEPTION ( TestSystematicErrorsInconsistent, std::runtime_error );
   CPPUNIT_TEST ( TestSystematicErrorsMatching);
 
@@ -604,6 +611,174 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
     checkForValidCorrelations(info);
   }
 
+  // Bin-by-bin, no overlap
+  void TestByBExactOverlap()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 1.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.lowvalue = 0.0;
+    bb2.highvalue = 1.0;
+    bb2.variable = "eta";
+    b1.binSpec.push_back(bb2);
+
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+    anas.push_back(ana);
+    checkForConsistenBoundariesBinByBin(anas);
+  }
+
+  // Bin-by-bin, no overlap
+  void TestByBNoOverlap()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 1.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.lowvalue = 0.0;
+    bb2.highvalue = 1.0;
+    bb2.variable = "eta";
+    b1.binSpec.push_back(bb2);
+
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+
+    ana.bins.clear();
+    b1.binSpec.clear();
+    
+    bb1.lowvalue = 1.0;
+    bb1.highvalue = 2.0;
+    b1.binSpec.push_back(bb1);
+
+    bb2.lowvalue = 0.5;
+    b1.binSpec.push_back(bb2);
+    ana.bins.push_back(b1);
+
+    anas.push_back(ana);
+
+    checkForConsistenBoundariesBinByBin(anas);
+  }
+
+  // Bin-by-bin, bad overlap
+  void TestByBBadOverlap()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 1.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.lowvalue = 0.0;
+    bb2.highvalue = 1.0;
+    bb2.variable = "eta";
+    b1.binSpec.push_back(bb2);
+
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+
+    ana.bins.clear();
+    b1.binSpec.clear();
+    
+    b1.binSpec.push_back(bb1);
+
+    bb2.lowvalue = 0.5;
+    b1.binSpec.push_back(bb2);
+    ana.bins.push_back(b1);
+
+    anas.push_back(ana);
+
+    checkForConsistenBoundariesBinByBin(anas);
+  }
+
+  // Bin-by-bin, bad overlap
+  void TestByBBadMissingOverlap()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 1.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.lowvalue = 0.0;
+    bb2.highvalue = 1.0;
+    bb2.variable = "eta";
+    b1.binSpec.push_back(bb2);
+
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+
+    ana.bins.clear();
+    b1.binSpec.clear();
+    
+    b1.binSpec.push_back(bb1);
+
+    ana.bins.push_back(b1);
+
+    anas.push_back(ana);
+
+    checkForConsistenBoundariesBinByBin(anas);
+  }
+
+  // Bin-by-bin, but empty analysis!
+  void TestByBEmpty()
+  {
+    vector<CalibrationAnalysis> anas;
+    checkForConsistenBoundariesBinByBin(anas);
+  }
+
+  // Bin-by-bin, but single analysis
+  void TestByBSingleAna()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b1;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 1.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.lowvalue = 0.5;
+    bb2.highvalue = 1.5;
+    bb2.variable = "pt";
+    b1.binSpec.push_back(bb2);
+
+    ana.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+    checkForConsistenBoundariesBinByBin(anas);
+  }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(BinBoundaryUtilsTest);

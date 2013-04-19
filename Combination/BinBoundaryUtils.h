@@ -81,6 +81,9 @@ namespace BTagCombination {
   // with each other
   void checkForConsitentBoundaries (const std::vector<bin_boundaries> &boundaries);
 
+  // See if all the analyses have consistent bins for doing a bin-by-bin combination.
+  void checkForConsistenBoundariesBinByBin (const std::vector<CalibrationAnalysis> &anas);
+
   // Check that analyses are consistent cross-analysis
   void checkForConsistentAnalyses (const std::vector<CalibrationAnalysis> &anas);
 

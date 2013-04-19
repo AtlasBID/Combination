@@ -3,6 +3,7 @@
 // analyses and bins.
 //
 #include "Combination/BinBoundaryUtils.h"
+#include "Combination/BinUtils.h"
 #include "Combination/CommonCommandLineUtils.h"
 
 #include <sstream>
@@ -352,6 +353,59 @@ namespace BTagCombination {
 	    }
 	  }
 	}
+      }
+    }
+  }
+
+  // Find a bin boundary with the same name.
+  set<CalibrationBinBoundary>::const_iterator findBinBoundary(const string &name, const set<CalibrationBinBoundary> &b2) {
+    for (set<CalibrationBinBoundary>::const_iterator i = b2.begin(); i != b2.end(); i++) {
+      if (i->variable == name)
+	return i;
+    }
+    return b2.end();
+  }
+
+  // Make sure two bins don't overlap at all!
+  bool noOverlap (const CalibrationBinBoundary &b1, const CalibrationBinBoundary &b2)
+  {
+    if (b1.variable != b2.variable)
+      return true;
+    if (b1.lowvalue >= b2.highvalue)
+      return true;
+    if (b2.lowvalue >= b1.highvalue)
+      return true;
+    return false;
+  }
+
+  // Make sure the bins are somehow incompatible (i.e. they have orthoginal bins in at least one case).
+  void checkForOrthogonal (const set<CalibrationBinBoundary> &b1, const set<CalibrationBinBoundary> &b2)
+  {
+    for (set<CalibrationBinBoundary>::const_iterator i_orig = b1.begin(); i_orig != b1.end(); i_orig++) {
+      set<CalibrationBinBoundary>::const_iterator i_final = findBinBoundary (i_orig->variable, b2);
+      if (i_final != b2.end()) {
+	if (noOverlap(*i_orig, *i_final))
+	  return; // At least one was orthogonal, which is what we need.
+      }
+    }
+  }
+
+  //
+  // Search to make sure that all bins are compatible when we are doing a bin-by-bin combination.
+  // In this case, we are just doing isolated bins, so nothign can overlap.
+  //
+  void checkForConsistenBoundariesBinByBin (const std::vector<CalibrationAnalysis> &anas)
+  {
+    // Get a list of all the bins in the analyses.
+    typedef set<set<CalibrationBinBoundary> > t_setOfBoundaries;
+    t_setOfBoundaries allBins (listAllBins(anas));
+
+    // Loop through them all, and see if there is any cross-matching.
+    for (t_setOfBoundaries::const_iterator i_test = allBins.begin(); i_test != allBins.end(); i_test++) {
+      // Match to each one - this is an n^2 operation. :(
+      for (t_setOfBoundaries::const_iterator i_against = allBins.begin(); i_against != allBins.end(); i_against++) {
+	if (*i_against != *i_test)
+	  checkForOrthogonal (*i_test, *i_against);
       }
     }
   }
