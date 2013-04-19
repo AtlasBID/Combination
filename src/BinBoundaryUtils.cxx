@@ -369,6 +369,7 @@ namespace BTagCombination {
   // Make sure two bins don't overlap at all!
   bool noOverlap (const CalibrationBinBoundary &b1, const CalibrationBinBoundary &b2)
   {
+    cout << "Checking for overlap " << b1 << " and " << b2 << endl;
     if (b1.variable != b2.variable)
       return true;
     if (b1.lowvalue >= b2.highvalue)
@@ -379,6 +380,7 @@ namespace BTagCombination {
   }
 
   // Make sure the bins are somehow incompatible (i.e. they have orthoginal bins in at least one case).
+  // Throw a nice detailed error when this happens.
   void checkForOrthogonal (const set<CalibrationBinBoundary> &b1, const set<CalibrationBinBoundary> &b2)
   {
     for (set<CalibrationBinBoundary>::const_iterator i_orig = b1.begin(); i_orig != b1.end(); i_orig++) {
@@ -388,6 +390,17 @@ namespace BTagCombination {
 	  return; // At least one was orthogonal, which is what we need.
       }
     }
+
+    //
+    // If we got here, then we have a problem! We need to make a nice error message.
+    //
+
+    ostringstream err;
+    err << "The following binning boundaries are not compatible in a bin-by-bin fit:" << endl;
+    err << "  - " << OPBinName(b1) << endl;
+    err << "  - " << OPBinName(b2) << endl;
+
+    throw runtime_error(err.str());
   }
 
   //
