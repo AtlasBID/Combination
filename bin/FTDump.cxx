@@ -19,7 +19,8 @@ using namespace BTagCombination;
 // Helper routines forward defined.
 void Usage(void);
 void DumpEverything (const vector<CalibrationAnalysis> &calibs);
-void CheckEverything (const CalibrationInfo &info);
+void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &info);
+void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &info);
 void PrintNames (const CalibrationInfo &info);
 void PrintQNames (const CalibrationInfo &info);
 
@@ -162,8 +163,14 @@ int main (int argc, char **argv)
       DumpEverything (calibs);
 
     // Check to see if there are overlapping bins
-    if (doCheck)
-      CheckEverything(info);
+    if (doCheck) {
+      if (info.BinByBin) {
+	CheckEverythingBinByBin(calibs);
+      } else {
+	CheckEverythingFullyCorrelated(calibs);
+      }
+      checkForValidCorrelations(info);
+    }
 
     if (doNames)
       PrintNames(info);
@@ -262,7 +269,7 @@ void DumpEverything (const vector<CalibrationAnalysis> &calibs)
 // Make sure there are no overlapping bins, etc. for each
 // analysis.
 //
-void CheckEverything (const vector<CalibrationAnalysis> &calibs)
+void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &calibs)
 {
   //
   // Split up everything by the analysis we are going to be done
@@ -297,10 +304,10 @@ void CheckEverything (const vector<CalibrationAnalysis> &calibs)
   }
 }
 
-void CheckEverything (const CalibrationInfo &info)
+// Do the checks by each bin.
+void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &calibs)
 {
-  CheckEverything(info.Analyses);
-  checkForValidCorrelations(info);
+  checkForConsistenBoundariesBinByBin (calibs);
 }
 
 void PrintNames (const vector<CalibrationAnalysis> &calibs, bool ignoreFormat = true)

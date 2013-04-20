@@ -369,7 +369,6 @@ namespace BTagCombination {
   // Make sure two bins don't overlap at all!
   bool noOverlap (const CalibrationBinBoundary &b1, const CalibrationBinBoundary &b2)
   {
-    cout << "Checking for overlap " << b1 << " and " << b2 << endl;
     if (b1.variable != b2.variable)
       return true;
     if (b1.lowvalue >= b2.highvalue)
