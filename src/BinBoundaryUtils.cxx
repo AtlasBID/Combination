@@ -378,7 +378,7 @@ namespace BTagCombination {
     return false;
   }
 
-  // Make sure the bins are somehow incompatible (i.e. they have orthoginal bins in at least one case).
+  // Make sure the bins are somehow compatible (i.e. they have orthoginal bins in at least one case).
   // Throw a nice detailed error when this happens.
   void checkForOrthogonal (const set<CalibrationBinBoundary> &b1, const set<CalibrationBinBoundary> &b2)
   {

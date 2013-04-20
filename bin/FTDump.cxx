@@ -164,11 +164,7 @@ int main (int argc, char **argv)
 
     // Check to see if there are overlapping bins
     if (doCheck) {
-      if (info.BinByBin) {
-	CheckEverythingBinByBin(calibs);
-      } else {
-	CheckEverythingFullyCorrelated(calibs);
-      }
+      CheckEverythingFullyCorrelated(calibs);
       checkForValidCorrelations(info);
     }
 
@@ -280,34 +276,14 @@ void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &calibs)
   for (t_CalibList::const_iterator itr = byBin.begin(); itr != byBin.end(); itr++) {
     const vector<CalibrationAnalysis> anas(itr->second);
     
-    //
-    // Calculating boundaries will make sure each analysis
-    // has a fully consitent set of bin boundaries
-    //
+    // Check binning
 
-    vector<bin_boundaries> bb;
-    for (unsigned int i = 0; i < anas.size(); i++) {
-      bb.push_back(calcBoundaries(anas[i]));
-    }
-  
-    //
-    // Next we check different analysis have consistent bins.
-    //
-  
-    checkForConsitentBoundaries(bb);
+    checkForConsistenBoundariesBinByBin (anas);
 
-    //
     // See if the various calibratoins are consistent for other reasons...
-    //
 
     checkForConsistentAnalyses(anas);
   }
-}
-
-// Do the checks by each bin.
-void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &calibs)
-{
-  checkForConsistenBoundariesBinByBin (calibs);
 }
 
 void PrintNames (const vector<CalibrationAnalysis> &calibs, bool ignoreFormat = true)
