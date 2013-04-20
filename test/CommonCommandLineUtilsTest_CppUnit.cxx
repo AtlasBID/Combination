@@ -44,6 +44,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testCombinationAnalysisName1 );
   CPPUNIT_TEST ( testCombinationAnalysisName2 );
 
+  CPPUNIT_TEST ( testBinByBin1 );
+  CPPUNIT_TEST ( testBinByBin2 );
+
   CPPUNIT_TEST ( testUseOnlyFlags );
   CPPUNIT_TEST ( testUseOnlyFlags2 );
   CPPUNIT_TEST ( testUseOnlyFlags3 );
@@ -532,6 +535,29 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL(string("freak"), results.CombinationAnalysisName);
+  }
+
+  void testBinByBin1()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"
+    };
+
+    ParseOPInputArgs(argv, 1, results, unknown);
+    CPPUNIT_ASSERT_EQUAL(false, results.BinByBin);
+  }
+
+  void testBinByBin2()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+			  "--binbybin"
+    };
+
+    ParseOPInputArgs(argv, 2, results, unknown);
+    CPPUNIT_ASSERT_EQUAL(true, results.BinByBin);
   }
 
 

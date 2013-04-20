@@ -229,6 +229,8 @@ namespace BTagCombination {
 	    }
 	    index++;
 	    operatingPoints.CombinationAnalysisName = args[index];
+	  } else if (flag == "binbybin") {
+	    operatingPoints.BinByBin = true;
 	  } else {
 	    unknownFlags.push_back(flag);
 	  }

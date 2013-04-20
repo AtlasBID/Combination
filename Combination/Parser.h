@@ -389,6 +389,15 @@ namespace BTagCombination
 
     // The resulting combination should be stored as this analysis name.
     std::string CombinationAnalysisName;
+    
+    // What kind of binning boundaries do we need to respect? If true, then we
+    // are doing bin-by-bin, otherwise, everythign in flavor/tag/OP/jet will
+    // have to be respected.
+    bool BinByBin;
+
+    CalibrationInfo()
+      : CombinationAnalysisName(""), BinByBin (false)
+    {}
   };
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationInfo &info) {
