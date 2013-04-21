@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <cmath>
+#include <fstream>
 
 using namespace std;
 using namespace BTagCombination;
@@ -69,6 +70,7 @@ int main (int argc, char **argv)
     string outputAna, outputFlavor;
     string newsys, newsysval;
     string relDifAna1, relDifAna2, relDifSys;
+    string outputFilename;
 
     for (int i = 1; i < argc; i++) {
       string a(argv[i]);
@@ -83,6 +85,8 @@ int main (int argc, char **argv)
 	relDifAna1 = eatArg(argv, i, argc);
 	relDifAna2 = eatArg(argv, i, argc);
 	relDifSys = eatArg(argv, i, argc);
+      } else if (a == "output") {
+	outputFilename = eatArg(argv, i, argc);
       } else {
 	otherArgs.push_back(a);
       }
@@ -176,12 +180,23 @@ int main (int argc, char **argv)
     // Get the results out
     //
 
+    ostream *output (&cout);
+    ofstream *outputFile = 0;
+    if (outputFilename.size() > 0) {
+      outputFile = new ofstream(outputFilename.c_str());
+      output = outputFile;
+    }
+
     for (size_t i = 0; i < results.size(); i++) {
       if (outputAna.size() > 0)
 	results[i].name = outputAna;
       if (outputFlavor.size() > 0)
 	results[i].flavor = outputFlavor;
-      cout << results[i];
+      (*output) << results[i];
+    }
+
+    if (outputFile != 0) {
+      outputFile->close();
     }
 
   } catch (exception &e) {
@@ -212,6 +227,7 @@ void Usage(void)
   cout << "                                        ana1 is used as the template with the new analysis" << endl;
   cout << "  setUncorrelated <name>              - Set a particular systematic as uncorrelated" << endl;
   cout << "                                        on output analysis" << endl;
+  cout << "  output <name>                       - Write the result to the output filename instead of stdout" << endl;
   cout << endl;
   cout << " Command fails if duplicate analyses would be created by the operations" << endl;
   cout << " Only will combine common taggers, operating points, and jet alg, etc." << endl;
