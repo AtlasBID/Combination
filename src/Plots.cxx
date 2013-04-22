@@ -65,7 +65,7 @@ namespace {
       const CalibrationBin &cb (ana.bins[ib]);
       t_BBSet t (cb.binSpec.begin(), cb.binSpec.end());
       if (t == bininfo) {
-	//cout << "found bin: " << ana.name << "(" << ana.flavor << "," << ana.tagger << "," << ana.operatingPoint << ") ";
+	//cout << "   found bin: " << ana.name << "(" << ana.flavor << "," << ana.tagger << "," << ana.operatingPoint << ") ";
 	//for (t_BBSet::const_iterator i = t.begin(); i != t.end(); i++) {
 	//cout << *i << " ";
 	//}

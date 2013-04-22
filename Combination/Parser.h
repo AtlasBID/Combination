@@ -85,7 +85,7 @@ namespace BTagCombination
 			  const CalibrationBinBoundary &y) {
     return x.variable == y.variable
       && x.lowvalue == y.lowvalue
-      && x.highvalue == x.highvalue;
+      && x.highvalue == y.highvalue;
   }
 
 
