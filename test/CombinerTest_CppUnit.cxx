@@ -66,6 +66,7 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( rebinMissingBin, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( rebinOverlappingBin, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( rebinTwoToOneWithGap, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( rebinThreeToOneWithOverlap, std::runtime_error );
   CPPUNIT_TEST ( rebinOneToOne );
   CPPUNIT_TEST ( rebinTwoToOne );
   CPPUNIT_TEST ( rebinThreeToOne );
@@ -1492,6 +1493,29 @@ class CombinerTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, result.bins[0].centralValue, 0.0001);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1*sqrt(3), result.bins[0].centralValueStatisticalError, 0.0001);
+  }
+
+  void rebinThreeToOneWithOverlap()
+  {
+    // Make sure that the low and high vale tests for bins being adjacent works
+    // correctly. Logic is a little tricky. :-)
+    CalibrationAnalysis ana(SimpleAna());
+    ana.bins[0].binSpec[0].highvalue = 5.0; // Now eta is 0 to 5 in one bin
+    set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
+
+    ana = SimpleAna(false);
+    ana.bins[0].binSpec[0].lowvalue = 1.1;
+    ana.bins[0].binSpec[0].highvalue = 2.6;
+    AddBin (ana,
+	    "eta",
+	    2.5, 5.0,
+	    0.5, 0.1);
+    AddBin (ana,
+	    "eta",
+	    0.0, 1.0,
+	    0.5, 0.1);
+
+    CalibrationAnalysis result (RebinAnalysis (atemp, ana));
   }
 
   void rebinTwoToOneWithGap()

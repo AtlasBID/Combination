@@ -199,11 +199,31 @@ namespace {
   }
 
   //
-  // Return true if these bins have any overlap at all.
+  // Return true if these bins have any overlap at all. To have overlap then every single
+  // coordinate must have overlap. Any of them don't and then you don't have overlap.
   //
   bool BinsOverlap (const CalibrationBin &b1, const CalibrationBin &b2)
   {
-    return false;
+    // Put in a map to make the lookup easier.
+    map<string, vector<CalibrationBinBoundary> > binfo;
+    for (size_t i = 0; i < b1.binSpec.size(); i++) {
+      binfo[b1.binSpec[i].variable].push_back(b1.binSpec[i]);
+    }
+    for (size_t i = 0; i < b2.binSpec.size(); i++) {
+      binfo[b2.binSpec[i].variable].push_back(b2.binSpec[i]);
+    }
+
+    for (map<string, vector<CalibrationBinBoundary> >::const_iterator i = binfo.begin(); i != binfo.end(); i++) {
+      if (i->second.size() != 2)
+	throw runtime_error ("Internal error, bin overlap bin comparison has only one element: " + i->first);
+      const CalibrationBinBoundary &bb1(i->second[0]);
+      const CalibrationBinBoundary &bb2(i->second[0]);
+      if (bb1.highvalue < bb2.lowvalue)
+	return false;
+      if (bb1.lowvalue > bb2.highvalue)
+	return false;
+    }
+    return true;
   }
 
   // Make sure that the bin area is totally covered by "bins". There are all sorts of crazy things
