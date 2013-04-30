@@ -25,6 +25,16 @@ namespace BTagCombination {
   }
 
   //
+  // Get a list of all bins in an analysis.
+  //
+  set<set<CalibrationBinBoundary> > listAnalysisBins (const CalibrationAnalysis &ana)
+  {
+    vector<CalibrationAnalysis> anas;
+    anas.push_back(ana);
+    return listAllBins(anas);
+  }
+
+  //
   // Return a list of analyses that are just like the orginal, with the specified bin removed.
   //
   vector<CalibrationAnalysis> removeBin (const vector<CalibrationAnalysis> &analyses, const set<CalibrationBinBoundary> &binToRemove)

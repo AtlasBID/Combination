@@ -8,6 +8,7 @@
 #define COMBINATION_COMBINER
 
 #include "Combination/Parser.h"
+#include <set>
 
 namespace BTagCombination
 {
@@ -30,6 +31,13 @@ namespace BTagCombination
   // combine them and return the total new combined analysis.
   std::vector<CalibrationAnalysis> CombineAnalyses (const CalibrationInfo &info, bool verbose = true,
 						    CombinationType combineType = kCombineByFullAnalysis);
+
+  // Given a set of template bins, force the analysis into those bins. Bins are combined - they can't
+  // be split. Further source bins must fully cover the template bins - no gaps. runtime_error is
+  // thrown if any of this dosen't work.
+  // Fit is done seperately in each template bin.
+  CalibrationAnalysis RebinAnalysis (const std::set<std::set<CalibrationBinBoundary> > &templateBinning,
+				     const CalibrationAnalysis &ana);
 }
 
 #endif

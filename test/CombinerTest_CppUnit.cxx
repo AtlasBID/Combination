@@ -6,6 +6,7 @@
 ///
 
 #include "Combination/Combiner.h"
+#include "Combination/BinUtils.h"
 
 #include <RooMsgService.h>
 
@@ -59,6 +60,13 @@ class CombinerTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST ( testAnaTrackMetadataByBin );
   CPPUNIT_TEST ( testAnaTrackMetadata );
+
+  CPPUNIT_TEST_EXCEPTION ( rebinEmpty, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( rebinToEmpty, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( rebinMissingBin, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION ( rebinOverlappingBin, std::runtime_error );
+  CPPUNIT_TEST ( rebinOneToOne );
+  CPPUNIT_TEST ( rebinTwoToOne );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -1352,6 +1360,110 @@ class CombinerTest : public CppUnit::TestFixture
     setupRoo();
     vector<CalibrationAnalysis> results (CombineAnalyses(info));
     CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
+  }
+
+  CalibrationAnalysis SimpleAna(bool addSys = true)
+  {
+    CalibrationAnalysis result;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+    if (addSys) {
+      SystematicError s1;
+      s1.name = "s1";
+      s1.value = 0.1;
+      b1.systematicErrors.push_back(s1);
+    }
+
+    CalibrationAnalysis ana;
+    result.name = "s8";
+    result.flavor = "bottom";
+    result.tagger = "comb";
+    result.operatingPoint = "0.50";
+    result.jetAlgorithm = "AntiKt4Topo";
+    result.bins.push_back(b1);
+
+    return result;
+  }
+
+  void rebinEmpty()
+  {
+    CalibrationAnalysis ana(SimpleAna());
+    RebinAnalysis (set<set<CalibrationBinBoundary> > (), ana);
+  }
+
+  void rebinToEmpty()
+  {
+    CalibrationAnalysis ana(SimpleAna());
+    set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
+    RebinAnalysis (atemp, CalibrationAnalysis());
+  }
+
+  void rebinMissingBin()
+  {
+    CalibrationAnalysis ana(SimpleAna());
+    ana.bins[0].binSpec[0].highvalue = 5.0; // Now eta is 0 to 5 in one bin
+    set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
+    
+    RebinAnalysis (atemp, SimpleAna());
+  }
+
+  void rebinOverlappingBin()
+  {
+    CalibrationAnalysis ana(SimpleAna());
+    set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
+
+    ana.bins[0].binSpec[0].highvalue = 5.0; // Now eta is 0 to 5 in one bin
+    RebinAnalysis (atemp, ana);
+  }
+
+  void rebinOneToOne()
+  {
+    CalibrationAnalysis ana(SimpleAna());
+    set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
+    CalibrationAnalysis result (RebinAnalysis (atemp, ana));
+
+    CPPUNIT_ASSERT_EQUAL (ana, result);
+  }
+
+  // Add a bin to an existing analysis.
+  void AddBin (CalibrationAnalysis &ana,
+	       const string &binCoordName,
+	       double low_v, double high_v,
+	       double v, double statError) {
+    CalibrationBinBoundary bound;
+    bound.variable = binCoordName;
+    bound.lowvalue = low_v;
+    bound.highvalue = high_v;
+    CalibrationBin b;
+    b.binSpec.push_back(bound);
+    b.centralValueStatisticalError = statError;
+    b.centralValue = v;
+    ana.bins.push_back(b);
+  }
+
+  void rebinTwoToOne()
+  {
+    CalibrationAnalysis ana(SimpleAna());
+    ana.bins[0].binSpec[0].highvalue = 5.0; // Now eta is 0 to 5 in one bin
+    set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
+
+    ana = SimpleAna(false);
+    AddBin (ana,
+	    "eta",
+	    2.5, 5.0,
+	    0.5, 0.1);
+
+    CalibrationAnalysis result (RebinAnalysis (atemp, ana));
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, result.bins[0].centralValue, 0.0001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1*sqrt(2), result.bins[0].centralValueStatisticalError, 0.0001);
   }
 
 };

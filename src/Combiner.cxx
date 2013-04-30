@@ -15,6 +15,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -147,6 +148,39 @@ namespace {
   
   // Nice way of sorting analyses for fitting.
   typedef map<string, vector<CalibrationAnalysis> > t_anaMap;
+
+  // Looking at sets of bin boundaries, return true if one of the sent in bins is a container of our
+  // given bin.
+  class ContainsBin {
+  public:
+    inline ContainsBin (const CalibrationBin &b)
+    {
+      for (size_t i = 0; i < b.binSpec.size(); i++) {
+	_binB[b.binSpec[i].variable] = b.binSpec[i];
+      }
+    }
+
+    bool operator() (const set<CalibrationBinBoundary> &bounds)
+    {
+      if (bounds.size() != _binB.size())
+	return false;
+
+      for (set<CalibrationBinBoundary>::const_iterator itr = bounds.begin(); itr != bounds.end(); itr++) {
+	map<string, CalibrationBinBoundary>::const_iterator fb = _binB.find(itr->variable);
+	if (fb == _binB.end())
+	  return false;
+
+	if (fb->second.lowvalue > itr->lowvalue
+	    || fb->second.highvalue < itr->highvalue)
+	  return false;
+      }
+
+      return true;
+    }
+
+  private:
+    map<string, CalibrationBinBoundary> _binB;
+  };
 }
 
 namespace BTagCombination
@@ -417,6 +451,45 @@ namespace BTagCombination
     }
   }
 
+  //
+  // Combine bins in a single analysis to generate a new analysis.
+  // - Can't split bins
+  // - All template bins must be fully covered by the analysis bins.
+  // - Fit is done seperately in each bin.
+  //
+  CalibrationAnalysis RebinAnalysis (const set<set<CalibrationBinBoundary> > &templateBinning,
+				     const CalibrationAnalysis &ana)
+  {
+    // Do quick checks to make sure inputs look basically good.
+
+    if (templateBinning.size() == 0)
+      throw runtime_error ("Can't rebin analysis if there are not bins in the template!");
+
+    if (ana.bins.size() == 0)
+      throw runtime_error ("Unable to rebin an empty analysis!");
+
+    // We need to associate bins in the source analysis with the targets. We create a map and look
+    // for completely contained bins.
+
+    map<set<CalibrationBinBoundary>, vector<CalibrationBin> > matchedBins;
+    for (set<set<CalibrationBinBoundary> >::const_iterator itr = templateBinning.begin(); itr != templateBinning.end(); itr++) {
+      matchedBins[*itr] = vector<CalibrationBin>();
+    }
+
+    for (size_t i_bin = 0; i_bin < ana.bins.size(); i_bin++) {
+      set<set<CalibrationBinBoundary> >::const_iterator foundBin =
+	find_if (templateBinning.begin(), templateBinning.end(), ContainsBin(ana.bins[i_bin]));
+
+      if (foundBin == templateBinning.end()) {
+	ostringstream err;
+	err << "Bin " << ana.bins[i_bin] << "is not contained by any template bins";
+	throw runtime_error (err.str().c_str());
+      }
+
+    }
+
+    return ana;
+  }  
 
 }
 

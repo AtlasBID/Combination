@@ -14,6 +14,9 @@
 
 namespace BTagCombination {
 
+  // Get the list of bins from a single analysis
+  std::set<std::set<CalibrationBinBoundary> > listAnalysisBins(const CalibrationAnalysis &ana);
+
   // Get a list of all bins in an analysis.
   std::set<std::set<CalibrationBinBoundary> > listAllBins (const std::vector<CalibrationAnalysis> &analyses);
 
