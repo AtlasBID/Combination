@@ -477,16 +477,38 @@ namespace BTagCombination
     }
 
     for (size_t i_bin = 0; i_bin < ana.bins.size(); i_bin++) {
+      const CalibrationBin &anab(ana.bins[i_bin]);
       set<set<CalibrationBinBoundary> >::const_iterator foundBin =
-	find_if (templateBinning.begin(), templateBinning.end(), ContainsBin(ana.bins[i_bin]));
+	find_if (templateBinning.begin(), templateBinning.end(), ContainsBin(anab));
 
       if (foundBin == templateBinning.end()) {
 	ostringstream err;
-	err << "Bin " << ana.bins[i_bin] << "is not contained by any template bins";
+	err << "Bin " << OPBinName(anab) << " is not contained by any template bins:" << endl;
+	for (set<set<CalibrationBinBoundary> >::const_iterator i_be = templateBinning.begin(); i_be != templateBinning.end(); i_be++) {
+	  err << " - " << OPBinName(*i_be) << endl;
+	}
 	throw runtime_error (err.str().c_str());
       }
 
+      matchedBins[*foundBin].push_back(anab);
     }
+
+    //
+    // Now, go through and make sure each one is fully covered.
+    //
+
+    for (map<set<CalibrationBinBoundary>, vector<CalibrationBin> >::const_iterator itr = matchedBins.begin(); itr != matchedBins.end(); itr++) {
+      if (itr->second.size() == 0) {
+	ostringstream err;
+	err << "Bin " << OPBinName(itr->first) << " has no source bins for the analysis for rebinning";
+	throw runtime_error (err.str().c_str());
+      }
+    }
+
+    // 
+    // Finally, loop through, and run fits for those that have more than one item. For those that don't,
+    // just copy them over
+    //
 
     return ana;
   }  
