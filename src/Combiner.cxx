@@ -181,6 +181,57 @@ namespace {
   private:
     map<string, CalibrationBinBoundary> _binB;
   };
+
+  double BinArea(const set<CalibrationBinBoundary> &b)
+  {
+    double r = 1.0;
+    for (set<CalibrationBinBoundary>::const_iterator i = b.begin(); i != b.end(); i++) {
+      r *= (i->highvalue - i->lowvalue);
+    }
+    return r;
+  }
+
+  // Calculate the bin area
+  double BinArea(const CalibrationBin &b)
+  {
+    set<CalibrationBinBoundary> spec (b.binSpec.begin(), b.binSpec.end());
+    return BinArea(spec);
+  }
+
+  //
+  // Return true if these bins have any overlap at all.
+  //
+  bool BinsOverlap (const CalibrationBin &b1, const CalibrationBin &b2)
+  {
+    return false;
+  }
+
+  // Make sure that the bin area is totally covered by "bins". There are all sorts of crazy things
+  // that can be done when we are talking about 2D. :( As a result, since writing a general algorihtm
+  // seems odd, we will be a little clever. First, we know when we get here that all bins are already
+  // within the area. So, we can then calculate the total area and see if they match. If they do, then
+  // we make sure that no bin is overlapping any other bin. Those two criteria together should assure
+  // that we are ok.
+  bool BinAreaCovered (const set<CalibrationBinBoundary> &area, const vector<CalibrationBin> &bins)
+  {
+    double barea = 0.0;
+    for (size_t i = 0; i < bins.size(); i++) {
+      barea += BinArea(bins[i]);
+    }
+    if (barea != BinArea(area))
+      return false;
+
+    // Now check for overlap
+    for (size_t i = 0; i < bins.size(); i++) {
+      for (size_t j = i + 1; j < bins.size(); j++) {
+	if (BinsOverlap(bins[i], bins[j]))
+	  return false;
+      }
+    }
+
+    // Ok - then we are satisfied!
+    return true;
+  }
 }
 
 namespace BTagCombination
@@ -501,6 +552,16 @@ namespace BTagCombination
       if (itr->second.size() == 0) {
 	ostringstream err;
 	err << "Bin " << OPBinName(itr->first) << " has no source bins for the analysis for rebinning";
+	throw runtime_error (err.str().c_str());
+      }
+
+      // Make sure there are no gaps in any of the coverage
+      if (!BinAreaCovered(itr->first, itr->second)) {
+	ostringstream err;
+	err << "Gaps in binning covering " << OPBinName(itr->first) << ". The following has a gap: " << endl;
+	for (size_t i = 0; i < itr->second.size(); i++) {
+	  err << "  - " << OPBinName(itr->second[i]) << endl;
+	}
 	throw runtime_error (err.str().c_str());
       }
     }
