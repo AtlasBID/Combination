@@ -170,8 +170,8 @@ namespace {
 	if (fb == _binB.end())
 	  return false;
 
-	if (fb->second.lowvalue > itr->lowvalue
-	    || fb->second.highvalue < itr->highvalue)
+	if (fb->second.lowvalue < itr->lowvalue
+	    || fb->second.highvalue > itr->highvalue)
 	  return false;
       }
 
