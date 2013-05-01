@@ -217,10 +217,11 @@ namespace {
       if (i->second.size() != 2)
 	throw runtime_error ("Internal error, bin overlap bin comparison has only one element: " + i->first);
       const CalibrationBinBoundary &bb1(i->second[0]);
-      const CalibrationBinBoundary &bb2(i->second[0]);
-      if (bb1.highvalue < bb2.lowvalue)
+      const CalibrationBinBoundary &bb2(i->second[1]);
+
+      if (bb1.highvalue <= bb2.lowvalue)
 	return false;
-      if (bb1.lowvalue > bb2.highvalue)
+      if (bb1.lowvalue >= bb2.highvalue)
 	return false;
     }
     return true;
@@ -238,20 +239,71 @@ namespace {
     for (size_t i = 0; i < bins.size(); i++) {
       barea += BinArea(bins[i]);
     }
+
     if (barea != BinArea(area))
       return false;
 
     // Now check for overlap
     for (size_t i = 0; i < bins.size(); i++) {
       for (size_t j = i + 1; j < bins.size(); j++) {
-	if (BinsOverlap(bins[i], bins[j]))
+	if (BinsOverlap(bins[i], bins[j])) {
 	  return false;
+	}
       }
     }
 
     // Ok - then we are satisfied!
     return true;
   }
+
+  // Combine an arbitrary set of bins. The resulting bin coordinates are zeroed out, and left
+  // to the caller to put in.
+  CalibrationBin CombineArbitraryBin (const vector<CalibrationBin> &bins, const set<CalibrationBinBoundary> &combinedBin)
+  {
+    // Simple checks to make sure we aren't bent out of shape
+
+    if (bins.size() == 0) {
+      throw runtime_error ("Unable to combine zero bins");
+    }
+
+    // If there is 1 bin we might as well short-circuit everything
+
+    vector<CalibrationBinBoundary> newBinBoundaries (combinedBin.begin(), combinedBin.end());
+
+    if (bins.size() == 1) {
+      CalibrationBin result(bins[0]);
+      result.binSpec = newBinBoundaries;
+      return result;
+    }
+
+    //
+    // We are going to treat everythign in this bin with equal "weight". So, in order to do that,
+    // we are just going to remap onto a single bin and then use the normal fitting code to do the fit.
+    //
+
+    vector<CalibrationBin> binsToFit;
+    for (size_t ib = 0; ib < bins.size(); ib++) {
+      CalibrationBin b (bins[ib]);
+      b.binSpec = newBinBoundaries;
+      binsToFit.push_back(b);
+    }
+
+    // Now we are ready to build the combination. Do a single fit of everything.
+
+    CombinationContext ctx;
+    FillContextWithBinInfo (ctx, binsToFit);
+    const map<string, CombinationContext::FitResult> fitResult = ctx.Fit("working on it");
+
+    string binName (OPBinName(binsToFit[0]));    
+
+    
+    map<string, CombinationContext::FitResult>::const_iterator ptr = fitResult.find(binName);
+    if (ptr == fitResult.end())
+      throw runtime_error ("Unable to find bin '" + binName + "' in the fit results");
+
+    return ExtractBinResult (ptr->second, bins[0]);
+  }
+
 }
 
 namespace BTagCombination
@@ -565,7 +617,8 @@ namespace BTagCombination
     }
 
     //
-    // Now, go through and make sure each one is fully covered.
+    // Now, go through and make sure each one is fully covered. This loop does not modify the data, it
+    // just looks for consistency before we spend anytime running fits.
     //
 
     for (map<set<CalibrationBinBoundary>, vector<CalibrationBin> >::const_iterator itr = matchedBins.begin(); itr != matchedBins.end(); itr++) {
@@ -578,7 +631,7 @@ namespace BTagCombination
       // Make sure there are no gaps in any of the coverage
       if (!BinAreaCovered(itr->first, itr->second)) {
 	ostringstream err;
-	err << "Gaps in binning covering " << OPBinName(itr->first) << ". The following has a gap: " << endl;
+	err << "Gaps discovered in binning covering " << OPBinName(itr->first) << ". The following has a gap: " << endl;
 	for (size_t i = 0; i < itr->second.size(); i++) {
 	  err << "  - " << OPBinName(itr->second[i]) << endl;
 	}
@@ -587,12 +640,18 @@ namespace BTagCombination
     }
 
     // 
-    // Finally, loop through, and run fits for those that have more than one item. For those that don't,
-    // just copy them over
+    // Loop through all the bins and run the combiner on them.
     //
 
-    return ana;
-  }  
+    CalibrationAnalysis result (ana);
+    result.bins.clear();
+    for (map<set<CalibrationBinBoundary>, vector<CalibrationBin> >::const_iterator itr = matchedBins.begin(); itr != matchedBins.end(); itr++) {
 
+      result.bins.push_back(CombineArbitraryBin(itr->second, itr->first));
+    }
+
+    return result;
+  }  
 }
+
 
