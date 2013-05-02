@@ -8,6 +8,8 @@
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/Combiner.h"
 
+#include <RooMsgService.h>
+
 #include <vector>
 #include <set>
 #include <iostream>
@@ -95,10 +97,22 @@ int main (int argc, char **argv)
     vector<string> otherFlags;
     ParseOPInputArgs (otherArgs, info, otherFlags);
 
-    if (otherFlags.size() > 0) {
-      cout << "Unrecognized flag '" << otherFlags[0] << endl;
-      Usage();
-      return 1;
+    bool verbose = false;
+    for (size_t i = 0; i < otherFlags.size(); i++) {
+      if (otherFlags[i] == "verbose") {
+	verbose = true;
+      } else {
+	cout << "Unrecognized flag '" << otherFlags[i] << endl;
+	Usage();
+	return 1;
+      }
+    }
+
+    // Turn off all those fitting messages!
+
+    if (!verbose) {
+      RooMsgService::instance().setSilentMode(true);
+      RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
     }
 
     //
