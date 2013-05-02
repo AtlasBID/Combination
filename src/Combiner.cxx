@@ -301,7 +301,9 @@ namespace {
     if (ptr == fitResult.end())
       throw runtime_error ("Unable to find bin '" + binName + "' in the fit results");
 
-    return ExtractBinResult (ptr->second, bins[0]);
+    CalibrationBin resultTemplate(bins[0]);
+    resultTemplate.binSpec = newBinBoundaries;
+    return ExtractBinResult (ptr->second, resultTemplate);
   }
 
 }

@@ -1468,6 +1468,12 @@ class CombinerTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, result.bins[0].centralValue, 0.0001);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1/sqrt(2), result.bins[0].centralValueStatisticalError, 0.0001);
+
+    // Check the resulting bounds
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, result.bins[0].binSpec[0].lowvalue, 0.0001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, result.bins[0].binSpec[0].highvalue, 0.0001);
+
   }
 
   void rebinThreeToOne()
