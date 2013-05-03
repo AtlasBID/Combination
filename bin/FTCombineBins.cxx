@@ -193,7 +193,7 @@ void Usage(void)
 {
   cout << "FTCombineBins <file-list-and-options>" << endl;
   cout << "  ouputAna <ana>                      - The rebined analysis should be called this. [required]" << endl;
-  cout << "  template <ana>                      - Name of the analysis to use as a template. There should be only one [required]" << endl;
+  cout << "  templateAna <ana>                      - Name of the analysis to use as a template. There should be only one [required]" << endl;
   cout << "  output <fname>                      - Write results to an output file instead of stdout." << endl;
   cout << endl;
   cout << " All the other standard commands apply. Use them to window down to a particular analysis or flavor, etc." << endl;

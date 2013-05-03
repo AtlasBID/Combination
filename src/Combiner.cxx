@@ -23,7 +23,11 @@ namespace {
   using namespace BTagCombination;
 
   // Fill the context info for a single bin.
-  void FillContextWithBinInfo (CombinationContext &ctx, const CalibrationBin &b, const string &prefix = "", const string &mname = "", bool verbose = true) {
+  void FillContextWithBinInfo (CombinationContext &ctx,
+			       const CalibrationBin &b,
+			       const string &prefix = "",
+			       const string &mname = "",
+			       bool verbose = true) {
     
     string binName (prefix + OPBinName(b));
 
@@ -254,6 +258,97 @@ namespace {
 
     // Ok - then we are satisfied!
     return true;
+  }
+
+  // Calc the weighted average
+  double CalcWTAverage (vector<double> values, vector<double> weights)
+  {
+    if (values.size() != weights.size())
+      throw runtime_error ("Unable to calculate weighted average when weights and values are not same size!");
+    
+    double wtSum = 0.0;
+    double avgSum = 0.0;
+    for (size_t i = 0; i < values.size(); i++) {
+      wtSum += weights[i];
+      avgSum += weights[i] * values[i];
+    }
+    return avgSum/wtSum;
+  }
+
+  //
+  // Calculate the weigthed sigma for statistical errors.
+  //
+  double CalcWTStatError (vector<double> weights)
+  {
+    double wtsum = 0.0;
+    for (size_t i = 0; i < weights.size(); i++) {
+      wtsum += weights[i];
+    }
+    return sqrt(1/wtsum);
+  }
+
+  // Combine all given bins using a weighted average.
+  // The weight is due to the stat error only.
+  // It is assumed that the sys errors don't scale with statistics, so it just
+  // becomes a question of how much to weight each relative contribution of systematic
+  // error.
+  CalibrationBin CombineBinsWeightedAverage (const vector<CalibrationBin> &bins)
+  {
+    // Initial setup of everything we need
+    // - weights
+    // - systematic errors
+
+    vector<double> weights;
+    vector<double> cvs;
+    vector<map<string, SystematicError> > sysErrors;
+    set<string> sysErrorNames;
+    for (size_t i = 0; i < bins.size(); i++) {
+      double statSigma (bins[i].centralValueStatisticalError);
+      weights.push_back (1.0/(statSigma*statSigma));
+      cvs.push_back(bins[i].centralValue);
+
+      sysErrors.push_back(map<string, SystematicError>());
+      for (size_t i_sys = 0; i_sys < bins[i].systematicErrors.size(); i_sys++){
+	const SystematicError &e(bins[i].systematicErrors[i_sys]);
+	sysErrors[i][e.name] = e;
+	sysErrorNames.insert(e.name);
+      }
+    }
+
+    // Calculate a new central value and stat error.
+
+    CalibrationBin result(bins[0]);
+    
+    result.centralValue = CalcWTAverage(cvs, weights);
+    result.centralValueStatisticalError = CalcWTStatError (weights);
+
+    // And the systematic errors
+
+    result.systematicErrors.clear();
+    for (set<string>::const_iterator sysName = sysErrorNames.begin(); sysName != sysErrorNames.end(); sysName++) {
+      vector<double> sysErrList;
+      bool unCorrelated = false;
+      for (size_t i = 0; i < sysErrors.size(); i++) {
+	map<string, SystematicError>::const_iterator sys = sysErrors[i].find(*sysName);
+	if (sys == sysErrors[i].end()) {
+	  sysErrList.push_back(0.0);
+	} else {
+	  sysErrList.push_back(sys->second.value);
+	  unCorrelated = sys->second.uncorrelated;
+	}
+      }
+
+      SystematicError r;
+      r.name = *sysName;
+      r.value = CalcWTAverage(sysErrList, weights);
+      r.uncorrelated = unCorrelated;
+      result.systematicErrors.push_back(r);
+    }
+
+    // Done!
+
+    return result;
+
   }
 
   // Combine an arbitrary set of bins. The resulting bin coordinates are zeroed out, and left
@@ -649,7 +744,9 @@ namespace BTagCombination
     result.bins.clear();
     for (map<set<CalibrationBinBoundary>, vector<CalibrationBin> >::const_iterator itr = matchedBins.begin(); itr != matchedBins.end(); itr++) {
 
-      result.bins.push_back(CombineArbitraryBin(itr->second, itr->first));
+      CalibrationBin b (CombineBinsWeightedAverage(itr->second));
+      b.binSpec = vector<CalibrationBinBoundary>(itr->first.begin(), itr->first.end());
+      result.bins.push_back(b);
     }
 
     return result;
