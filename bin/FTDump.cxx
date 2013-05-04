@@ -10,6 +10,7 @@
 #include <vector>
 #include <set>
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
 #include <sstream>
 
@@ -18,11 +19,19 @@ using namespace BTagCombination;
 
 // Helper routines forward defined.
 void Usage(void);
-void DumpEverything (const vector<CalibrationAnalysis> &calibs);
+void DumpEverything (const vector<CalibrationAnalysis> &calibs, ostream &output);
 void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &info);
 void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &info);
-void PrintNames (const CalibrationInfo &info);
-void PrintQNames (const CalibrationInfo &info);
+void PrintNames (const CalibrationInfo &info, ostream &output);
+void PrintQNames (const CalibrationInfo &info, ostream &output);
+
+string eatArg (char **argv, int &index, const int maxArg)
+{
+  if (index == (maxArg-1)) 
+    throw runtime_error ("Not enough arguments.");
+  index++;
+  return argv[index];
+}
 
 // Main program - run & control everything.
 int main (int argc, char **argv)
@@ -32,11 +41,25 @@ int main (int argc, char **argv)
     return 1;
   }
 
+  vector<string> otherArgs;
+    
+  // Parse the input args for commands
+  string outputFilename;
+
+  for (int i = 1; i < argc; i++) {
+    string a(argv[i]);
+    if (a == "output") {
+      outputFilename = eatArg(argv, i, argc);
+    } else {
+      otherArgs.push_back(a);
+    }
+  }
+
   try {
     // Parse the input arguments
     CalibrationInfo info;
     vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
+    ParseOPInputArgs (otherArgs, info, otherFlags);
 
     bool doCheck = false;
     bool doDump = false;
@@ -80,6 +103,12 @@ int main (int argc, char **argv)
     if (!sawFlag)
       doDump = true;
 
+    // Do the output file
+    ostream *output (&cout);
+    if (outputFilename.size() > 0) {
+      output = new ofstream(outputFilename.c_str());
+    }
+
     const vector<CalibrationAnalysis> &calibs(info.Analyses);
 
     // Print out the correlation stuff
@@ -88,7 +117,7 @@ int main (int argc, char **argv)
 	const AnalysisCorrelation &c(info.Correlations[i_c]);
 	for (size_t i_b = 0; i_b < c.bins.size(); i_b++) {
 	  BinCorrelation b (c.bins[i_b]);
-	  cout 
+	  (*output) 
 	    << c.analysis1Name
 	    << ", " << c.analysis2Name
 	    << ", " << c.flavor
@@ -116,10 +145,10 @@ int main (int argc, char **argv)
 
 	const map<string, vector<double> > &md (c.metadata);
 	for (map<string,vector<double> >::const_iterator i_md = md.begin(); i_md != md.end(); i_md++) {
-	  cout << bname.str() << i_md->first << " ** ";
+	  (*output) << bname.str() << i_md->first << " ** ";
 	  for(vector<double>::const_iterator i_val = i_md->second.begin(); i_val != i_md->second.end(); i_val++)
-	    cout << *i_val << " ";
-	  cout << endl;
+	    (*output) << *i_val << " ";
+	  (*output) << endl;
 	}
       }
     }
@@ -139,11 +168,11 @@ int main (int argc, char **argv)
 	  const CalibrationBin &b(c.bins[i_b]);
 	  string binname (OPBinName(b));
 	  for (map<string,pair<double,double> >::const_iterator i_m = b.metadata.begin(); i_m != b.metadata.end(); i_m++) {
-	    cout << bname.str()
-		 << i_m->first << " [from " << binname << "]"
-		 << " ** " << i_m->second.first
-		 << " " << i_m->second.second
-		 << endl;
+	    (*output) << bname.str()
+		      << i_m->first << " [from " << binname << "]"
+		      << " ** " << i_m->second.first
+		      << " " << i_m->second.second
+		      << endl;
 	  }
 	}
       }
@@ -154,13 +183,13 @@ int main (int argc, char **argv)
     //
 
     if (printAsInput) {
-      cout << info << endl;
+      (*output) << info << endl;
       return 0;
     }
 
     // Dump out a list of comma seperated values
     if (doDump)
-      DumpEverything (calibs);
+      DumpEverything (calibs, *output);
 
     // Check to see if there are overlapping bins
     if (doCheck) {
@@ -169,10 +198,10 @@ int main (int argc, char **argv)
     }
 
     if (doNames)
-      PrintNames(info);
+      PrintNames(info, *output);
 
     if (doQNames)
-      PrintQNames (info);
+      PrintQNames (info, *output);
 
     // Check to see if the bin specifications are consistent.
     return 0;
@@ -226,7 +255,7 @@ private:
 //
 // Generate a comma seperated list of csv values.
 //
-void DumpEverything (const vector<CalibrationAnalysis> &calibs)
+void DumpEverything (const vector<CalibrationAnalysis> &calibs, ostream &output)
 {
     vector<holder> held;
     for (unsigned int i = 0; i < calibs.size(); i++)
@@ -245,19 +274,19 @@ void DumpEverything (const vector<CalibrationAnalysis> &calibs)
 
     // Line1: analysis name headers
     for (unsigned int i = 0; i < held.size(); i++) {
-      cout << "," << held[i].name() << " " << held[i].binName();
+      output << "," << held[i].name() << " " << held[i].binName();
     }
-    cout << endl;
+    output << endl;
 
     // Do a line for everything now...
     for (set<string>::const_iterator i = allsyserrors.begin(); i != allsyserrors.end(); i++) {
-      cout << *i;
+      output << *i;
       for (unsigned int h = 0; h < held.size(); h++) {
-	cout << ",";
+	output << ",";
 	if (held[h].hasSysError(*i))
-	  cout << held[h].sysError(*i);
+	  output << held[h].sysError(*i);
       }
-      cout << endl;
+      output << endl;
     }
 }
 
@@ -286,37 +315,37 @@ void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &calibs)
   }
 }
 
-void PrintNames (const vector<CalibrationAnalysis> &calibs, bool ignoreFormat = true)
+void PrintNames (const vector<CalibrationAnalysis> &calibs, ostream &output, bool ignoreFormat = true)
 {
   for (unsigned int i = 0; i < calibs.size(); i++) {
     for (unsigned int b = 0; b < calibs[i].bins.size(); b++) {
       if (ignoreFormat) {
-	cout << OPIgnoreFormat(calibs[i], calibs[i].bins[b]) << endl;
+	output << OPIgnoreFormat(calibs[i], calibs[i].bins[b]) << endl;
       } else {
-	cout << OPComputerFormat(calibs[i], calibs[i].bins[b]) << endl;
+	output << OPComputerFormat(calibs[i], calibs[i].bins[b]) << endl;
       }
     }
   }
 }
 
-void PrintNames (const vector<AnalysisCorrelation> &cors)
+void PrintNames (const vector<AnalysisCorrelation> &cors, ostream &output)
 {
   for (size_t i = 0; i < cors.size(); i++) {
     for (size_t b = 0; b < cors[i].bins.size(); b++) {
-      cout << OPIgnoreFormat(cors[i], cors[i].bins[b]) << endl;
+      output << OPIgnoreFormat(cors[i], cors[i].bins[b]) << endl;
     }
   }
 }
 
-void PrintNames (const CalibrationInfo &info)
+void PrintNames (const CalibrationInfo &info, ostream &output)
 {
-  PrintNames(info.Analyses);
-  PrintNames(info.Correlations);
+  PrintNames(info.Analyses, output);
+  PrintNames(info.Correlations, output);
 }
 
-void PrintQNames (const CalibrationInfo &info)
+void PrintQNames (const CalibrationInfo &info, ostream &output)
 {
-  PrintNames(info.Analyses, false);
+  PrintNames(info.Analyses, output, false);
 }
 
 void Usage(void)
@@ -327,4 +356,5 @@ void Usage(void)
   cout << "  --qnames - print out the names used in a fully qualified, and easily computer parsable format" << endl;
   cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
   cout << "  --corr - print out the correlation inputs in a CSV command format" << endl;
+  cout << "  output <fname> - all output is sent to fname" << endl;
 }
