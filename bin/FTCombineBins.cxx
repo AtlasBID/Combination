@@ -146,7 +146,7 @@ int main (int argc, char **argv)
 	continue;
 
       // Do the rebinning
-      cout << "Rebinning analysis '" << info.Analyses[i].name << "'" << endl;
+      cout << "Rebinning analysis '" << OPFullName(info.Analyses[i]) << "'" << endl;
       CalibrationAnalysis r (RebinAnalysis(templateBinning, info.Analyses[i]));
       r.name = outputAna;
 
