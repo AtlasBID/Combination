@@ -15,6 +15,9 @@ library Combination *.cxx
 application FTManipSys ../bin/FTManipSys.cxx
 apply_pattern application_alias FTManipSys
 
+application FTDStarCalc ../bin/FTDStarCalc.cxx
+apply_pattern application_alias FTDStarCalc
+
 application FTCombineBins ../bin/FTCombineBins.cxx
 apply_pattern application_alias FTCombineBins
 
