@@ -119,7 +119,13 @@ class CDIConverterTest : public CppUnit::TestFixture
     
     ana.bins.push_back(b1);
 
-    b1.binSpec[0].lowvalue = 10.0;
+    b1.binSpec[0].lowvalue = 100.0;
+    b1.binSpec[0].highvalue = 200.0;
+    b1.binSpec[1].highvalue = 1.0;
+
+    ana.bins.push_back(b1);
+    b1.binSpec[1].lowvalue = 1.0;
+    b1.binSpec[1].highvalue = 2.5;
     ana.bins.push_back(b1);
 
     CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");

@@ -314,7 +314,7 @@ namespace {
 
     Binner operator() (binMapper &bm) {
       if (_h == 0) {
-	_h = new TH1F("values", "some values; mapped", bm.numberBins(), 0.0, double(bm.numberBins()));
+	_h = new TH1F("values", "some values;mapped", bm.numberBins(), 0.0, double(bm.numberBins()));
       }
       return Binner(_h);
     }
