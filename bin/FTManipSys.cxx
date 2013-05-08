@@ -123,13 +123,10 @@ int main (int argc, char **argv)
     //
 
     vector<CalibrationAnalysis> results;
+
+    // New systematic that is added flat out.
+
     if (newsys.size() != 0) {
-      // Adding a systematic error
-      if (info.Analyses.size() != 1)
-	throw runtime_error ("Can only add a systematice error to a single analysis!");
-      
-      CalibrationAnalysis newAna (info.Analyses[0]);
-      
       // Parse the error size
       istringstream inParam (newsysval);
       double amount;
@@ -137,19 +134,23 @@ int main (int argc, char **argv)
       inParam >> amount >> c;
       bool isPercent = c == '%';
 
-      // Loop through all the bins and add what we need to add.
-      for (size_t ib = 0; ib < newAna.bins.size(); ib++) {
-	CalibrationBin &b(newAna.bins[ib]);
-	SystematicError err;
-	err.name = newsys;
-	err.value = amount;
-	if (isPercent)
-	  err.value *= b.centralValue / 100.0;
-	b.systematicErrors.push_back(err);
-      }
+      // Do all the analyses
+      for (size_t i = 0; i < info.Analyses.size(); i++) {
+	CalibrationAnalysis newAna (info.Analyses[i]);
       
+	// Loop through all the bins and add what we need to add.
+	for (size_t ib = 0; ib < newAna.bins.size(); ib++) {
+	  CalibrationBin &b(newAna.bins[ib]);
+	  SystematicError err;
+	  err.name = newsys;
+	  err.value = amount;
+	  if (isPercent)
+	    err.value *= b.centralValue / 100.0;
+	  b.systematicErrors.push_back(err);
+	}
 
-      results.push_back(newAna);
+	results.push_back(newAna);
+      }
 
     } else if (relDifAna1.size() > 0) {
       // Taking two guys, and in each common bin, using the difference as a new sys error
