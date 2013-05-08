@@ -126,7 +126,7 @@ int main (int argc, char **argv)
     if (newsys.size() != 0) {
       // Adding a systematic error
       if (info.Analyses.size() != 1)
-	throw new runtime_error ("Can only add a systematice error to a single analysis!");
+	throw runtime_error ("Can only add a systematice error to a single analysis!");
       
       CalibrationAnalysis newAna (info.Analyses[0]);
       
@@ -203,13 +203,6 @@ int main (int argc, char **argv)
     cerr << "Error: " << e.what() << endl;
     return 1;
   }
-
-
-    //
-    // Get the analyses and go from there.
-    //
-
-  //const vector<CalibrationAnalysis> &calibs(info.Analyses);
 
   return 0;
 }
