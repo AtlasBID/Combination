@@ -254,6 +254,20 @@ namespace {
       : _container(c)
     {
       _nbin = eff.bins.size();
+
+      // Fetch out all the variable names that we are going to be usig
+      set<string> bin_names;
+      for (size_t ib = 0; ib < eff.bins.size(); ib++) {
+	for (size_t ibb = 0; ibb < eff.bins[ib].binSpec.size(); ibb++) {
+	  bin_names.insert(eff.bins[ib].binSpec[ibb].variable);
+	}
+      }
+      vector<string> vbin_names(bin_names.begin(), bin_names.end());
+      for (size_t ib = 0; ib < vbin_names.size(); ib++) {
+	_bin_lookup[vbin_names[ib]] = int(ib);
+      }
+
+      c->setMappedVariables(vbin_names);
     }
 
     // Return a bin index for this bin coordinate.
@@ -271,9 +285,12 @@ namespace {
       int index = 0;
       double low[maxCoord];
       double high[maxCoord];
+      for (size_t i = 0; i < maxCoord; i++)
+	low[i] = high[i] = 0.0;
+
       for (set<CalibrationBinBoundary>::const_iterator itr = items.begin(); itr != items.end(); itr++) {
-	low[index] = itr->lowvalue;
-	high[index] = itr->highvalue;
+	low[_bin_lookup[itr->variable]] = itr->lowvalue;
+	high[_bin_lookup[itr->variable]] = itr->highvalue;
 	index++;
       }
 
@@ -288,6 +305,7 @@ namespace {
   private:
     int _nbin;
     CalibrationDataMappedHistogramContainer *_container;
+    map<string, int> _bin_lookup;
   };
 
   // Simple TH1F bin holder just makes the code below make more "sense".

@@ -88,6 +88,7 @@ class CDIConverterTest : public CppUnit::TestFixture
 
   void testBasicGetIrregularSF()
   {
+    cout << "Starting testBasicGetIrregularSF()" << endl;
     CalibrationAnalysis ana;
     ana.name = "ana1";
     ana.flavor = "bottom";
@@ -122,10 +123,12 @@ class CDIConverterTest : public CppUnit::TestFixture
     b1.binSpec[0].lowvalue = 100.0;
     b1.binSpec[0].highvalue = 200.0;
     b1.binSpec[1].highvalue = 1.0;
-
+    b1.centralValue = 5.0;
     ana.bins.push_back(b1);
+
     b1.binSpec[1].lowvalue = 1.0;
     b1.binSpec[1].highvalue = 2.5;
+    b1.centralValue = 4.0;
     ana.bins.push_back(b1);
 
     CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
@@ -134,12 +137,14 @@ class CDIConverterTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT (c != 0);
 
     Analysis::CalibrationDataVariables v;
-    v.jetPt = 50.e3;
+    v.jetPt = 50e3;
     v.jetEta = -1.1;
     v.jetAuthor = "AntiKt4Topo";
 
     TObject *obj = nullptr;
     double r;
+    cout << "Doing first lookup for 50 x 1.1" << endl;
+
     CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
 
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
@@ -148,6 +153,19 @@ class CDIConverterTest : public CppUnit::TestFixture
     stat = c->getStatUncertainty(v, r);
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
+
+    v.jetPt = 120.e3;
+    v.jetEta = -0.3;
+    obj = nullptr;
+    stat = c->getResult(v, r, obj);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, r, 0.001);
+
+    v.jetEta = 1.3;
+    obj = nullptr;
+    stat = c->getResult(v, r, obj);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (4.0, r, 0.001);
   }
 
   void testForSystematics()
