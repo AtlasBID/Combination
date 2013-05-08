@@ -7,6 +7,7 @@
 #include "Combination/CommonCommandLineUtils.h"
 
 #include "CalibrationDataInterface/CalibrationDataContainer.h"
+#include "CalibrationDataInterface/CalibrationDataContainer.h"
 
 #include "TH2F.h"
 
@@ -25,6 +26,7 @@
 #include <cmath>
 
 using Analysis::CalibrationDataHistogramContainer;
+using Analysis::CalibrationDataMappedHistogramContainer;
 using Analysis::CalibrationDataContainer;
 
 namespace {
@@ -186,22 +188,9 @@ namespace {
     }
     return false;
   }
-}
 
-namespace BTagCombination {
-
-  //
-  // Master converter. Returns a data container with a set of calibrations in it.
-  //
-
-  CalibrationDataContainer *ConvertToCDI (const CalibrationAnalysis &eff, const std::string &name)
+  CalibrationAnalysis addTotalSysError (const CalibrationAnalysis &eff)
   {
-    CalibrationDataHistogramContainer *result = new CalibrationDataHistogramContainer(name.c_str());
-
-    //
-    // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
-    //
-
     CalibrationAnalysis ana (eff);
     for (vector<CalibrationBin>::iterator itr = ana.bins.begin(); itr != ana.bins.end(); itr++) {
       double totS = 0.0;
@@ -213,6 +202,22 @@ namespace BTagCombination {
       s.name = "systematics";
       itr->systematicErrors.push_back(s);
     }
+    return ana;
+  }
+
+  //
+  // Convert to the CDI format using regular bins - that is, everythign is layed out as a simple
+  // grid.
+  //
+  CalibrationDataContainer *ConvertToCDIRegularBins (const CalibrationAnalysis &eff, const std::string &name)
+  {
+    CalibrationDataHistogramContainer *result = new CalibrationDataHistogramContainer(name.c_str());
+
+    //
+    // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
+    //
+
+    CalibrationAnalysis ana(addTotalSysError(eff));
 
     //
     // First, convert this analysis to a histogram, and extract the values with errors
@@ -239,4 +244,163 @@ namespace BTagCombination {
     return result;
   }
 
+  //
+  // Track the bin mappings.
+  //
+  class binMapper {
+  public:
+    // Get everything setup for inserting this analysis.
+    binMapper (const CalibrationAnalysis &eff, CalibrationDataMappedHistogramContainer *c)
+      : _container(c)
+    {
+      _nbin = eff.bins.size();
+    }
+
+    // Return a bin index for this bin coordinate.
+    int getBin(const vector<CalibrationBinBoundary> &binCoord)
+    {
+      // Simple check.
+      const size_t maxCoord (10);
+      if (binCoord.size() > maxCoord)
+	throw runtime_error ("More coordinates that we can deal with - rebuild for more than 10!");
+
+      // Put them in a set so we can sort them (they are sorted first by variable, then coordinates, see
+      // operator< in Parser.h
+
+      set<CalibrationBinBoundary> items(binCoord.begin(), binCoord.end());
+      int index = 0;
+      double low[maxCoord];
+      double high[maxCoord];
+      for (set<CalibrationBinBoundary>::const_iterator itr = items.begin(); itr != items.end(); itr++) {
+	low[index] = itr->lowvalue;
+	high[index] = itr->highvalue;
+	index++;
+      }
+
+      CalibrationDataMappedHistogramContainer::Bin b(items.size(), low, high);
+      return _container->addBin(b);
+    }
+
+    int numberBins() const {
+      return _nbin;
+    }
+
+  private:
+    int _nbin;
+    CalibrationDataMappedHistogramContainer *_container;
+  };
+
+  // Simple TH1F bin holder just makes the code below make more "sense".
+  class TH1FHolder {
+  public:
+    TH1FHolder() 
+      : _h(0)
+    {}
+
+    class Binner {
+    public:
+      Binner (TH1F *h)
+	: _h(h)
+      {}
+
+      void set (int bin, double val, double err = 0.0) {
+	_h->SetBinContent(bin, val);
+	_h->SetBinError(bin, err);
+      }
+
+    private:
+      TH1F *_h;
+    };
+
+    Binner operator() (binMapper &bm) {
+      if (_h == 0) {
+	_h = new TH1F("values", "some values; mapped", bm.numberBins(), 0.0, double(bm.numberBins()));
+      }
+      return Binner(_h);
+    }
+
+    operator TH1F*() const {
+      if (_h == 0)
+	throw runtime_error ("Attempt to get histo pointer before we have created it!");
+      return _h;
+    }
+
+    private:
+      TH1F* _h;
+  };
+
+  //
+  // Call this when we should expect irregular bins, so we need to do the binning
+  // using the new Bin constructs.
+  //
+  CalibrationDataContainer *ConvertToCDIIrregularBins (const CalibrationAnalysis &eff, const std::string &name)
+  {
+    //
+    // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
+    //
+
+    CalibrationAnalysis ana(addTotalSysError(eff));
+
+    //
+    // Setup.
+    //
+
+    CalibrationDataMappedHistogramContainer *result = new CalibrationDataMappedHistogramContainer(name.c_str());
+    binMapper mapper (ana, result);
+
+    //
+    // Next, loop through each bin of this analysis and extract all the info.
+    //
+
+    map<string, TH1FHolder> mapped_histograms;
+    for (size_t ibin = 0; ibin < ana.bins.size(); ibin++) {
+      const CalibrationBin &b(ana.bins[ibin]);
+
+      int binIndex = mapper.getBin(b.binSpec);
+
+      mapped_histograms["central"](mapper).set(binIndex, b.centralValue, b.centralValueStatisticalError);
+
+      for (size_t isys = 0; isys < b.systematicErrors.size(); isys++) {
+	const SystematicError &e(b.systematicErrors[isys]);
+	mapped_histograms[e.name](mapper).set(binIndex, e.value);
+      }
+    }
+
+    //
+    // Finally, stuff this back into the main container.
+    //
+
+    for (map<string, TH1FHolder>::const_iterator itr = mapped_histograms.begin(); itr != mapped_histograms.end(); itr++) {
+      if (itr->first == "central") {
+	result->setResult(itr->second);
+      } else {
+	result->setUncertainty(itr->first, itr->second);
+	if (is_uncorrelated(ana, itr->first))
+	  result->setUncorrelated(itr->first.c_str());
+      }
+    }
+
+    return result;
+  }
+}
+
+namespace BTagCombination {
+
+  //
+  // Master converter. Returns a data container with a set of calibrations in it.
+  // Use the most efficient method of conversion we can.
+  //
+  CalibrationDataContainer *ConvertToCDI (const CalibrationAnalysis &eff, const std::string &name)
+  {
+    // Try the regular flat/grid binning first.
+
+    try {
+      return ConvertToCDIRegularBins(eff, name);
+    } catch (exception &) {
+    }
+      
+    // If we are here, then the irregular binning is the only hope.
+
+    return ConvertToCDIIrregularBins(eff, name);
+  }
 }
