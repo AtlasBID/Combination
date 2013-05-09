@@ -23,115 +23,129 @@ using namespace BTagCombination;
 // Helper routines forward defined.
 void Usage(void);
 
-string eatArg (char **argv, int &index, const int maxArg)
-{
-  if (index == (maxArg-1)) 
-    throw runtime_error ("Not enough arguments.");
-  index++;
-  return argv[index];
-}
-
-// Return an analysis from a list.
-bool getAnalysis (vector<CalibrationAnalysis> &foundAna, const string &aname, const vector<CalibrationAnalysis> &list)
-{
-  bool found = false;
-  for (size_t i = 0; i < list.size(); i++) {
-    if (list[i].name == aname) {
-      foundAna.push_back(list[i]);
-      found = true;
-    }
-  }
-  return found;
-}
-
-double GetSysError (CalibrationBin &b, const string &name)
-{
-  for (size_t e = 0; e < b.systematicErrors.size(); e++) {
-    if (b.systematicErrors[e].name == name)
-      return b.systematicErrors[e].value;
-  }
-  cerr << "Unable to find systematic error " << name << " in bin " << OPBinName(b) << endl;
-  throw runtime_error ("Unable to find systematic error");
-}
-
-void UpdateSysError (CalibrationBin &b, const string &name, double newValue)
-{
-  for (size_t e = 0; e < b.systematicErrors.size(); e++) {
-    if (b.systematicErrors[e].name == name) {
-      b.systematicErrors[e].value = newValue;
-      return;
-    }
+namespace {
+  string eatArg (char **argv, int &index, const int maxArg)
+  {
+    if (index == (maxArg-1)) 
+      throw runtime_error ("Not enough arguments.");
+    index++;
+    return argv[index];
   }
 
-  // Not already there. Add.
-
-  SystematicError err;
-  err.name = name;
-  err.value = newValue;
-  b.systematicErrors.push_back(err);
-  return;
-}
-
-double CalcFullError (const CalibrationBin &b)
-{
-  double e2 = b.centralValueStatisticalError * b.centralValueStatisticalError;
-  for (size_t e = 0; e < b.systematicErrors.size(); e++) {
-    e2 += b.systematicErrors[e].value*b.systematicErrors[e].value;
-  }
-  return sqrt(e2);
-}
-
-// Do the calculation for one bin.
-void RescaleBin (CalibrationBin &dstar, const CalibrationBin &bSFb)
-{
-  // Extract the info we need from the bSF bin.
-  double bSF = bSFb.centralValue;
-  double bSF_err = CalcFullError (bSFb);
-  
-  // And from the D* bin
-  double cSF = dstar.centralValue;
-  double errstat_cSF = dstar.centralValueStatisticalError;
-  double syst_bSF = GetSysError(dstar, "b SF");
-
-  // Do the calculation
-  double deltaSF = -(bSF-1.0)/0.05*syst_bSF;
-  double cSF_new = cSF * (1 + deltaSF);
-  double errstat_cSF_new = cSF_new * (errstat_cSF/cSF);
-  double syst_bSF_new = syst_bSF/0.05 * bSF_err;
-
-  // And update the d* bin
-  dstar.centralValue = cSF_new;
-  dstar.centralValueStatisticalError = errstat_cSF_new;
-  UpdateSysError(dstar, "b SF", syst_bSF_new);
-}
-
-// Rescale each D* bin, one at a time.
-void RescaleBins(vector<CalibrationBin> &dstarBins, const vector<CalibrationBin> &bSFBins)
-{
-  // Build lookup table to help us with next step.
-
-  map<set<CalibrationBinBoundary>, CalibrationBin> bSFBinLookup;
-  for (size_t i = 0; i < bSFBins.size(); i++) {
-    const vector<CalibrationBinBoundary> &bs(bSFBins[i].binSpec);
-    bSFBinLookup[set<CalibrationBinBoundary>(bs.begin(), bs.end())] = bSFBins[i];
-  }
-
-  // Loop through the D* bins, rescaling one at a time.
-  
-  for (size_t i = 0; i < dstarBins.size(); i++) {
-    set<CalibrationBinBoundary> key (dstarBins[i].binSpec.begin(), dstarBins[i].binSpec.end());
-    map<set<CalibrationBinBoundary>, CalibrationBin>::const_iterator i_bsfBin = bSFBinLookup.find(key);
-    if (i_bsfBin == bSFBinLookup.end()) {
-      cerr << "For bin " << OPBinName(dstarBins[i]) << " in D* template could not find matching bin in bSF:" << endl;
-      for (size_t ib = 0; ib < bSFBins.size(); ib++) {
-	cerr << "  -> " << OPBinName(bSFBins[ib]) << endl;
+  // Return an analysis from a list.
+  bool getAnalysis (vector<CalibrationAnalysis> &foundAna, const string &aname, const vector<CalibrationAnalysis> &list)
+  {
+    bool found = false;
+    for (size_t i = 0; i < list.size(); i++) {
+      if (list[i].name == aname) {
+	foundAna.push_back(list[i]);
+	found = true;
       }
-      throw runtime_error ("Unable to find proper bin in bSF template.");
     }
-    RescaleBin(dstarBins[i], i_bsfBin->second);
+    return found;
+  }
+
+  double GetSysError (CalibrationBin &b, const string &name)
+  {
+    for (size_t e = 0; e < b.systematicErrors.size(); e++) {
+      if (b.systematicErrors[e].name == name)
+	return b.systematicErrors[e].value;
+    }
+    cerr << "Unable to find systematic error " << name << " in bin " << OPBinName(b) << endl;
+    throw runtime_error ("Unable to find systematic error");
+  }
+
+  void UpdateSysError (CalibrationBin &b, const string &name, double newValue)
+  {
+    for (size_t e = 0; e < b.systematicErrors.size(); e++) {
+      if (b.systematicErrors[e].name == name) {
+	b.systematicErrors[e].value = newValue;
+	return;
+      }
+    }
+
+    // Not already there. Add.
+
+    SystematicError err;
+    err.name = name;
+    err.value = newValue;
+    b.systematicErrors.push_back(err);
+    return;
+  }
+
+  double CalcFullError (const CalibrationBin &b)
+  {
+    double e2 = b.centralValueStatisticalError * b.centralValueStatisticalError;
+    for (size_t e = 0; e < b.systematicErrors.size(); e++) {
+      e2 += b.systematicErrors[e].value*b.systematicErrors[e].value;
+    }
+    return sqrt(e2);
+  }
+
+  // Do the calculation for one bin.
+  void RescaleBin (CalibrationBin &dstar, const CalibrationBin &bSFb)
+  {
+    // Extract the info we need from the bSF bin.
+    double bSF = bSFb.centralValue;
+    double bSF_err = CalcFullError (bSFb);
+  
+    // And from the D* bin
+    double cSF = dstar.centralValue;
+    double errstat_cSF = dstar.centralValueStatisticalError;
+    double syst_bSF = GetSysError(dstar, "b SF");
+
+    // Do the calculation
+    double deltaSF = -(bSF-1.0)/0.05*syst_bSF;
+    double cSF_new = cSF * (1 + deltaSF);
+    double errstat_cSF_new = cSF_new * (errstat_cSF/cSF);
+    double syst_bSF_new = syst_bSF/0.05 * bSF_err;
+
+    // And update the d* bin
+    dstar.centralValue = cSF_new;
+    dstar.centralValueStatisticalError = errstat_cSF_new;
+    UpdateSysError(dstar, "b SF", syst_bSF_new);
+  }
+
+  // Rescale each D* bin, one at a time.
+  void RescaleBins(vector<CalibrationBin> &dstarBins, const vector<CalibrationBin> &bSFBins)
+  {
+    // Build lookup table to help us with next step.
+
+    map<set<CalibrationBinBoundary>, CalibrationBin> bSFBinLookup;
+    for (size_t i = 0; i < bSFBins.size(); i++) {
+      const vector<CalibrationBinBoundary> &bs(bSFBins[i].binSpec);
+      bSFBinLookup[set<CalibrationBinBoundary>(bs.begin(), bs.end())] = bSFBins[i];
+    }
+
+    // Loop through the D* bins, rescaling one at a time.
+  
+    for (size_t i = 0; i < dstarBins.size(); i++) {
+      set<CalibrationBinBoundary> key (dstarBins[i].binSpec.begin(), dstarBins[i].binSpec.end());
+      map<set<CalibrationBinBoundary>, CalibrationBin>::const_iterator i_bsfBin = bSFBinLookup.find(key);
+      if (i_bsfBin == bSFBinLookup.end()) {
+	cerr << "For bin " << OPBinName(dstarBins[i]) << " in D* template could not find matching bin in bSF:" << endl;
+	for (size_t ib = 0; ib < bSFBins.size(); ib++) {
+	  cerr << "  -> " << OPBinName(bSFBins[ib]) << endl;
+	}
+	throw runtime_error ("Unable to find proper bin in bSF template.");
+      }
+      RescaleBin(dstarBins[i], i_bsfBin->second);
+    }
+  }
+
+  string stringReplace (const string &sourceString, const string &pattern, const string &replacement)
+  {
+    size_t index = sourceString.find(pattern);
+    if (index == string::npos)
+      return sourceString;
+
+    string result(sourceString.substr(0, index));
+    result += replacement;
+    result += sourceString.substr(index + pattern.size());
+
+    return result;
   }
 }
-
 
 // Main program - run & control everything.
 int main (int argc, char **argv)
@@ -219,7 +233,7 @@ int main (int argc, char **argv)
 	// Create a new D* analysis that we will write out.
 
 	CalibrationAnalysis r (dstar);
-	r.name = outputAnaPattern.replace(outputPatternIndex, 2, a.name);
+	r.name = stringReplace(outputAnaPattern, "<>", a.name);
 
 	RescaleBins (r.bins, a.bins);
 
