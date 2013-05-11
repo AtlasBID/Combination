@@ -25,10 +25,18 @@ using namespace Analysis;
 
 void Usage (void);
 
-TDirectory *get_sub_dir (TDirectory *parent, const string &name);
+TDirectory *get_sub_dir (TDirectory *parent, const string &name, bool create = true);
 string convert_flavor (const string &flavor);
 
 namespace {
+  string eatArg (char **argv, int &index, const int maxArg)
+  {
+    if (index == (maxArg-1)) 
+      throw runtime_error ("Not enough arguments.");
+    index++;
+    return argv[index];
+  }
+
   // Very simple wild-card matching
   bool wCompare (const string &s1, const string &s2)
   {
@@ -74,7 +82,7 @@ namespace {
   Analysis::CalibrationDataContainer *__c2;
 
   // Do a deep copy of the in directory into the out directory
-  void copy_directory_structure (TDirectory *out, TDirectory *in)
+  void copy_directory_structure (TDirectory *out, TDirectory *in, bool create = true)
   {
     //
     // Do a simple depth copy.
@@ -86,9 +94,11 @@ namespace {
     while ((k = (TKey*)next())) {
       if (TClass::GetClass(k->GetClassName())->InheritsFrom(directory)) {
 	string outname(TranslateDirectoryName(k->GetName()));
-	TDirectory *out_subdir = get_sub_dir(out, outname);
-	TDirectory *in_subdir = (TDirectory*) get_sub_dir(in, k->GetName());
-	copy_directory_structure(out_subdir, in_subdir);
+	TDirectory *out_subdir = get_sub_dir(out, outname, create);
+	if (out_subdir != 0) {
+	  TDirectory *in_subdir = (TDirectory*) get_sub_dir(in, k->GetName());
+	  copy_directory_structure(out_subdir, in_subdir, create);
+	}
       } else {
 	out->cd();
 	TObject *o = k->ReadObj();
@@ -109,8 +119,25 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  vector<string> otherArgs;
+    
+  // Parse the input args for commands
+  string outputFile ("output.root");
+  vector<string> taggers;
+
+  for (int i = 1; i < argc; i++) {
+    string a(argv[i]);
+    if (a == "output") {
+      outputFile = eatArg(argv, i, argc);
+    } else {
+      otherArgs.push_back(a);
+    }
+  }
+
+
   CalibrationInfo info;
   bool updateROOTFile = false;
+  bool restricted_mc_add = false;
   vector<string> other_mcfiles;
   try {
     vector<string> otherFlags;
@@ -120,6 +147,8 @@ int main(int argc, char **argv)
 	updateROOTFile = true;
       } else if (otherFlags[i].find("copy") == 0) {
 	other_mcfiles.push_back(otherFlags[i].substr(4));
+      } else if (otherFlags[i] == "restrictedMC") {
+	restricted_mc_add = true;
       } else {
 	cerr << "Unknown command line flag '" << otherFlags[i] << "'." << endl;
 	Usage();
@@ -150,17 +179,6 @@ int main(int argc, char **argv)
   }
 
   //
-  // The other mc files may need copying in...
-  //
-
-  for (unsigned int i = 0; i < other_mcfiles.size(); i++) {
-    TFile *in = TFile::Open(other_mcfiles[i].c_str(), "READ");
-    copy_directory_structure(output, in);
-    in->Close();
-    delete in;
-  }
-
-  //
   // Now, write out everything. If the analysis is a default re-run the conversion
   // (to make sure that we are not doing somethign funny in ROOT).
   //
@@ -185,6 +203,17 @@ int main(int argc, char **argv)
     }
   }
 
+  //
+  // The other mc files may need copying in...
+  //
+
+  for (unsigned int i = 0; i < other_mcfiles.size(); i++) {
+    TFile *in = TFile::Open(other_mcfiles[i].c_str(), "READ");
+    copy_directory_structure(output, in, !restricted_mc_add);
+    in->Close();
+    delete in;
+  }
+
   output->Close();
   delete output;
 
@@ -197,6 +226,7 @@ void Usage (void)
   cout << "FTConvertToCDI <input-filenames> <options>" << endl;
   cout << "  --ignore <item> - use to ignore a particular bin in the input" << endl;
   cout << "  --update <rootfname> - use to update the root file" << endl;
+  cout << "  --restrictedMC - only emit MC Eff plots for directories there is a actual SF in" << endl;
 }
 
 //
@@ -221,7 +251,8 @@ string convert_flavor (const string &flavor)
 //
 // Create a sub-directory in the given parent directory. If it is already
 // there then return it. Sanitize the directory name.
-TDirectory *get_sub_dir (TDirectory *parent, const string &name)
+// If create is false and the directory doesn't exist, then return null.
+TDirectory *get_sub_dir (TDirectory *parent, const string &name, bool create)
 {
   //
   // Sanitize the name of the sub directory
@@ -237,6 +268,13 @@ TDirectory *get_sub_dir (TDirectory *parent, const string &name)
   TDirectory *candidate = static_cast<TDirectory*>(parent->Get(sname.c_str()));
   if (candidate != 0)
     return candidate;
+
+  //
+  // if we are not meant to do the creation...
+  //
+
+  if (!create)
+    return 0;
 
   //
   // Create it.
