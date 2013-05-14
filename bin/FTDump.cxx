@@ -198,7 +198,7 @@ int main (int argc, char **argv)
 	  if (i_err->second.find(*i_a) == i_err->second.end()) {
 	    usage.push_back ("");
 	  } else {
-	    usage.push_back ("X");
+	    usage.push_back (*i_a);
 	  }
 	}
 	t.emit_line (i_err->first, usage.begin(), usage.end());
