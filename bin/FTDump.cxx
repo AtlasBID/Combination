@@ -13,6 +13,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <sstream>
+#include <strings.h>
 
 using namespace std;
 using namespace BTagCombination;
@@ -24,6 +25,41 @@ void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &info);
 void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &info);
 void PrintNames (const CalibrationInfo &info, ostream &output);
 void PrintQNames (const CalibrationInfo &info, ostream &output);
+
+struct CaseInsensitiveCompare {
+  bool operator() (const string &a, const string &b) const {
+    return strcasecmp(a.c_str(), b.c_str()) < 0;
+  }
+};
+
+class html_table {
+public:
+  html_table (ostream &out)
+    : _out (out)
+  {
+    _out << "<table>";
+  }
+  virtual ~html_table()
+  {
+    _out << "</table>";
+  }
+  template <class InputIterator>
+  void emit_line (const string &col1, InputIterator first, InputIterator last) {
+    _out << "<tr><td>" << col1 << "</td>";
+    while (first != last) {
+      _out << "<td>" << *first << "</td>";
+      first++;
+    }
+    _out << "</tr>" << endl;
+  }
+  template <class InputIterator>
+  void emit_header (const string &col1, InputIterator first, InputIterator last) 
+  {
+    emit_line (col1, first, last);
+  }
+private:
+  ostream &_out;
+};
 
 string eatArg (char **argv, int &index, const int maxArg)
 {
@@ -69,6 +105,7 @@ int main (int argc, char **argv)
     bool printCorr = false;
     bool dumpMetaDataForCPU = false;
     bool dumpMetaDataForBins = false;
+    bool dumpSysErrorUsage = false;
 
     bool sawFlag = false;
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
@@ -92,6 +129,9 @@ int main (int argc, char **argv)
 	sawFlag = true;
       } else if (otherFlags[i] == "metaBins") {
 	dumpMetaDataForBins = true;
+	sawFlag = true;
+      } else if (otherFlags[i] == "sysErrorTable") {
+	dumpSysErrorUsage = true;
 	sawFlag = true;
       } else {
 	cerr << "Unknown command line option --" << otherFlags[i] << endl;
@@ -130,6 +170,39 @@ int main (int argc, char **argv)
 	}
       }
       return 0;
+    }
+
+    // If we need to dump systematic errors as a table
+
+    if (dumpSysErrorUsage) {
+      map<string, set<string> , CaseInsensitiveCompare> syserror_by_ana;
+      set<string> analyses;
+
+      for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
+	const CalibrationAnalysis &c(calibs[i_a]);
+	analyses.insert(c.name);
+	for (size_t i_b = 0; i_b < c.bins.size(); i_b++) {
+	  const CalibrationBin &b (c.bins[i_b]);
+	  for (size_t i_e = 0; i_e < b.systematicErrors.size(); i_e++) {
+	    const SystematicError &e(b.systematicErrors[i_e]);
+	    syserror_by_ana[e.name].insert(c.name);
+	  }
+	}
+      }
+
+      html_table t (*output);
+      t.emit_header ("Sys Error", analyses.begin(), analyses.end());
+      for (map<string, set<string> >::const_iterator i_err = syserror_by_ana.begin(); i_err != syserror_by_ana.end(); i_err++) {
+	vector<string> usage;
+	for (set<string>::const_iterator i_a = analyses.begin(); i_a != analyses.end(); i_a++) {
+	  if (i_err->second.find(*i_a) == i_err->second.end()) {
+	    usage.push_back ("");
+	  } else {
+	    usage.push_back ("X");
+	  }
+	}
+	t.emit_line (i_err->first, usage.begin(), usage.end());
+      }
     }
 
     // Dump the meta data for the analysis that has run. We do this
