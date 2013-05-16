@@ -558,7 +558,7 @@ namespace BTagCombination {
 	  // Save the change in the central value, regardless if this sys error was part of this
 	  // fit bin!
 
-	  result[item].cvShifts[sysErrorName] = m->getVal() - result[item].centralValue;
+	  result[item].cvShifts[sysErrorName] = result[item].centralValue - m->getVal();
 	}
 
 	// Restore the systematic errors to their former glory
