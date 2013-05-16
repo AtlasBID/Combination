@@ -44,12 +44,25 @@ namespace {
   const double c_binYStart = 0.85;
   const double c_binYDelta = 0.05;
   
-  //const int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 40, 41, 42, 43, 44, 45};
   const int colorID[] =  { 1,  2,  3,  4,  6,  7,  8,  9, 20, 30, 40, 21, 31, 41,
 			   12, 22, 32, 42, 13, 23, 33, 43, 14, 24, 34, 44,
 			   15, 25, 35, 45, 16, 26, 36, 46, 17, 27, 37, 47,
 			   18, 28, 38, 48, 19, 29, 39, 49
   };
+
+
+  // Track the sys error to color mapping so we can make them all the same.
+  int sysErrorColor (const string &sysErrorName)
+  {
+    static map<string, int> sysError_colorID;
+    static int sysError_colorID_index = 0;
+
+    if (sysError_colorID.find(sysErrorName) == sysError_colorID.end()) {
+      sysError_colorID[sysErrorName] = colorID[sysError_colorID_index];
+      sysError_colorID_index = (sysError_colorID_index+1) % (sizeof(colorID)/sizeof(int));
+    }
+    return sysError_colorID[sysErrorName];
+  }
 
   ///
   /// Many of these routines could be moved into the global namespace if their
@@ -134,10 +147,10 @@ namespace {
     // Now that they are sorted, color them for "easy" viewing.
 
     int index = 0;
-    int nColor = sizeof(colorID)/sizeof(int);
     for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-      ip->second->SetLineColor(colorID[index % nColor]);
-      ip->second->SetFillColor(colorID[index % nColor]);
+      int col = sysErrorColor(ip->first);
+      ip->second->SetLineColor(col);
+      ip->second->SetFillColor(col);
       index++;
     }
 
@@ -614,13 +627,14 @@ namespace {
 	h_itr->second->SetMinimum (minV-fabs(minV)*0.10);
 
 	h_itr->second->SetMarkerStyle(markerID[m_index]);
-	h_itr->second->SetMarkerColor(colorID[m_index]);
-	h_itr->second->SetLineColor(colorID[m_index]);
+	int col = sysErrorColor(h_itr->first);
+	h_itr->second->SetMarkerColor(col);
+	h_itr->second->SetLineColor(col);
 
 	h_itr->second->Draw("SAMEP");
 
 	myMarkerText (lXPos, lYPos,
-		      colorID[m_index], markerID[m_index],
+		      col, markerID[m_index],
 		      h_itr->first.c_str());
 
 	m_index += 1;
