@@ -256,6 +256,8 @@ namespace {
   void plot_stacked_by_ana(map<string, vector<pair<string, TH1F*> > > &plotsByAna, const vector<string> &binlabels,
 			   bool squareit, const string &base_name, const string &base_title, const string &yaxis_title)
   {
+    // Sort them by size in the first bin, and then plot them.
+
     for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = plotsByAna.begin(); itr != plotsByAna.end(); itr++) {
 
       // Square them and sort by size.
@@ -406,6 +408,7 @@ namespace {
     map<string, vector<pair<string, TH1F*> > > sysErrorPlotsByAna;
     map<string, vector<pair<string, TH1F*> > > cvShiftPlotsByAna;
     map<string, TH1F*> cvShiftPlotsSingle;
+    map<string, bool>  cvShiftPlotsSingleUsed;
     Double_t *v_bin = new Double_t[axisBins.size()];
     Double_t *v_binError = new Double_t[axisBins.size()];
     Double_t *v_central = new Double_t[axisBins.size()];
@@ -476,6 +479,7 @@ namespace {
 
 	h = DeclareSingleHist(anaName, string("_cvShift_") + *i, string ("Central Value shifts caused by ") + *i + " ", axisBins.size(), 0);
 	cvShiftPlotsSingle[*i] = h;
+	cvShiftPlotsSingleUsed[*i] = false;
 	cvShiftPlotsByAna[anaName].push_back(make_pair(*i,h));
       }
 
@@ -509,6 +513,9 @@ namespace {
 	      if (cvShiftPlotsSingle.find(name) == cvShiftPlotsSingle.end())
 		throw runtime_error (("Unexpected systematic error " + name).c_str());
 	      cvShiftPlotsSingle[name]->SetBinContent(ibin+1, i_meta->second.first);
+	      if (i_meta->second.first != 0.0) {
+		cvShiftPlotsSingleUsed[name] = true;
+	      }
 	    }
 	  }
 	}
@@ -570,6 +577,27 @@ namespace {
     //
 
     plot_stacked_by_ana(sysErrorPlotsByAna, binlabels, true, "ana_sys_", "Systematic Error (\\sigma^{2})",  "\\sigma^{2}");
+
+    //
+    // Now, do the same for the central value shifts. Eliminate the analyses which have no shifts first, however.
+    //
+
+    vector<string> empty_ana;
+    for (map<string, vector<pair<string, TH1F*> > >::const_iterator i_cv = cvShiftPlotsByAna.begin(); i_cv != cvShiftPlotsByAna.end(); i_cv++) {
+      bool isgood = false;
+      for (vector<pair<string, TH1F*> >::const_iterator i_err = i_cv->second.begin(); i_err != i_cv->second.end(); i_err++) {
+	if (cvShiftPlotsSingleUsed[i_err->first]) {
+	  isgood = true;
+	  break;
+	}
+      }
+      if (!isgood)
+	empty_ana.push_back(i_cv->first);
+    }
+    for (size_t i_bad = 0; i_bad < empty_ana.size(); i_bad++) {
+      cvShiftPlotsByAna.erase(empty_ana[i_bad]);
+    }
+
     plot_stacked_by_ana(cvShiftPlotsByAna, binlabels, false, "cv_shift_", "Central Value Shift", "CV Shift");
 
     //
