@@ -314,12 +314,12 @@ namespace {
   void GenerateCommonAnalysisPlots (TDirectory *out,
 				    const vector<CalibrationAnalysis> &anas,
 				    const t_BBSet &specifiedBins,
-				    const t_BBSet &axisBins)
+				    const t_BBSet &allAxisBins)
   {
     out -> cd();
 
     // Some setup and defs that make life simpler below.
-    string binName (axisBins.begin()->variable);
+    string binName (allAxisBins.begin()->variable);
 
     double legendYPos = c_legendYStart;
     double legendYDelta = c_legendYDelta;
@@ -335,19 +335,26 @@ namespace {
     typedef map<CalibrationBinBoundary, t_CBMap> t_BoundaryMap;
     t_BoundaryMap taggerResults;
 
-    for (t_BBSet::const_iterator ib = axisBins.begin(); ib != axisBins.end(); ib++) {
+    for (t_BBSet::const_iterator ib = allAxisBins.begin(); ib != allAxisBins.end(); ib++) {
       t_BBSet coordinate (specifiedBins);
       coordinate.insert(*ib);
       for(unsigned int ia = 0; ia < anas.size(); ia++) {
 	bool found;
 	CalibrationBin fb = FindBin (anas[ia], coordinate, found);
-	if (!found) {
-	  if (taggerResults[*ib].find(anas[ia].name) == taggerResults[*ib].end()) {
-	    taggerResults[*ib][anas[ia].name] = fb;
-	  }
-	} else {
+	if (found)
 	  taggerResults[*ib][anas[ia].name] = fb;
-	}
+      }
+    }
+
+    //
+    // Some of the axis bins may not be filled by this combination of analyses. No need to plot those, so
+    // we will remove them.
+    //
+
+    t_BBSet axisBins;
+    for (t_BBSet::const_iterator ib = allAxisBins.begin(); ib != allAxisBins.end(); ib++) {
+      if (taggerResults.find(*ib) != taggerResults.end()) {
+	axisBins.insert(*ib);
       }
     }
 
@@ -440,7 +447,7 @@ namespace {
 	v_binError[ib] = 0; // No error along x-axis!!
 
 	v_binError[ib] = 0.0;
-	v_central[ib] = -1000.0;
+	v_central[ib] = 0.0;
 	v_centralStatError[ib] = 0.0;
 	v_centralTotError[ib] = 0.0;
       }
@@ -453,9 +460,11 @@ namespace {
 
       set<string> allSys;
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
-	const CalibrationBin &cb(i_c->second.find(anaName)->second);
-	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
-	  allSys.insert(cb.systematicErrors[i].name);
+	if (i_c->second.find(anaName) != i_c->second.end()) {
+	  const CalibrationBin &cb(i_c->second.find(anaName)->second);
+	  for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
+	    allSys.insert(cb.systematicErrors[i].name);
+	  }
 	}
       }
 
@@ -480,25 +489,27 @@ namespace {
 	}
 	int ibin = bbBinNumber[i_c->first];
 
-	const CalibrationBin &cb(i_c->second.find(anaName)->second);
-	v_central[ibin] = cb.centralValue;
-	v_centralStatError[ibin] = cb.centralValueStatisticalError;
-	v_centralTotError[ibin] = CalcTotalError(cb);
+	if (i_c->second.find(anaName) != i_c->second.end()) {
+	  const CalibrationBin &cb(i_c->second.find(anaName)->second);
+	  v_central[ibin] = cb.centralValue;
+	  v_centralStatError[ibin] = cb.centralValueStatisticalError;
+	  v_centralTotError[ibin] = CalcTotalError(cb);
 
-	// Fill in the single plots now
-	singlePlots["central"]->SetBinContent(ibin+1, cb.centralValue);
-	singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
-	singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
-	for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
-	  singlePlots[cb.systematicErrors[i].name]->SetBinContent(ibin+1, cb.systematicErrors[i].value);
-	}
+	  // Fill in the single plots now
+	  singlePlots["central"]->SetBinContent(ibin+1, cb.centralValue);
+	  singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
+	  singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
+	  for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
+	    singlePlots[cb.systematicErrors[i].name]->SetBinContent(ibin+1, cb.systematicErrors[i].value);
+	  }
 
-	for (map<string, pair<double, double> >::const_iterator i_meta = cb.metadata.begin(); i_meta != cb.metadata.end(); i_meta++) {
-	  if (i_meta->first.find("CV Shift ") == 0) {
-	    string name(i_meta->first.substr(9));
-	    if (cvShiftPlotsSingle.find(name) == cvShiftPlotsSingle.end())
-	      throw runtime_error (("Unexpected systematic error " + name).c_str());
-	    cvShiftPlotsSingle[name]->SetBinContent(ibin+1, i_meta->second.first);
+	  for (map<string, pair<double, double> >::const_iterator i_meta = cb.metadata.begin(); i_meta != cb.metadata.end(); i_meta++) {
+	    if (i_meta->first.find("CV Shift ") == 0) {
+	      string name(i_meta->first.substr(9));
+	      if (cvShiftPlotsSingle.find(name) == cvShiftPlotsSingle.end())
+		throw runtime_error (("Unexpected systematic error " + name).c_str());
+	      cvShiftPlotsSingle[name]->SetBinContent(ibin+1, i_meta->second.first);
+	    }
 	  }
 	}
 
