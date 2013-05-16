@@ -49,6 +49,8 @@ namespace {
 			   15, 25, 35, 45, 16, 26, 36, 46, 17, 27, 37, 47,
 			   18, 28, 38, 48, 19, 29, 39, 49
   };
+  int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
+
 
 
   // Track the sys error to color mapping so we can make them all the same.
@@ -315,8 +317,6 @@ namespace {
 				    const t_BBSet &axisBins)
   {
     out -> cd();
-
-    int markerID[] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
 
     // Some setup and defs that make life simpler below.
     string binName (axisBins.begin()->variable);
@@ -708,6 +708,7 @@ namespace {
       myText(binXPos, binYPos, 1, buf.str().c_str());
       binYPos -= c_binYDelta;
     }
+    myText(binXPos, binYPos, 1, anas[0].jetAlgorithm.c_str());
 
     //
     // Write it out in that directory that we are using so it can be found
