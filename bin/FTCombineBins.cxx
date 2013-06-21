@@ -55,6 +55,19 @@ bool getBin (CalibrationBin &bin, const CalibrationBin &proto, const vector<Cali
   return false;
 }
 
+string stringReplace (const string &sourceString, const string &pattern, const string &replacement)
+{
+  size_t index = sourceString.find(pattern);
+  if (index == string::npos)
+    return sourceString;
+  
+  string result(sourceString.substr(0, index));
+  result += replacement;
+  result += sourceString.substr(index + pattern.size());
+
+  return result;
+}
+
 // Main program - run & control everything.
 int main (int argc, char **argv)
 {
@@ -148,7 +161,7 @@ int main (int argc, char **argv)
       // Do the rebinning
       cout << "Rebinning analysis '" << OPFullName(info.Analyses[i]) << "'" << endl;
       CalibrationAnalysis r (RebinAnalysis(templateBinning, info.Analyses[i]));
-      r.name = outputAna;
+      r.name = stringReplace(outputAna, "<>", info.Analyses[i].name);
 
       // Is this a legal name - are we going to make a duplicate?
       string name = OPFullName(r);
