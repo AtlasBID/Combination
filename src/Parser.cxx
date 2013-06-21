@@ -889,7 +889,8 @@ namespace BTagCombination
     while (!input.eof()) {
       string line;
       getline(input, line);
-      text << line << endl;
+      if (line[0] != '#')
+	text << line << endl;
     }
 
     return Parse(text.str());
