@@ -14,8 +14,15 @@
 namespace BTagCombination
 {
 
+  enum  GroupCriteria {
+    gcByBin,
+    gcByCalib,
+    gcByCalibEff
+  };
+
   /// Store plots in the directory given for all the analyses.
-  void DumpPlots (TDirectory *outputDir, const std::vector<CalibrationAnalysis> &anas);
+  void DumpPlots (TDirectory *outputDir, const std::vector<CalibrationAnalysis> &anas,
+		  GroupCriteria gp);
 
 }
 

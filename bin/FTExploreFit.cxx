@@ -35,7 +35,7 @@ namespace {
   {
     vector<CalibrationAnalysis> anas (info.Analyses);
     anas.insert(anas.end(), r.begin(), r.end());
-    DumpPlots (outDir, anas);
+    DumpPlots (outDir, anas, gcByBin);
   }
 
   string Normalize (const string &name)

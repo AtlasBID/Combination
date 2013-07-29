@@ -27,9 +27,19 @@ int main (int argc, char **argv)
     ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
     vector<CalibrationAnalysis> &calibs(info.Analyses);
 
-    if (otherFlags.size() != 0) {
-      usage();
-      return 1;
+    GroupCriteria grouping = gcByBin;
+    for (unsigned int i = 0; i < otherFlags.size(); i++) {
+      string arg(otherFlags[i]);
+      if (arg == "ByBin") {
+	grouping = gcByBin;
+      } else if (arg == "ByCalib") {
+	grouping = gcByCalib;
+      } else if (arg == "ByCalibEff") {
+	grouping = gcByCalibEff;
+      } else {
+	usage();
+	return 1;
+      }
     }
 
     //
@@ -39,7 +49,7 @@ int main (int argc, char **argv)
     TFile *f = new TFile ("plots.root", "RECREATE");
 
     SetAtlasStyle();
-    DumpPlots (f, calibs);
+    DumpPlots (f, calibs, grouping);
 
     f->Write();
     f->Close();

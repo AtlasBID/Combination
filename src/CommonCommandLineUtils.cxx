@@ -430,6 +430,57 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  string OPByCalibName (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint
+	<< "-" << ana.name;
+    return msg.str();
+  }
+
+  // Return an eff string given an analysis for theOP
+  string OPEff(const CalibrationAnalysis &ana)
+  {
+    if (ana.tagger == "MV1") {
+      if (ana.operatingPoint == "0.9867"
+	  || ana.operatingPoint == "0.9827") {
+	return "60";
+      } else if (ana.operatingPoint == "0.8119"
+		 || ana.operatingPoint == "0.7892") {
+	return "70";
+      } else if (ana.operatingPoint == "0.3900"
+		 || ana.operatingPoint == "0.3511") {
+	return "80";
+      } else {
+	return "MV1_unkown";
+      }
+    } else if (ana.tagger == "MV1c") {
+      if (ana.operatingPoint == "0.2937"
+	  || ana.operatingPoint == "0.9195") {
+	return "50";
+      } else if (ana.operatingPoint == "0.8674"
+		 || ana.operatingPoint == "0.8641") {
+	return "57";
+      } else {
+	return "MV1c_unknown";
+      }
+    } else {
+      return "tagger_unknown";
+    }
+  }
+
+  string OPByCalibAndEffName (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << OPEff(ana)
+	<< "-" << ana.name;
+    return msg.str();
+  }
+
   // return name of a bin (in a command-line friendly way)
   string OPBinName (const CalibrationBin &bin)
   {

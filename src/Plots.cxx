@@ -310,6 +310,12 @@ namespace {
 
   }
 
+  // Return a naming for an analysis for english use
+  string NamingForAna (const CalibrationAnalysis &a)
+  {
+    return a.name + " - " + a.jetAlgorithm;
+  }
+
   ///
   /// Actually generate the plots for a particular bin
   ///
@@ -344,7 +350,7 @@ namespace {
 	bool found;
 	CalibrationBin fb = FindBin (anas[ia], coordinate, found);
 	if (found)
-	  taggerResults[*ib][anas[ia].name] = fb;
+	  taggerResults[*ib][NamingForAna(anas[ia])] = fb;
       }
     }
 
@@ -370,7 +376,7 @@ namespace {
     vector<string> anaNames;
     vector<double> anaChi2;
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
-      string anaName (anas[ia].name);
+      string anaName (NamingForAna(anas[ia]));
       if (seenAnaNames.find(anaName) == seenAnaNames.end()) {
 	seenAnaNames.insert(anaName);
 	anaNames.push_back(anaName);
@@ -1012,7 +1018,7 @@ namespace BTagCombination {
   ///
   /// Dump all the plots to an output directory.
   ///
-  void DumpPlots (TDirectory *output, const vector<CalibrationAnalysis> &anas)
+  void DumpPlots (TDirectory *output, const vector<CalibrationAnalysis> &anas, GroupCriteria gp)
   {
     //
     // Group the analyses together so we put the proper things on
@@ -1021,7 +1027,15 @@ namespace BTagCombination {
 
     t_grouping grouping;
     for (unsigned int i = 0; i < anas.size(); i++) {
-      grouping[OPIndependentName(anas[i])].push_back(anas[i]);
+      if (gp == gcByBin) {
+	grouping[OPIndependentName(anas[i])].push_back(anas[i]);
+      } else if (gp == gcByCalib) {
+	grouping[OPByCalibName(anas[i])].push_back(anas[i]);
+      } else if (gp == gcByCalibEff) {
+	grouping[OPByCalibAndEffName(anas[i])].push_back(anas[i]);
+      } else {
+	cout << "ERROR: Don't know what grouping this is " << gp << endl;
+      }
     }
 
     //
