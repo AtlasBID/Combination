@@ -12,6 +12,9 @@ use CalibrationDataInterface	CalibrationDataInterface-*	PhysicsAnalysis/JetTaggi
 
 library Combination *.cxx
 
+application FTCopyDefaults ../bin/FTCopyDefaults.cxx
+apply_pattern application_alias FTCopyDefaults
+
 application FTManipSys ../bin/FTManipSys.cxx
 apply_pattern application_alias FTManipSys
 

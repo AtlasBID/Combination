@@ -457,7 +457,7 @@ namespace BTagCombination {
 	return "MV1_unkown";
       }
     } else if (ana.tagger == "MV1c") {
-      if (ana.operatingPoint == "0.2937"
+      if (ana.operatingPoint == "0.9237"
 	  || ana.operatingPoint == "0.9195") {
 	return "50";
       } else if (ana.operatingPoint == "0.8674"
