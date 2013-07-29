@@ -391,6 +391,12 @@ namespace {
     }    
 
     //
+    // Sort the names of the analysis in alpha order
+    //
+
+    sort (anaNames.begin(), anaNames.end());
+
+    //
     // We need to put each analysis at a point along the x-axis, and have it at
     // different places along the x-axis. This calc is a bit messy, as a result.
     //
