@@ -95,14 +95,13 @@ namespace {
     double syst_bSF = GetSysError(dstar, "b SF");
 
     // Do the calculation
-    double deltaSF = -(bSF-1.0)/0.05*syst_bSF;
-    double cSF_new = cSF * (1 + deltaSF);
-    double errstat_cSF_new = cSF_new * (errstat_cSF/cSF);
+    double deltaSF = (bSF-1.0)/0.05*syst_bSF;
+    double cSF_new = cSF + deltaSF;
     double syst_bSF_new = syst_bSF/0.05 * bSF_err;
 
-    // And update the d* bin
+    // And update the d* bin. Note that the statistical error does not
+    // change.
     dstar.centralValue = cSF_new;
-    dstar.centralValueStatisticalError = errstat_cSF_new;
     UpdateSysError(dstar, "b SF", syst_bSF_new);
   }
 
