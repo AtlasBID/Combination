@@ -20,9 +20,14 @@ namespace BTagCombination
     gcByCalibEff
   };
 
+  enum PlotCollection {
+    pcAll,
+    pcEffOnly
+  };
+
   /// Store plots in the directory given for all the analyses.
   void DumpPlots (TDirectory *outputDir, const std::vector<CalibrationAnalysis> &anas,
-		  GroupCriteria gp);
+		  GroupCriteria gp, PlotCollection whatToPlot = pcAll);
 
 }
 

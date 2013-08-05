@@ -322,7 +322,8 @@ namespace {
   void GenerateCommonAnalysisPlots (TDirectory *out,
 				    const vector<CalibrationAnalysis> &anas,
 				    const t_BBSet &specifiedBins,
-				    const t_BBSet &allAxisBins)
+				    const t_BBSet &allAxisBins,
+				    PlotCollection whatToPlot)
   {
     out -> cd();
 
@@ -469,9 +470,11 @@ namespace {
 
       // Create the plots we are going to be filling as we go
       map<string, TH1F*> singlePlots;
-      singlePlots["central"] = DeclareSingleHist(anaName,  "_cv", "Central values for ", axisBins.size(), out);
-      singlePlots["statistical"] = DeclareSingleHist(anaName,  "_stat", "Statistical errors for ", axisBins.size(), out);
-      singlePlots["total"] = DeclareSingleHist(anaName,  "_totalerror", "Total errors for ", axisBins.size(), out);
+      if (whatToPlot == pcAll) {
+	singlePlots["central"] = DeclareSingleHist(anaName,  "_cv", "Central values for ", axisBins.size(), out);
+	singlePlots["statistical"] = DeclareSingleHist(anaName,  "_stat", "Statistical errors for ", axisBins.size(), out);
+	singlePlots["total"] = DeclareSingleHist(anaName,  "_totalerror", "Total errors for ", axisBins.size(), out);
+      }
 
       set<string> allSys;
       for (t_BoundaryMap::const_iterator i_c = taggerResults.begin(); i_c != taggerResults.end(); i_c++) {
@@ -483,16 +486,18 @@ namespace {
 	}
       }
 
-      for (set<string>::const_iterator i = allSys.begin(); i != allSys.end(); i++) {
-	TH1F *h = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);
-	singlePlots[*i] = h;
-	sysErrorPlots[*i].push_back(make_pair(anaName,h));
-	sysErrorPlotsByAna[anaName].push_back(make_pair(*i,h));
+      if (whatToPlot == pcAll) {
+	for (set<string>::const_iterator i = allSys.begin(); i != allSys.end(); i++) {
+	  TH1F *h = DeclareSingleHist(anaName, string("_sys_") + *i, string ("Systematic errors for ") + *i + " ", axisBins.size(), out);
+	  singlePlots[*i] = h;
+	  sysErrorPlots[*i].push_back(make_pair(anaName,h));
+	  sysErrorPlotsByAna[anaName].push_back(make_pair(*i,h));
 
-	h = DeclareSingleHist(anaName, string("_cvShift_") + *i, string ("Central Value shifts caused by ") + *i + " ", axisBins.size(), 0);
-	cvShiftPlotsSingle[*i] = h;
-	cvShiftPlotsSingleUsed[*i] = false;
-	cvShiftPlotsByAna[anaName].push_back(make_pair(*i,h));
+	  h = DeclareSingleHist(anaName, string("_cvShift_") + *i, string ("Central Value shifts caused by ") + *i + " ", axisBins.size(), 0);
+	  cvShiftPlotsSingle[*i] = h;
+	  cvShiftPlotsSingleUsed[*i] = false;
+	  cvShiftPlotsByAna[anaName].push_back(make_pair(*i,h));
+	}
       }
 
       // Now, loop over all the bins filling everything in
@@ -511,22 +516,24 @@ namespace {
 	  v_centralStatError[ibin] = cb.centralValueStatisticalError;
 	  v_centralTotError[ibin] = CalcTotalError(cb);
 
-	  // Fill in the single plots now
-	  singlePlots["central"]->SetBinContent(ibin+1, cb.centralValue);
-	  singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
-	  singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
-	  for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
-	    singlePlots[cb.systematicErrors[i].name]->SetBinContent(ibin+1, cb.systematicErrors[i].value);
-	  }
+	  if (whatToPlot == pcAll) {
+	    // Fill in the single plots now
+	    singlePlots["central"]->SetBinContent(ibin+1, cb.centralValue);
+	    singlePlots["statistical"]->SetBinContent(ibin+1, cb.centralValueStatisticalError);
+	    singlePlots["total"]->SetBinContent(ibin+1, v_centralTotError[ibin]);
+	    for (unsigned int i = 0; i < cb.systematicErrors.size(); i++) {
+	      singlePlots[cb.systematicErrors[i].name]->SetBinContent(ibin+1, cb.systematicErrors[i].value);
+	    }
 
-	  for (map<string, pair<double, double> >::const_iterator i_meta = cb.metadata.begin(); i_meta != cb.metadata.end(); i_meta++) {
-	    if (i_meta->first.find("CV Shift ") == 0) {
-	      string name(i_meta->first.substr(9));
-	      if (cvShiftPlotsSingle.find(name) == cvShiftPlotsSingle.end())
-		throw runtime_error (("Unexpected systematic error " + name).c_str());
-	      cvShiftPlotsSingle[name]->SetBinContent(ibin+1, i_meta->second.first);
-	      if (i_meta->second.first != 0.0) {
-		cvShiftPlotsSingleUsed[name] = true;
+	    for (map<string, pair<double, double> >::const_iterator i_meta = cb.metadata.begin(); i_meta != cb.metadata.end(); i_meta++) {
+	      if (i_meta->first.find("CV Shift ") == 0) {
+		string name(i_meta->first.substr(9));
+		if (cvShiftPlotsSingle.find(name) == cvShiftPlotsSingle.end())
+		  throw runtime_error (("Unexpected systematic error " + name).c_str());
+		cvShiftPlotsSingle[name]->SetBinContent(ibin+1, i_meta->second.first);
+		if (i_meta->second.first != 0.0) {
+		  cvShiftPlotsSingleUsed[name] = true;
+		}
 	      }
 	    }
 	  }
@@ -582,35 +589,40 @@ namespace {
     delete[] v_centralStatError;
     delete[] v_centralTotError;
 
-    //
-    // Build a set of stacked histograms of the systeamtic errors^2 contribution in each plot.
-    // Also, window out only those that contribute at least 5%.
-    // This would be a lot simpler with C++011!!!
-    //
+    // Some detailed plots, if requested.
 
-    plot_stacked_by_ana(sysErrorPlotsByAna, binlabels, true, "ana_sys_", "Systematic Error (\\sigma^{2})",  "\\sigma^{2}");
+    if (whatToPlot == pcAll) {
 
-    //
-    // Now, do the same for the central value shifts. Eliminate the analyses which have no shifts first, however.
-    //
+      //
+      // Build a set of stacked histograms of the systeamtic errors^2 contribution in each plot.
+      // Also, window out only those that contribute at least 5%.
+      // This would be a lot simpler with C++011!!!
+      //
 
-    vector<string> empty_ana;
-    for (map<string, vector<pair<string, TH1F*> > >::const_iterator i_cv = cvShiftPlotsByAna.begin(); i_cv != cvShiftPlotsByAna.end(); i_cv++) {
-      bool isgood = false;
-      for (vector<pair<string, TH1F*> >::const_iterator i_err = i_cv->second.begin(); i_err != i_cv->second.end(); i_err++) {
-	if (cvShiftPlotsSingleUsed[i_err->first]) {
-	  isgood = true;
-	  break;
+      plot_stacked_by_ana(sysErrorPlotsByAna, binlabels, true, "ana_sys_", "Systematic Error (\\sigma^{2})",  "\\sigma^{2}");
+
+      //
+      // Now, do the same for the central value shifts. Eliminate the analyses which have no shifts first, however.
+      //
+
+      vector<string> empty_ana;
+      for (map<string, vector<pair<string, TH1F*> > >::const_iterator i_cv = cvShiftPlotsByAna.begin(); i_cv != cvShiftPlotsByAna.end(); i_cv++) {
+	bool isgood = false;
+	for (vector<pair<string, TH1F*> >::const_iterator i_err = i_cv->second.begin(); i_err != i_cv->second.end(); i_err++) {
+	  if (cvShiftPlotsSingleUsed[i_err->first]) {
+	    isgood = true;
+	    break;
+	  }
 	}
+	if (!isgood)
+	  empty_ana.push_back(i_cv->first);
       }
-      if (!isgood)
-	empty_ana.push_back(i_cv->first);
-    }
-    for (size_t i_bad = 0; i_bad < empty_ana.size(); i_bad++) {
-      cvShiftPlotsByAna.erase(empty_ana[i_bad]);
-    }
+      for (size_t i_bad = 0; i_bad < empty_ana.size(); i_bad++) {
+	cvShiftPlotsByAna.erase(empty_ana[i_bad]);
+      }
 
-    plot_stacked_by_ana(cvShiftPlotsByAna, binlabels, false, "cv_shift_", "Central Value Shift", "CV Shift");
+      plot_stacked_by_ana(cvShiftPlotsByAna, binlabels, false, "cv_shift_", "Central Value Shift", "CV Shift");
+    }
 
     //
     // Get rid fo the cv shift guy
@@ -627,81 +639,85 @@ namespace {
     // see how fitting controls them.
     //
 
-    for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
-      string name = "sys_" + itr->first;
-      TCanvas *c = new TCanvas (name.c_str());
+    if (whatToPlot == pcAll) {
+      for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
+	string name = "sys_" + itr->first;
+	TCanvas *c = new TCanvas (name.c_str());
 
-      const vector<pair<string, TH1F*> > &hlist (itr->second);
-      double maxV = -1000.0;
-      double minV = 1000.0;
-      for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
-	if (maxV < h_itr->second->GetMaximum())
-	  maxV = h_itr->second->GetMaximum();
-	if (minV > h_itr->second->GetMinimum())
-	  minV = h_itr->second->GetMinimum();
-      }
-
-      if (minV > 0.0)
-	minV = 0.0;
-
-      // Plot header
-
-      TH1F *h = new TH1F("sys", "",
-			 binlabels.size(), 0.0, binlabels.size());
-      h->SetMaximum(maxV+fabs(maxV)*0.10);
-      h->SetMinimum(minV-fabs(minV)*0.10);
-      h->SetStats(false);
-      {
-	ostringstream buf;
-	buf << "Systematic Error " << itr->first;
-	h->GetYaxis()->SetTitle(buf.str().c_str());
-
-	TAxis *a = h->GetXaxis();
-	for (size_t i = 0; i < binlabels.size(); i++) {
-	  a->SetBinLabel(i+1, binlabels[i].c_str());
+	const vector<pair<string, TH1F*> > &hlist (itr->second);
+	double maxV = -1000.0;
+	double minV = 1000.0;
+	for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
+	  if (maxV < h_itr->second->GetMaximum())
+	    maxV = h_itr->second->GetMaximum();
+	  if (minV > h_itr->second->GetMinimum())
+	    minV = h_itr->second->GetMinimum();
 	}
+
+	if (minV > 0.0)
+	  minV = 0.0;
+
+	// Plot header
+
+	TH1F *h = new TH1F("sys", "",
+			   binlabels.size(), 0.0, binlabels.size());
+	h->SetMaximum(maxV+fabs(maxV)*0.10);
+	h->SetMinimum(minV-fabs(minV)*0.10);
+	h->SetStats(false);
+	{
+	  ostringstream buf;
+	  buf << "Systematic Error " << itr->first;
+	  h->GetYaxis()->SetTitle(buf.str().c_str());
+
+	  TAxis *a = h->GetXaxis();
+	  for (size_t i = 0; i < binlabels.size(); i++) {
+	    a->SetBinLabel(i+1, binlabels[i].c_str());
+	  }
+	}
+
+	h->Draw();
+	h->SetDirectory(0);
+
+	// Plot the actual guys
+
+	size_t m_index = 0;
+	double lYPos = c_legendYStart;
+	double lYDelta = c_legendYDelta;
+	double lXPos = c_legendXStart;
+
+	for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
+	
+	  h_itr->second->SetMaximum (maxV+fabs(maxV)*0.10);
+	  h_itr->second->SetMinimum (minV-fabs(minV)*0.10);
+
+	  h_itr->second->SetMarkerStyle(markerID[m_index]);
+	  int col = sysErrorColor(h_itr->first);
+	  h_itr->second->SetMarkerColor(col);
+	  h_itr->second->SetLineColor(col);
+
+	  h_itr->second->Draw("SAMEP");
+
+	  myMarkerText (lXPos, lYPos,
+			col, markerID[m_index],
+			h_itr->first.c_str());
+
+	  m_index += 1;
+	  m_index = m_index % sizeof(markerID);
+	  lYPos -= lYDelta;
+	}      
+
+	c->Write();
+	delete c;
+	delete h;
       }
 
-      h->Draw();
-      h->SetDirectory(0);
+    }
 
-      // Plot the actual guys
-
-      size_t m_index = 0;
-      double lYPos = c_legendYStart;
-      double lYDelta = c_legendYDelta;
-      double lXPos = c_legendXStart;
-
-      for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
-	
-	h_itr->second->SetMaximum (maxV+fabs(maxV)*0.10);
-	h_itr->second->SetMinimum (minV-fabs(minV)*0.10);
-
-	h_itr->second->SetMarkerStyle(markerID[m_index]);
-	int col = sysErrorColor(h_itr->first);
-	h_itr->second->SetMarkerColor(col);
-	h_itr->second->SetLineColor(col);
-
-	h_itr->second->Draw("SAMEP");
-
-	myMarkerText (lXPos, lYPos,
-		      col, markerID[m_index],
-		      h_itr->first.c_str());
-
-	m_index += 1;
-	m_index = m_index % sizeof(markerID);
-	lYPos -= lYDelta;
-      }      
-
-      c->Write();
-      delete c;
-      delete h;
-
+    for (map<string, vector<pair<string, TH1F*> > >::const_iterator itr = sysErrorPlots.begin(); itr != sysErrorPlots.end(); itr++) {
+      const vector<pair<string, TH1F*> > &hlist (itr->second);
       for (vector<pair<string, TH1F*> >::const_iterator h_itr = hlist.begin(); h_itr != hlist.end(); h_itr++) {
 	delete h_itr->second;
       }
-      
-
     }
 
     // Build a canvas that will contain the final plot of the fit results and the inputs and systematic
@@ -789,6 +805,7 @@ namespace {
 				    const vector<CalibrationAnalysis> &anas,
 				    const string &binName,
 				    const t_BinSet &binSet,
+				    PlotCollection whatToPlot,
 				    const t_BBSet &otherBins = t_BBSet())
   {
     //
@@ -798,7 +815,8 @@ namespace {
     if (otherBins.size() + 1 == binSet.size()) {
       GenerateCommonAnalysisPlots (out, anas,
 				   otherBins,
-				   binSet.find(binName)->second);
+				   binSet.find(binName)->second,
+				   whatToPlot);
       return;
     }
 
@@ -832,6 +850,7 @@ namespace {
       otherBinsNext.insert(*i);
       GenerateCommonAnalysisPlots (r, anas,
 				   nextBin, binSet,
+				   whatToPlot,
 				   otherBinsNext);
     }
   }
@@ -986,14 +1005,17 @@ namespace {
   /// Split plots up by binning
   ///
   void GenerateCommonAnalysisPlots (TDirectory *out,
-				    const vector<CalibrationAnalysis> &anas)
+				    const vector<CalibrationAnalysis> &anas,
+				    PlotCollection whatToPlot)
   {
     //
     // Do the plots that are for a single analysis
     //
 
-    for (size_t i = 0; i < anas.size(); i++) {
-      GenerateAnalysisPlots (out, anas[i]);
+    if (whatToPlot == pcAll) {
+      for (size_t i = 0; i < anas.size(); i++) {
+	GenerateAnalysisPlots (out, anas[i]);
+      }
     }
 
     // Get a list of all the axes that we have for bins, and the binning.
@@ -1014,7 +1036,7 @@ namespace {
     
     for (t_BinSet::const_iterator i = binAxes.begin(); i != binAxes.end(); i++) {
       TDirectory *r = out->mkdir(i->first.c_str());
-      GenerateCommonAnalysisPlots (r, anas, i->first, binAxes);
+      GenerateCommonAnalysisPlots (r, anas, i->first, binAxes, whatToPlot);
     }
   }
 }
@@ -1024,7 +1046,8 @@ namespace BTagCombination {
   ///
   /// Dump all the plots to an output directory.
   ///
-  void DumpPlots (TDirectory *output, const vector<CalibrationAnalysis> &anas, GroupCriteria gp)
+  void DumpPlots (TDirectory *output, const vector<CalibrationAnalysis> &anas, GroupCriteria gp,
+		  PlotCollection whatToPlot)
   {
     //
     // Group the analyses together so we put the proper things on
@@ -1050,7 +1073,7 @@ namespace BTagCombination {
 
     for (t_grouping::const_iterator i = grouping.begin(); i != grouping.end(); i++) {
       TDirectory *r = output->mkdir(i->first.c_str());
-      GenerateCommonAnalysisPlots (r, i->second);
+      GenerateCommonAnalysisPlots (r, i->second, whatToPlot);
     }
   }
 

@@ -28,6 +28,7 @@ int main (int argc, char **argv)
     vector<CalibrationAnalysis> &calibs(info.Analyses);
 
     GroupCriteria grouping = gcByBin;
+    PlotCollection whatToPlot = pcAll;
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       string arg(otherFlags[i]);
       if (arg == "ByBin") {
@@ -36,6 +37,8 @@ int main (int argc, char **argv)
 	grouping = gcByCalib;
       } else if (arg == "ByCalibEff") {
 	grouping = gcByCalibEff;
+      } else if (arg == "EffOnly") {
+	whatToPlot = pcEffOnly;
       } else {
 	usage();
 	return 1;
@@ -49,7 +52,7 @@ int main (int argc, char **argv)
     TFile *f = new TFile ("plots.root", "RECREATE");
 
     SetAtlasStyle();
-    DumpPlots (f, calibs, grouping);
+    DumpPlots (f, calibs, grouping, whatToPlot);
 
     f->Write();
     f->Close();
