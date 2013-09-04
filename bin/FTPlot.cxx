@@ -42,6 +42,7 @@ int main (int argc, char **argv)
       } else if (arg == "EffOnly") {
 	whatToPlot = pcEffOnly;
       } else {
+	cout << "Unknown option '" << arg << "'." << endl;
 	usage();
 	return 1;
       }
