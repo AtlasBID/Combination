@@ -440,6 +440,16 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  string OPByCalibJetTagger (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.name
+	<< "-" << ana.jetAlgorithm;
+    return msg.str();
+  }
+
   // Return an eff string given an analysis for theOP
   string OPEff(const CalibrationAnalysis &ana)
   {

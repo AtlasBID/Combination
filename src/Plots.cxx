@@ -311,9 +311,82 @@ namespace {
   }
 
   // Return a naming for an analysis for english use
-  string NamingForAna (const CalibrationAnalysis &a)
+  string NamingForAna (const CalibrationAnalysis &a, GroupCriteria gp)
   {
-    return a.name + " - " + a.jetAlgorithm;
+    switch (gp) {
+    case gcByBin:
+      return a.name;
+    case gcByCalib:
+      return a.name + " - " + a.jetAlgorithm;
+    case gcByCalibEff:
+      return a.name + " - " + a.jetAlgorithm;
+    case gcByCalibTaggerJet:
+      return "OP " + a.operatingPoint +  " (" + OPEff(a) + "%)";
+    default:
+      cout << "ERROR - unknown type of grouping!! " << gp << endl;
+      return a.name + " - " + a.jetAlgorithm;
+    }
+  }
+
+  string NamingForCanvas (GroupCriteria gp)
+  {
+    switch (gp) {
+    case gcByBin:
+      return "EffInfo";
+    case gcByCalib:
+      return "EffInfo-Calib";
+    case gcByCalibEff:
+      return "EffInfo-CalibEff";
+    case gcByCalibTaggerJet:
+      return "EffInfo-Tagger";
+    default:
+      cout << "ERROR - unknown type of grouping!! " << gp << endl;
+      return "EffInfo";
+    }
+  }
+
+  string NamingForAxis (const CalibrationAnalysis &a, GroupCriteria gp)
+  {
+    switch (gp) {
+    case gcByBin:
+      return a.tagger + " " + a.operatingPoint;
+    case gcByCalib:
+      return a.tagger + " " + a.operatingPoint;
+    case gcByCalibEff:
+      return a.tagger + " " + OPEff(a) + "%";
+    case gcByCalibTaggerJet:
+      return a.tagger;
+    default:
+      cout << "ERROR - unknown type of grouping!! " << gp << endl;
+      return "EffInfo";
+    }
+  }
+    
+  // Return a list of strings that should be added to the left side of the plot
+  vector<string> NamingForPlotConstants (const CalibrationAnalysis &a, GroupCriteria gp)
+  {
+    vector<string> result;
+    switch (gp) {
+    case gcByBin:
+      result.push_back(a.jetAlgorithm);
+      break;
+    case gcByCalib:
+      result.push_back(a.name);
+      break;
+    case gcByCalibEff:
+      result.push_back(a.name);
+      break;
+    case gcByCalibTaggerJet:
+      result.push_back(a.jetAlgorithm);
+      result.push_back(a.name);
+      break;
+    default:
+      cout << "ERROR - unknown type of grouping!! " << gp << endl;
+      result.push_back(a.jetAlgorithm);
+      break;
+    }
+
+    return result;
   }
 
   ///
@@ -323,7 +396,8 @@ namespace {
 				    const vector<CalibrationAnalysis> &anas,
 				    const t_BBSet &specifiedBins,
 				    const t_BBSet &allAxisBins,
-				    PlotCollection whatToPlot)
+				    PlotCollection whatToPlot,
+				    GroupCriteria gp)
   {
     out -> cd();
 
@@ -351,7 +425,7 @@ namespace {
 	bool found;
 	CalibrationBin fb = FindBin (anas[ia], coordinate, found);
 	if (found)
-	  taggerResults[*ib][NamingForAna(anas[ia])] = fb;
+	  taggerResults[*ib][NamingForAna(anas[ia],gp)] = fb;
       }
     }
 
@@ -377,7 +451,7 @@ namespace {
     vector<string> anaNames;
     vector<double> anaChi2;
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
-      string anaName (NamingForAna(anas[ia]));
+      string anaName (NamingForAna(anas[ia], gp));
       if (seenAnaNames.find(anaName) == seenAnaNames.end()) {
 	seenAnaNames.insert(anaName);
 	anaNames.push_back(anaName);
@@ -725,7 +799,7 @@ namespace {
     // Now build the canvas that we are going to store. Do do special axis labels we have
     // to fake the whole TGraph guy out.
 
-    TCanvas *c = new TCanvas ("EffInfo");
+    TCanvas *c = new TCanvas (NamingForCanvas(gp).c_str());
     TH1F *h = new TH1F("SF", "", binlabels.size(), 0.0, binlabels.size());
 
     h->SetMinimum (yCentralTotMin-fabs(yCentralTotMin)*0.1);
@@ -734,7 +808,7 @@ namespace {
 
     {
       ostringstream buf;
-      buf << "SF for " << flavorName << " jets (" << taggerName << " " << opName << ")";
+      buf << "SF for " << flavorName << " jets (" << NamingForAxis(anas[0], gp) << ")";
       h->GetYaxis()->SetTitle(buf.str().c_str());
     }
 
@@ -775,7 +849,17 @@ namespace {
       myText(binXPos, binYPos, 1, buf.str().c_str());
       binYPos -= c_binYDelta;
     }
-    myText(binXPos, binYPos, 1, anas[0].jetAlgorithm.c_str());
+
+    // And below that anything else that is constant about this plot
+    // that the "user" would like to see.
+
+    vector<string> plotConstantInfo(NamingForPlotConstants(anas[0], gp));
+    for (unsigned int i_pc = 0; i_pc < plotConstantInfo.size(); i_pc++) {
+      myText(binXPos, binYPos, 1, plotConstantInfo[i_pc].c_str());
+      binYPos -= c_binYDelta;
+    }
+
+
 
     //
     // Write it out in that directory that we are using so it can be found
@@ -806,6 +890,7 @@ namespace {
 				    const string &binName,
 				    const t_BinSet &binSet,
 				    PlotCollection whatToPlot,
+				    GroupCriteria gp,
 				    const t_BBSet &otherBins = t_BBSet())
   {
     //
@@ -816,7 +901,7 @@ namespace {
       GenerateCommonAnalysisPlots (out, anas,
 				   otherBins,
 				   binSet.find(binName)->second,
-				   whatToPlot);
+				   whatToPlot, gp);
       return;
     }
 
@@ -850,7 +935,7 @@ namespace {
       otherBinsNext.insert(*i);
       GenerateCommonAnalysisPlots (r, anas,
 				   nextBin, binSet,
-				   whatToPlot,
+				   whatToPlot, gp,
 				   otherBinsNext);
     }
   }
@@ -1006,7 +1091,8 @@ namespace {
   ///
   void GenerateCommonAnalysisPlots (TDirectory *out,
 				    const vector<CalibrationAnalysis> &anas,
-				    PlotCollection whatToPlot)
+				    PlotCollection whatToPlot,
+				    GroupCriteria gp)
   {
     //
     // Do the plots that are for a single analysis
@@ -1036,7 +1122,7 @@ namespace {
     
     for (t_BinSet::const_iterator i = binAxes.begin(); i != binAxes.end(); i++) {
       TDirectory *r = out->mkdir(i->first.c_str());
-      GenerateCommonAnalysisPlots (r, anas, i->first, binAxes, whatToPlot);
+      GenerateCommonAnalysisPlots (r, anas, i->first, binAxes, whatToPlot, gp);
     }
   }
 }
@@ -1062,6 +1148,8 @@ namespace BTagCombination {
 	grouping[OPByCalibName(anas[i])].push_back(anas[i]);
       } else if (gp == gcByCalibEff) {
 	grouping[OPByCalibAndEffName(anas[i])].push_back(anas[i]);
+      } else if (gp == gcByCalibTaggerJet) {
+	grouping[OPByCalibJetTagger(anas[i])].push_back(anas[i]);
       } else {
 	cout << "ERROR: Don't know what grouping this is " << gp << endl;
       }
@@ -1073,7 +1161,7 @@ namespace BTagCombination {
 
     for (t_grouping::const_iterator i = grouping.begin(); i != grouping.end(); i++) {
       TDirectory *r = output->mkdir(i->first.c_str());
-      GenerateCommonAnalysisPlots (r, i->second, whatToPlot);
+      GenerateCommonAnalysisPlots (r, i->second, whatToPlot, gp);
     }
   }
 

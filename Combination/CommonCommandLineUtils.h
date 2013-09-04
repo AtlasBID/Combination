@@ -51,6 +51,11 @@ namespace BTagCombination {
   std::string OPByCalibName (const CalibrationAnalysis &ana);
   // Returns a name that uses calib for partition everything - use the eff rather than the OP
   std::string OPByCalibAndEffName (const CalibrationAnalysis &ana);
+  // Returns a name that uses the calib, the jet, and the tagger for partitioning, so
+  // only the eff isn't set here.
+  std::string OPByCalibJetTagger (const CalibrationAnalysis &ana);
+  // Convert some eff to strings
+  std::string OPEff(const CalibrationAnalysis &ana);
 
   // Split a list of analyses by the bins we often use for doing the combination.
   // Useful utility. :-)

@@ -37,6 +37,8 @@ int main (int argc, char **argv)
 	grouping = gcByCalib;
       } else if (arg == "ByCalibEff") {
 	grouping = gcByCalibEff;
+      } else if (arg == "ByCalibTaggerJet") {
+	grouping = gcByCalibTaggerJet;
       } else if (arg == "EffOnly") {
 	whatToPlot = pcEffOnly;
       } else {

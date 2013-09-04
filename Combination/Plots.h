@@ -17,7 +17,8 @@ namespace BTagCombination
   enum  GroupCriteria {
     gcByBin,
     gcByCalib,
-    gcByCalibEff
+    gcByCalibEff,
+    gcByCalibTaggerJet
   };
 
   enum PlotCollection {
