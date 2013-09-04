@@ -449,7 +449,7 @@ namespace {
 
     set<string> seenAnaNames;
     vector<string> anaNames;
-    vector<double> anaChi2;
+    map<string, double> anaChi2;
     for (unsigned int ia = 0; ia < anas.size(); ia++) {
       string anaName (NamingForAna(anas[ia], gp));
       if (seenAnaNames.find(anaName) == seenAnaNames.end()) {
@@ -458,9 +458,9 @@ namespace {
 	map<string, vector<double> >::const_iterator i_chi2 = anas[ia].metadata.find("gchi2");
 	map<string, vector<double> >::const_iterator i_ndof = anas[ia].metadata.find("gndof");
 	if (i_chi2 != anas[ia].metadata.end()) {
-	  anaChi2.push_back((i_chi2->second[0])/(i_ndof->second[0]));
+	  anaChi2[anaName] = (i_chi2->second[0])/(i_ndof->second[0]);
 	} else {
-	  anaChi2.push_back(0.0);
+	  anaChi2[anaName] = 0.0;
 	}
       }
     }    
@@ -644,9 +644,9 @@ namespace {
 
       // The name should have a chi2 if we can
 
-      if (anaChi2[ia] != 0.0) {
+      if (anaChi2[anaName] != 0.0) {
 	ostringstream msg;
-	msg << anaName << " (\\chi^{2}/N_{DOF}=" <<setprecision(3) << anaChi2[ia] << ")";
+	msg << anaName << " (\\chi^{2}/N_{DOF}=" <<setprecision(3) << anaChi2[anaName] << ")";
 	plotAnalysisName.push_back(msg.str());
       } else {
 	plotAnalysisName.push_back(anaName);
