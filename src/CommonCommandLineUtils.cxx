@@ -464,7 +464,7 @@ namespace BTagCombination {
 		 || ana.operatingPoint == "0.601713"
 		 ) {
 	return "70";
-      } else if (ana.operatingPoint == "0.0404219"
+      } else if (ana.operatingPoint == "0.404219"
 		 ) {
 	return "75";
       } else if (ana.operatingPoint == "0.3900"
