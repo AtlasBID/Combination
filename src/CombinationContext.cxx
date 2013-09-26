@@ -52,7 +52,7 @@ namespace {
 
     // Calculate the rho
 
-    double s12 = split1.first*split1.first + split1.second*split1.second;
+    double s11 = split1.first*split1.first + split1.second*split1.second;
     double s22 = split2.first*split2.first + split2.second*split2.second;
     double s1 = m1->totalError();
     double s2 = m2->totalError();
@@ -61,7 +61,7 @@ namespace {
 
     // And now the weight, assuming a straight combination.
     
-    double wt = (s22 - rho*s1*s2)/(s12 + s22 - 2*rho*s1*s2);
+    double wt = (s22 - rho*s1*s2)/(s11 + s22 - 2*rho*s1*s2);
     if (wt > 1.0 || wt < 0.0) {
       if (verbose)
 	cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
