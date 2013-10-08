@@ -233,13 +233,25 @@ namespace BTagCombination {
     double s1 = totalError();
     double s2 = other->totalError();
 
-    // Now, using shared errors, calculate how much is shared
-    // between the two.
+    // Loop over all systematic errors, calculating the shared systematic (sigma_1j*sigma_2j, over all
+    // sys errors j). If a systematic error is missing, it is assumed to be zero.
 
-    pair<double, double> split1 = SharedError(other);
-    pair<double, double> split2 = other->SharedError(this);
+    map<string, double> myErrors;
+    for(size_t i = 0; i < _sysErrors.size(); i++) {
+      myErrors[_sysErrors[i].first] = _sysErrors[i].second;
+    }
 
-    double rho = split1.second*split2.second/(s1*s2);
+    double sigma12 = 0.0;
+    for(size_t i = 0; i < other->_sysErrors.size(); i++) {
+      map<string,double>::const_iterator my_i = myErrors.find(other->_sysErrors[i].first);
+      if (my_i != myErrors.end()) {
+	sigma12 += other->_sysErrors[i].second * my_i->second;
+      }
+    }
+
+    // Now can calculate rho.
+
+    double rho = sigma12/(s1*s2);
 
     if (rho < -1.0) {
       cout << "Error calculationg covariance between "

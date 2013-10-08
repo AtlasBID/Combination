@@ -28,6 +28,7 @@ class MeasurementTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testCovarAllNegShare );
   CPPUNIT_TEST( testCovarHalfShare );
   CPPUNIT_TEST( testCovarBustedShare );
+  CPPUNIT_TEST( testCovarUnevenShare );
 
   CPPUNIT_TEST( testSharedErrorIsWhole );
   CPPUNIT_TEST( testSharedErrorIsNoCommon );
@@ -64,6 +65,19 @@ class MeasurementTest : public CppUnit::TestFixture
     m2->addSystematicAbs("s1", 0.5);
     double covar = m1->Covar(m2);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.5, covar, 0.01);
+  }
+
+  void testCovarUnevenShare()
+  {
+    CombinationContext c;
+    Measurement *m1 = c.AddMeasurement ("average1", -10.0, 10.0, 5.0, 0.0);
+    Measurement *m2 = c.AddMeasurement ("average2", -10.0, 10.0, 5.0, 0.0);
+    m1->addSystematicAbs("s1", 0.5);
+    m2->addSystematicAbs("s1", 0.25);
+    m1->addSystematicAbs("s2", 0.3);
+    m2->addSystematicAbs("s2", 0.4);
+    double covar = m1->Covar(m2);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5*0.25+0.3*0.4, covar, 0.01);
   }
 
   void testCovarAllNegShare()
