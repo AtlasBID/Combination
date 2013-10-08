@@ -14,6 +14,7 @@
 #include <ostream>
 #include <istream>
 #include <iostream>
+#include <cmath>
 
 namespace BTagCombination
 {
@@ -101,14 +102,19 @@ namespace BTagCombination
     {}
   };
 
+  inline bool doubleEqual (double p1, double p2) {
+    double m = std::min(p1, p2);
+    double fraction = fabs(p1-p2)/m;
+    return fraction < 0.0001;
+  }
+
   inline bool operator== (const SystematicError &e1, const SystematicError &e2) {
     if (e1.name != e2.name
-	|| e1.value != e2.value
+	|| !doubleEqual(e1.value, e2.value)
 	|| e1.uncorrelated != e2.uncorrelated)
       return false;
     return true;
   }
-
 
   // Data for a single bin (central value, stat error, sys errors, etc.)
   struct CalibrationBin

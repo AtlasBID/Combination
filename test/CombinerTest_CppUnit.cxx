@@ -1432,6 +1432,31 @@ class CombinerTest : public CppUnit::TestFixture
     set<set<CalibrationBinBoundary> > atemp (listAnalysisBins(ana));
     CalibrationAnalysis result (RebinAnalysis (atemp, ana));
 
+    cout << "rebinOneToOne" << endl;
+    cout << "all: " << (ana == result) << endl;
+    cout << "name: " << (ana.name == result.name) << endl;
+    cout << "flavor: " << (ana.flavor == result.flavor) << endl;
+    cout << "operatingPoint: " << (ana.operatingPoint == result.operatingPoint) << endl;
+    cout << "jetAlgorithm: " << (ana.jetAlgorithm == result.jetAlgorithm) << endl;
+
+    cout << "bins: " << (ana.bins == result.bins) << endl;
+    cout << "  n: " << ana.bins.size() << " - " << result.bins.size() << endl;
+    cout << "  [1] == [1]: " << (ana.bins[0] == result.bins[0]) << endl;
+    cout << "  [1].centralValue: " << (ana.bins[0].centralValue == result.bins[0].centralValue) << endl;
+    cout << "  [1].centralValueStatisticalError: " << (ana.bins[0].centralValueStatisticalError == result.bins[0].centralValueStatisticalError) << endl;
+    cout << "  [1].metaData: " << (ana.bins[0].metadata == result.bins[0].metadata) << endl;
+    cout << "  [1].binSpec: " << (ana.bins[0].binSpec == result.bins[0].binSpec) << endl;
+    cout << "  [1].systematicErrors: " << (ana.bins[0].systematicErrors == result.bins[0].systematicErrors) << endl;
+    cout << "  [1].systematicErrors.size: " << ana.bins[0].systematicErrors.size() << " - " << result.bins[0].systematicErrors.size() << endl;
+    cout << "  [1].systematicerrors[0].name: " << (ana.bins[0].systematicErrors[0].name == result.bins[0].systematicErrors[0].name) << endl;
+    cout << "  [1].systematicerrors[0].value: " << (ana.bins[0].systematicErrors[0].value == result.bins[0].systematicErrors[0].value) << endl;
+    cout << "  [1].systematicerrors[0].value: " << ana.bins[0].systematicErrors[0].value << " - " << result.bins[0].systematicErrors[0].value << endl;
+    cout << "  delta [1].systematicerrors[0].value: " << ana.bins[0].systematicErrors[0].value - result.bins[0].systematicErrors[0].value << endl;
+    cout << "  doubleEqual [1].systematicerrors[0].value: " << doubleEqual(ana.bins[0].systematicErrors[0].value, result.bins[0].systematicErrors[0].value) << endl;
+    cout << "  [1].systematicerrors[0].uncorrelated: " << (ana.bins[0].systematicErrors[0].uncorrelated == result.bins[0].systematicErrors[0].uncorrelated) << endl;
+
+    cout << "metadata: " << (ana.metadata == result.metadata) << endl;
+
     CPPUNIT_ASSERT_EQUAL (ana, result);
   }
 

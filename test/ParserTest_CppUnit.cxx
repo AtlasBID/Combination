@@ -77,6 +77,9 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseDefaultWildCard);
   CPPUNIT_TEST(testParseDefaultRoundtrip);
 
+  CPPUNIT_TEST(testSysErrorNotEqual);
+  CPPUNIT_TEST(testSysErrorEqual);
+
   CPPUNIT_TEST_SUITE_END();
 
   void testSourceComments()
@@ -84,6 +87,32 @@ class ParserTest : public CppUnit::TestFixture
     cout << "Test testSourceComments" << endl;
     // Test that comments in the code can happen anywhere! :-)
     CPPUNIT_ASSERT_MESSAGE("Not written yet", false);
+  }
+
+  void testSysErrorNotEqual()
+  {
+    SystematicError s1, s2;
+    s1.name = "hi";
+    s2.name = "hi";
+    s1.value = 0.1;
+    s2.value = 0.15;
+    s1.uncorrelated = true;
+    s2.uncorrelated = true;
+
+    CPPUNIT_ASSERT (!(s1 == s2));
+  }
+
+  void testSysErrorEqual()
+  {
+    SystematicError s1, s2;
+    s1.name = "hi";
+    s2.name = "hi";
+    s1.value = 0.15;
+    s2.value = 0.15;
+    s1.uncorrelated = true;
+    s2.uncorrelated = true;
+
+    CPPUNIT_ASSERT (s1 == s2);
   }
 
   void testParseEmptyAnalysisString()
