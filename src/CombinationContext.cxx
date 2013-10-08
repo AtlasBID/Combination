@@ -47,29 +47,29 @@ namespace {
 
   void CheckForAndDisableOverCorrelation (Measurement *m1, Measurement *m2, bool verbose = true)
   {
-    pair<double, double> split1 = m1->SharedError(m2);
-    pair<double, double> split2 = m2->SharedError(m1);
+    // Basic constants needed to calculate the weight.
 
-    // Calculate the rho
-
-    double s11 = split1.first*split1.first + split1.second*split1.second;
-    double s22 = split2.first*split2.first + split2.second*split2.second;
     double s1 = m1->totalError();
     double s2 = m2->totalError();
+    double s11 = s1*s1;
+    double s22 = s2*s2;
 
     double rho = m1->Rho(m2);
 
     // And now the weight, assuming a straight combination.
     
     double wt = (s22 - rho*s1*s2)/(s11 + s22 - 2*rho*s1*s2);
+
+    // Dump the measurement if we don't need it.
+
     if (wt > 1.0 || wt < 0.0) {
       if (verbose)
 	cout << "WARNING: Correlated and uncorrelated errors make it impossible to combine these measurements." << endl
 	     << "  " << m1->What() << endl
 	     << "  #1: " << m1->Name() << endl
-	     << "  s1=" << s1 << " s1c=" << split1.second << " s1u=" << split1.first << endl
+	     << "  s1=" << s1 << endl
 	     << "  #2: " << m2->Name() << endl
-	     << "  s2=" << s2 << " s2c=" << split2.second << " s2u=" << split2.first << endl
+	     << "  s2=" << s2 << endl
 	     << "  rho=" << rho << " wt=" << wt << endl;
       if (s1 > s2) {
 	if (verbose)

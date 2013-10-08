@@ -230,9 +230,27 @@ namespace BTagCombination {
   // Calculate the covariance coefficient between two measurements
   double Measurement::Rho (const Measurement *other) const
   {
-    double s1 = totalError();
-    double s2 = other->totalError();
+    double rho = RhoUnbounded(other);
 
+    if (rho < -1.0) {
+      cout << "Error calculationg covariance between "
+	   << this->Name() << " and "
+	   << other->Name() << " - rho found to be " << rho << endl;
+      rho = -1.0;
+    }
+    if (rho > 1.0) {
+      cout << "Error calculationg covariance between "
+	   << this->Name() << " and "
+	   << other->Name() << " - rho found to be " << rho << endl;
+      rho = 1.0;
+    }
+    return rho;
+  }
+
+  // Calc teh correlation coef for this measurement and a second one.
+  // Let rho be whatever it wants.
+  double Measurement::RhoUnbounded (const Measurement *other) const
+  {
     // Loop over all systematic errors, calculating the shared systematic (sigma_1j*sigma_2j, over all
     // sys errors j). If a systematic error is missing, it is assumed to be zero.
 
@@ -251,20 +269,11 @@ namespace BTagCombination {
 
     // Now can calculate rho.
 
+    double s1 = totalError();
+    double s2 = other->totalError();
+
     double rho = sigma12/(s1*s2);
 
-    if (rho < -1.0) {
-      cout << "Error calculationg covariance between "
-	   << this->Name() << " and "
-	   << other->Name() << " - rho found to be " << rho << endl;
-      rho = -1.0;
-    }
-    if (rho > 1.0) {
-      cout << "Error calculationg covariance between "
-	   << this->Name() << " and "
-	   << other->Name() << " - rho found to be " << rho << endl;
-      rho = 1.0;
-    }
     return rho;
   }
 
