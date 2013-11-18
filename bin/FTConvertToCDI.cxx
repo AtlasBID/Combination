@@ -123,17 +123,21 @@ int main(int argc, char **argv)
     
   // Parse the input args for commands
   string outputFile ("output.root");
+  map<string, string> configInfo;
   vector<string> taggers;
 
   for (int i = 1; i < argc; i++) {
     string a(argv[i]);
     if (a == "output") {
       outputFile = eatArg(argv, i, argc);
+    } else if (a == "--config-info") {
+      string k (eatArg(argv, i, argc));
+      string v (eatArg(argv, i, argc));
+      configInfo[k] = v;
     } else {
       otherArgs.push_back(a);
     }
   }
-
 
   CalibrationInfo info;
   bool updateROOTFile = false;
@@ -141,7 +145,7 @@ int main(int argc, char **argv)
   vector<string> other_mcfiles;
   try {
     vector<string> otherFlags;
-    ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
+    ParseOPInputArgs (otherArgs, info, otherFlags);
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "update") {
 	updateROOTFile = true;
@@ -176,6 +180,17 @@ int main(int argc, char **argv)
   if (!output->IsOpen()) {
     cerr << "Unable to open 'output.root' for output!" << endl;
     return 1;
+  }
+
+  // If there are any config info guys that should be written out,
+  // do that here
+
+  if (configInfo.size() > 0) {
+    TDirectory *d = output->mkdir("VersionInfo");
+    for (map<string,string>::const_iterator itr = configInfo.begin(); itr != configInfo.end(); itr++) {
+      TObjString *s = new TObjString(itr->second.c_str());
+      d->WriteTObject(s, itr->first.c_str());
+    }
   }
 
   //
