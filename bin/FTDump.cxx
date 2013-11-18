@@ -25,6 +25,7 @@ void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &info);
 void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &info);
 void PrintNames (const CalibrationInfo &info, ostream &output);
 void PrintQNames (const CalibrationInfo &info, ostream &output);
+void CompareNames (const CalibrationAnalysis &ana, ostream &output);
 
 struct CaseInsensitiveCompare {
   bool operator() (const string &a, const string &b) const {
@@ -101,6 +102,7 @@ int main (int argc, char **argv)
     bool doDump = false;
     bool doNames = false;
     bool doQNames = false;
+    bool doCompareNames = false;
     bool printAsInput = false;
     bool printCorr = false;
     bool dumpMetaDataForCPU = false;
@@ -117,6 +119,9 @@ int main (int argc, char **argv)
 	sawFlag = true;
       } else if (otherFlags[i] == "qnames") {
 	doQNames = true;
+	sawFlag = true;
+      } else if (otherFlags[i] == "cnames") {
+	doCompareNames = true;
 	sawFlag = true;
       } else if (otherFlags[i] == "asInput") {
 	printAsInput = true;
@@ -157,7 +162,7 @@ int main (int argc, char **argv)
 	const AnalysisCorrelation &c(info.Correlations[i_c]);
 	for (size_t i_b = 0; i_b < c.bins.size(); i_b++) {
 	  BinCorrelation b (c.bins[i_b]);
-	  (*output) 
+	  (*output)
 	    << c.analysis1Name
 	    << ", " << c.analysis2Name
 	    << ", " << c.flavor
@@ -275,6 +280,13 @@ int main (int argc, char **argv)
 
     if (doQNames)
       PrintQNames (info, *output);
+
+    if (doCompareNames) {
+      for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
+	const CalibrationAnalysis &c(calibs[i_a]);
+	CompareNames(c, *output);
+      }
+    }
 
     // Check to see if the bin specifications are consistent.
     return 0;
@@ -421,12 +433,115 @@ void PrintQNames (const CalibrationInfo &info, ostream &output)
   PrintNames(info.Analyses, output, false);
 }
 
+void CompareNames (const CalibrationAnalysis &ana, ostream &output)
+{
+
+  string str_names[] = {"pTrel","DStar","KinSel_dilep","negative tags"};
+  vector<string> m_names(str_names,str_names+(sizeof(str_names)/sizeof(string)));
+
+  string str_taggers[] = {"MV1","MV1c","JetFitterCOMBCharm","SV0"};
+  vector<string> m_taggers(str_taggers,str_taggers+(sizeof(str_taggers)/sizeof(string)));
+
+  string str_jetAlgorithms[] = {"AntiKt4TopoEMJVF","AntiKt4TopoEMnoJVF","AntiKt4TopoLCJVF","AntiKt4TopoLCnoJVF"};
+  vector<string> m_jetAlgorithms(str_jetAlgorithms,str_jetAlgorithms+(sizeof(str_jetAlgorithms)/sizeof(string)));
+
+  string str_op_MV1c[] = {"0.9848","0.9237","0.8674","0.8353","0.7028","0.4050","0.0836"};
+  vector<string> m_op_MV1c(str_op_MV1c,str_op_MV1c+(sizeof(str_op_MV1c)/sizeof(string)));
+
+  string str_op_MV1[] = {"0.992670537","0.992515446","0.9867","0.8119","0.3900","0.0616"};
+  vector<string> m_op_MV1(str_op_MV1,str_op_MV1+(sizeof(str_op_MV1)/sizeof(string)));
+
+  string str_op_JetFitterCOMBCharm[] = {"-1.0_0.0","-1.0_-0.82","-1.0_1.0"};
+  vector<string> m_op_JetFitterCOMBCharm(str_op_JetFitterCOMBCharm,str_op_JetFitterCOMBCharm+(sizeof(str_op_JetFitterCOMBCharm)/sizeof(string)));
+
+  string str_op_SV0[] = {"!=0"};
+  vector<string> m_op_SV0(str_op_SV0,str_op_SV0+(sizeof(str_op_SV0)/sizeof(string)));
+
+  bool isFound=false;
+  for (unsigned int i=0; i<m_names.size(); i++) {
+    if (ana.name == m_names.at(i)) {
+      isFound=true; break;
+    }
+  }
+  if(!isFound) {
+    output << "ERROR! Calibration method " << ana.name << " is unknown. Known calibration methods are: " << endl;
+    for (unsigned int i=0; i<m_names.size(); i++) output << "'" << m_names.at(i) << "' ";
+    output << endl;
+  }
+
+  isFound=false;
+  for (unsigned int i=0; i<m_taggers.size(); i++) {
+    if (ana.tagger == m_taggers.at(i)) {
+      isFound=true; break;
+    }
+  }
+  if(!isFound) {
+    output << "ERROR! Tagger " << ana.tagger << " is unknown. Known taggers are: " << endl;
+    for (unsigned int i=0; i<m_taggers.size(); i++) output << "'" << m_taggers.at(i) << "' ";
+    output << endl;
+  }
+
+  isFound=false;
+  for (unsigned int i=0; i<m_jetAlgorithms.size(); i++) {
+    if (ana.jetAlgorithm == m_jetAlgorithms.at(i)) {
+      isFound=true; break;
+    }
+  }
+  if(!isFound) {
+    output << "ERROR! Jet algorithm is " << ana.jetAlgorithm << " unknown. Known jet algorithms are: " << endl;
+    for (unsigned int i=0; i<m_jetAlgorithms.size(); i++) output << "'" << m_jetAlgorithms.at(i) << "' ";
+    output << endl;
+  }
+
+  bool isFound_op_MV1c=false;
+  for (unsigned int i=0; i<m_op_MV1c.size(); i++) {
+    if (ana.tagger == "MV1c" && ana.operatingPoint == m_op_MV1c.at(i)) {
+      isFound_op_MV1c=true; break;
+    }
+  }
+  bool isFound_op_MV1=false;
+  for (unsigned int i=0; i<m_op_MV1.size(); i++) {
+    if (ana.tagger == "MV1" && ana.operatingPoint == m_op_MV1.at(i)) {
+      isFound_op_MV1=true; break;
+    }
+  }
+  bool isFound_op_JetFitterCOMBCharm=false;
+  for (unsigned int i=0; i<m_op_JetFitterCOMBCharm.size(); i++) {
+    if (ana.tagger == "JetFitterCOMBCharm" && ana.operatingPoint == m_op_JetFitterCOMBCharm.at(i)) {
+      isFound_op_JetFitterCOMBCharm=true; break;
+    }
+  }
+  bool isFound_op_SV0=false;
+  for (unsigned int i=0; i<m_op_SV0.size(); i++) {
+    if (ana.tagger == "SV0" && ana.operatingPoint == m_op_SV0.at(i)) {
+      isFound_op_SV0=true; break;
+    }
+  }
+
+  if(!isFound) {
+    output << "ERROR! Operating point is unknown. Known operating points are: " << endl;
+    output << "For MV1c ";
+    for (unsigned int i=0; i<m_op_MV1c.size(); i++) output << "'" << m_op_MV1c.at(i) << "' ";
+    output << endl;
+    output << "For MV1 ";
+    for (unsigned int i=0; i<m_op_MV1.size(); i++) output << "'" << m_op_MV1.at(i) << "' ";
+    output << endl;
+    output << "For JetFitterCOMBCharm ";
+    for (unsigned int i=0; i<m_op_JetFitterCOMBCharm.size(); i++) output << "'" << m_op_JetFitterCOMBCharm.at(i) << "' ";
+    output << endl;
+    output << "For SV0 ";
+    for (unsigned int i=0; i<m_op_SV0.size(); i++) output << "'" << m_op_SV0.at(i) << "' ";
+    output << endl;
+  }
+}
+
 void Usage(void)
 {
   cout << "FTDump <file-list-and-options>" << endl;
   cout << "  --check - check if the binning of the input is self consistent" << endl;
   cout << "  --names - print out the names used for the --ignore command of everything" << endl;
   cout << "  --qnames - print out the names used in a fully qualified, and easily computer parsable format" << endl;
+  cout << "  --cnames - parse the code and compares variables to a list of known values" << endl;
   cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
   cout << "  --corr - print out the correlation inputs in a CSV command format" << endl;
   cout << "  output <fname> - all output is sent to fname" << endl;
