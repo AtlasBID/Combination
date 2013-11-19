@@ -1,0 +1,38 @@
+
+calibration pTrel
+calibration system8
+calibration ttbar_pdf
+calibration DStar
+calibration KinSel_dilep
+calibration negative_tags
+ 
+jet AntiKt4TopoEMJVF0_5
+jet AntiKt4TopoEM
+jet AntiKt4TopoLCJVF0_5 
+jet AntiKt4TopoLC
+
+tagger MV1
+tagger MV1c
+tagger JetFitterCOMBCharm
+tagger SV0
+
+op_MV1 0.992670537
+op_MV1 0.992515446
+op_MV1 0.9867
+op_MV1 0.8119
+op_MV1 0.3900
+op_MV1 0.0616
+
+op_MV1c 0.9848
+op_MV1c 0.9237
+op_MV1c 0.8674
+op_MV1c 0.8353
+op_MV1c 0.7028
+op_MV1c 0.4050
+op_MV1c 0.0836
+
+op_JetFitterCOMBCharm -1.0_0.0
+op_JetFitterCOMBCharm -1.0_-0.82
+op_JetFitterCOMBCharm -1.0_1.0
+
+op_SV0 !=0

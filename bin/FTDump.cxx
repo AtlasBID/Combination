@@ -436,26 +436,48 @@ void PrintQNames (const CalibrationInfo &info, ostream &output)
 void CompareNames (const CalibrationAnalysis &ana, ostream &output)
 {
 
-  string str_names[] = {"pTrel","DStar","KinSel_dilep","negative tags"};
-  vector<string> m_names(str_names,str_names+(sizeof(str_names)/sizeof(string)));
+  // inpu file hard-coded -  this will change!
+  ifstream inputdata;
+  string inputpath="../inputdata/FTCrossCheckInput-2012.txt";
 
-  string str_taggers[] = {"MV1","MV1c","JetFitterCOMBCharm","SV0"};
-  vector<string> m_taggers(str_taggers,str_taggers+(sizeof(str_taggers)/sizeof(string)));
+  inputdata.open(inputpath.c_str());
+  if(!inputdata.is_open()) output << "ERROR: couldn't open input file for cross checks" << endl;
+  
+  string name="", jet="", tagger="", op="";
+  vector<string> m_names, m_jets, m_taggers;
+  map <string, string> m_ops;
+  
+  string token;
+  while(inputdata) {
+    inputdata >> token;
+    if(token=="calibration")  {
+      inputdata >> name; m_names.push_back(name);
+    } else if (token=="jet") {
+      inputdata >> jet; m_jets.push_back(jet);
+    } else if (token=="tagger") {
+      inputdata >> tagger; m_taggers.push_back(tagger);
+    }
+  }
+  
+  ifstream inputdata2;
+  inputdata2.open(inputpath.c_str());
 
-  string str_jetAlgorithms[] = {"AntiKt4TopoEMJVF","AntiKt4TopoEMnoJVF","AntiKt4TopoLCJVF","AntiKt4TopoLCnoJVF"};
-  vector<string> m_jetAlgorithms(str_jetAlgorithms,str_jetAlgorithms+(sizeof(str_jetAlgorithms)/sizeof(string)));
-
-  string str_op_MV1c[] = {"0.9848","0.9237","0.8674","0.8353","0.7028","0.4050","0.0836"};
-  vector<string> m_op_MV1c(str_op_MV1c,str_op_MV1c+(sizeof(str_op_MV1c)/sizeof(string)));
-
-  string str_op_MV1[] = {"0.992670537","0.992515446","0.9867","0.8119","0.3900","0.0616"};
-  vector<string> m_op_MV1(str_op_MV1,str_op_MV1+(sizeof(str_op_MV1)/sizeof(string)));
-
-  string str_op_JetFitterCOMBCharm[] = {"-1.0_0.0","-1.0_-0.82","-1.0_1.0"};
-  vector<string> m_op_JetFitterCOMBCharm(str_op_JetFitterCOMBCharm,str_op_JetFitterCOMBCharm+(sizeof(str_op_JetFitterCOMBCharm)/sizeof(string)));
-
-  string str_op_SV0[] = {"!=0"};
-  vector<string> m_op_SV0(str_op_SV0,str_op_SV0+(sizeof(str_op_SV0)/sizeof(string)));
+  unsigned int j=0;
+  while(inputdata2) {
+    j++;
+    inputdata2 >> token;
+    if (token.find("op_")!=string::npos) {
+      string str = token.substr(3);
+      for (unsigned int i=0; i<m_taggers.size(); i++) {
+	if (str == m_taggers.at(i)) {
+	  inputdata2 >> op;
+	  stringstream ss;
+	  ss << j++;
+	  m_ops[str+"_"+ss.str()]=op;
+	}
+      }
+    }
+  }
 
   bool isFound=false;
   for (unsigned int i=0; i<m_names.size(); i++) {
@@ -482,55 +504,37 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output)
   }
 
   isFound=false;
-  for (unsigned int i=0; i<m_jetAlgorithms.size(); i++) {
-    if (ana.jetAlgorithm == m_jetAlgorithms.at(i)) {
+  for (unsigned int i=0; i<m_jets.size(); i++) {
+    if (ana.jetAlgorithm == m_jets.at(i)) {
       isFound=true; break;
     }
   }
   if(!isFound) {
-    output << "ERROR! Jet algorithm is " << ana.jetAlgorithm << " unknown. Known jet algorithms are: " << endl;
-    for (unsigned int i=0; i<m_jetAlgorithms.size(); i++) output << "'" << m_jetAlgorithms.at(i) << "' ";
+    output << "ERROR! Jet algorithm " << ana.jetAlgorithm << " is unknown. Known jet algorithms are: " << endl;
+    for (unsigned int i=0; i<m_jets.size(); i++) output << "'" << m_jets.at(i) << "' ";
     output << endl;
   }
 
-  bool isFound_op_MV1c=false;
-  for (unsigned int i=0; i<m_op_MV1c.size(); i++) {
-    if (ana.tagger == "MV1c" && ana.operatingPoint == m_op_MV1c.at(i)) {
-      isFound_op_MV1c=true; break;
+  isFound=false;
+  map<string, string>::const_iterator iter;
+  for (iter=m_ops.begin(); iter!=m_ops.end(); ++iter) {
+    unsigned pos = (iter->first).find("_");
+    string str = (iter->first).substr(0,pos);
+    if (str == ana.tagger) {
+      if (iter->second == ana.operatingPoint) {
+	isFound=true; break;
+      }
     }
   }
-  bool isFound_op_MV1=false;
-  for (unsigned int i=0; i<m_op_MV1.size(); i++) {
-    if (ana.tagger == "MV1" && ana.operatingPoint == m_op_MV1.at(i)) {
-      isFound_op_MV1=true; break;
-    }
-  }
-  bool isFound_op_JetFitterCOMBCharm=false;
-  for (unsigned int i=0; i<m_op_JetFitterCOMBCharm.size(); i++) {
-    if (ana.tagger == "JetFitterCOMBCharm" && ana.operatingPoint == m_op_JetFitterCOMBCharm.at(i)) {
-      isFound_op_JetFitterCOMBCharm=true; break;
-    }
-  }
-  bool isFound_op_SV0=false;
-  for (unsigned int i=0; i<m_op_SV0.size(); i++) {
-    if (ana.tagger == "SV0" && ana.operatingPoint == m_op_SV0.at(i)) {
-      isFound_op_SV0=true; break;
-    }
-  }
-
   if(!isFound) {
-    output << "ERROR! Operating point is unknown. Known operating points are: " << endl;
-    output << "For MV1c ";
-    for (unsigned int i=0; i<m_op_MV1c.size(); i++) output << "'" << m_op_MV1c.at(i) << "' ";
-    output << endl;
-    output << "For MV1 ";
-    for (unsigned int i=0; i<m_op_MV1.size(); i++) output << "'" << m_op_MV1.at(i) << "' ";
-    output << endl;
-    output << "For JetFitterCOMBCharm ";
-    for (unsigned int i=0; i<m_op_JetFitterCOMBCharm.size(); i++) output << "'" << m_op_JetFitterCOMBCharm.at(i) << "' ";
-    output << endl;
-    output << "For SV0 ";
-    for (unsigned int i=0; i<m_op_SV0.size(); i++) output << "'" << m_op_SV0.at(i) << "' ";
+    output << "ERROR! OP " << ana.operatingPoint << " for tagger " << ana.tagger << " unknown. Known OPs for tagger " << ana.tagger << " are: " << endl;
+    for (iter=m_ops.begin(); iter!=m_ops.end(); ++iter) {
+      unsigned pos = (iter->first).find("_");
+      string str = (iter->first).substr(0,pos);
+      if (str == ana.tagger) {
+	output << "'" << iter->second << "' ";
+      }
+    }
     output << endl;
   }
 }
