@@ -25,7 +25,7 @@ void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &info);
 void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &info);
 void PrintNames (const CalibrationInfo &info, ostream &output);
 void PrintQNames (const CalibrationInfo &info, ostream &output);
-void CompareNames (const CalibrationAnalysis &ana, ostream &output);
+void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inputfile);
 
 struct CaseInsensitiveCompare {
   bool operator() (const string &a, const string &b) const {
@@ -98,6 +98,25 @@ int main (int argc, char **argv)
     vector<string> otherFlags;
     ParseOPInputArgs (otherArgs, info, otherFlags);
 
+    bool useInputFile = false;
+    string inputfile="";
+
+    for (unsigned int i = 0; i < otherFlags.size(); i++) {
+      if (otherFlags[i].substr(0,10) == "inputfile=") {
+	istringstream is(otherFlags[i].substr(10,otherFlags[i].length()-10));
+	is >> inputfile;
+	ifstream inputdata;
+	inputdata.open(inputfile.c_str());
+	if(!inputdata.is_open()) {
+	  cerr << "ERROR: couldn't open input file for cross checks" << endl;
+	  Usage();
+	  return 1;
+	} else {
+	  useInputFile=true;
+	}
+      }
+    }
+
     bool doCheck = false;
     bool doDump = false;
     bool doNames = false;
@@ -121,8 +140,14 @@ int main (int argc, char **argv)
 	doQNames = true;
 	sawFlag = true;
       } else if (otherFlags[i] == "cnames") {
-	doCompareNames = true;
-	sawFlag = true;
+	if(useInputFile) {
+	  doCompareNames = true;
+	  sawFlag = true;
+	} else {
+	  cerr << "Can't run " << otherFlags[i] << " without an input file!!" << endl;
+	  Usage();
+	  return 1;
+	}
       } else if (otherFlags[i] == "asInput") {
 	printAsInput = true;
 	sawFlag = true;
@@ -139,9 +164,11 @@ int main (int argc, char **argv)
 	dumpSysErrorUsage = true;
 	sawFlag = true;
       } else {
-	cerr << "Unknown command line option --" << otherFlags[i] << endl;
-	Usage();
-	return 1;
+	if (otherFlags[i].find("inputfile")==string::npos) {
+	  cerr << "Unknown command line option --" << otherFlags[i] << endl;
+	  Usage();
+	  return 1;
+	}
       }
     }
 
@@ -284,7 +311,7 @@ int main (int argc, char **argv)
     if (doCompareNames) {
       for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
 	const CalibrationAnalysis &c(calibs[i_a]);
-	CompareNames(c, *output);
+	CompareNames(c, *output, inputfile);
       }
     }
 
@@ -433,16 +460,11 @@ void PrintQNames (const CalibrationInfo &info, ostream &output)
   PrintNames(info.Analyses, output, false);
 }
 
-void CompareNames (const CalibrationAnalysis &ana, ostream &output)
+void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inputfile)
 {
-
-  // inpu file hard-coded -  this will change!
   ifstream inputdata;
-  string inputpath="../inputdata/FTCrossCheckInput-2012.txt";
+  inputdata.open(inputfile.c_str());
 
-  inputdata.open(inputpath.c_str());
-  if(!inputdata.is_open()) output << "ERROR: couldn't open input file for cross checks" << endl;
-  
   string name="", jet="", tagger="", op="";
   vector<string> m_names, m_jets, m_taggers;
   map <string, string> m_ops;
@@ -460,7 +482,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output)
   }
   
   ifstream inputdata2;
-  inputdata2.open(inputpath.c_str());
+  inputdata2.open(inputfile.c_str());
 
   unsigned int j=0;
   while(inputdata2) {
@@ -548,5 +570,6 @@ void Usage(void)
   cout << "  --cnames - parse the code and compares variables to a list of known values" << endl;
   cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
   cout << "  --corr - print out the correlation inputs in a CSV command format" << endl;
+  cout << "  --inputfile - to be used together with cnames flag (input files are located inside the directory inputdata)" << endl;
   cout << "  output <fname> - all output is sent to fname" << endl;
 }
