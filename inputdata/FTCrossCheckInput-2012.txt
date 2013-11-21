@@ -16,23 +16,34 @@ tagger MV1c
 tagger JetFitterCOMBCharm
 tagger SV0
 
-op_MV1 0.992670537
-op_MV1 0.992515446
-op_MV1 0.9867
-op_MV1 0.8119
-op_MV1 0.3900
-op_MV1 0.0616
-
-op_MV1c 0.9848
-op_MV1c 0.9237
-op_MV1c 0.8674
-op_MV1c 0.8353
-op_MV1c 0.7028
-op_MV1c 0.4050
-op_MV1c 0.0836
-
-op_JetFitterCOMBCharm -1.0_0.0
-op_JetFitterCOMBCharm -1.0_-0.82
-op_JetFitterCOMBCharm -1.0_1.0
-
-op_SV0 !=0
+op MV1 30 AntiKt4TopoEM 0.992670537
+op MV1 50 AntiKt4TopoEM 0.992515446
+op MV1 60 AntiKt4TopoEM 0.9867
+op MV1 70 AntiKt4TopoEM 0.8119
+op MV1 80 AntiKt4TopoEM 0.3900
+op MV1 85 AntiKt4TopoEM 0.1644
+op MV1 90 AntiKt4TopoEM 0.0616
+       	  
+op MV1 30 AntiKt4TopoLC 0.994450
+op MV1 50 AntiKt4TopoLC 0.993981
+op MV1 60 AntiKt4TopoLC 0.9827
+op MV1 70 AntiKt4TopoLC 0.7892
+op MV1 80 AntiKt4TopoLC 0.3511
+op MV1 85 AntiKt4TopoLC 0.1340
+op MV1 90 AntiKt4TopoLC 0.0617
+   
+op MV1c 30 AntiKt4TopoEM 0.9848
+op MV1c 50 AntiKt4TopoEM 0.9237
+op MV1c 57 AntiKt4TopoEM 0.8674
+op MV1c 60 AntiKt4TopoEM 0.8353
+op MV1c 70 AntiKt4TopoEM 0.7028
+op MV1c 80 AntiKt4TopoEM 0.4050
+op MV1c 90 AntiKt4TopoEM 0.0822
+           
+op MV1c 30 AntiKt4TopoLC 0.9853
+op MV1c 50 AntiKt4TopoLC 0.9195
+op MV1c 57 AntiKt4TopoLC 0.8641
+op MV1c 60 AntiKt4TopoLC 0.8349
+op MV1c 70 AntiKt4TopoLC 0.7068
+op MV1c 80 AntiKt4TopoLC 0.4051
+op MV1c 90 AntiKt4TopoLC 0.0836

@@ -466,7 +466,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   inputdata.open(inputfile.c_str());
 
   string name="", jet="", tagger="", op="";
-  vector<string> m_names, m_jets, m_taggers;
+  vector<string> m_names, m_jets, m_taggers, m_wps;
   map <string, string> m_ops;
   
   string token;
@@ -478,26 +478,6 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
       inputdata >> jet; m_jets.push_back(jet);
     } else if (token=="tagger") {
       inputdata >> tagger; m_taggers.push_back(tagger);
-    }
-  }
-  
-  ifstream inputdata2;
-  inputdata2.open(inputfile.c_str());
-
-  unsigned int j=0;
-  while(inputdata2) {
-    j++;
-    inputdata2 >> token;
-    if (token.find("op_")!=string::npos) {
-      string str = token.substr(3);
-      for (unsigned int i=0; i<m_taggers.size(); i++) {
-	if (str == m_taggers.at(i)) {
-	  inputdata2 >> op;
-	  stringstream ss;
-	  ss << j++;
-	  m_ops[str+"_"+ss.str()]=op;
-	}
-      }
     }
   }
 
@@ -536,27 +516,40 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
     for (unsigned int i=0; i<m_jets.size(); i++) output << "'" << m_jets.at(i) << "' ";
     output << endl;
   }
+  
+  string line;
+  ifstream inputdata2;
+  inputdata2.open(inputfile.c_str());
+
+  while (getline(inputdata2,line)) {
+    if (line.find("op")!=string::npos) {
+      std::istringstream iss (line);
+      vector<string> words;
+      for (int n=0; n<5; n++) {
+	string word;
+	iss >> word;
+	if (n==1)      words.push_back(word);
+	else if (n==3) words.push_back(word);
+	else if (n==4) words.push_back(word);
+      }
+      if (words.at(0) == ana.tagger) {
+	if (ana.jetAlgorithm.find(words.at(1))!=string::npos) {
+	  m_wps.push_back(words.at(2));
+	}
+      }
+    }
+  }  
 
   isFound=false;
-  map<string, string>::const_iterator iter;
-  for (iter=m_ops.begin(); iter!=m_ops.end(); ++iter) {
-    unsigned pos = (iter->first).find("_");
-    string str = (iter->first).substr(0,pos);
-    if (str == ana.tagger) {
-      if (iter->second == ana.operatingPoint) {
-	isFound=true; break;
-      }
+  for (unsigned int i=0; i<m_wps.size(); i++) {
+    if (ana.operatingPoint == m_wps.at(i)) {
+      isFound=true; break;
     }
   }
   if(!isFound) {
-    output << "ERROR! OP " << ana.operatingPoint << " for tagger " << ana.tagger << " unknown. Known OPs for tagger " << ana.tagger << " are: " << endl;
-    for (iter=m_ops.begin(); iter!=m_ops.end(); ++iter) {
-      unsigned pos = (iter->first).find("_");
-      string str = (iter->first).substr(0,pos);
-      if (str == ana.tagger) {
-	output << "'" << iter->second << "' ";
-      }
-    }
+    output << "ERROR! OP " << ana.operatingPoint << " for tagger " << ana.tagger << " and jet collection " << ana.jetAlgorithm 
+	   << " unknown. Known OPs for tagger " << ana.tagger << " are: " << endl;
+    for (unsigned int i=0; i<m_wps.size(); i++) output << "'" << m_wps.at(i) << "' ";
     output << endl;
   }
 }
@@ -567,7 +560,7 @@ void Usage(void)
   cout << "  --check - check if the binning of the input is self consistent" << endl;
   cout << "  --names - print out the names used for the --ignore command of everything" << endl;
   cout << "  --qnames - print out the names used in a fully qualified, and easily computer parsable format" << endl;
-  cout << "  --cnames - parse the code and compares variables to a list of known values" << endl;
+  cout << "  --cnames - parse the code and compares variables to a list of known values (needs input file)" << endl;
   cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
   cout << "  --corr - print out the correlation inputs in a CSV command format" << endl;
   cout << "  --inputfile - to be used together with cnames flag (input files are located inside the directory inputdata)" << endl;
