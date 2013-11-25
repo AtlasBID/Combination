@@ -7,9 +7,9 @@ calibration KinSel_dilep
 calibration negative_tags
  
 jet AntiKt4TopoEMJVF0_5
-jet AntiKt4TopoEM
+jet AntiKt4TopoEMnoJVF
 jet AntiKt4TopoLCJVF0_5 
-jet AntiKt4TopoLC
+jet AntiKt4TopoLCnoJVF
 
 tagger MV1
 tagger MV1c
