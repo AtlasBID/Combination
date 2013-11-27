@@ -5,11 +5,17 @@ calibration ttbar_pdf
 calibration DStar
 calibration KinSel_dilep
 calibration negative_tags
- 
-jet AntiKt4TopoEMJVF0_5
+calibration MCcalib
+
 jet AntiKt4TopoEMnoJVF
-jet AntiKt4TopoLCJVF0_5 
+jet AntiKt4TopoEMJVF0_25
+jet AntiKt4TopoEMJVF0_5
+jet AntiKt4TopoEMJVF0_75
+
 jet AntiKt4TopoLCnoJVF
+jet AntiKt4TopoLCJVF0_25
+jet AntiKt4TopoLCJVF0_5
+jet AntiKt4TopoLCJVF0_75
 
 tagger MV1
 tagger MV1c
