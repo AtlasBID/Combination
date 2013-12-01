@@ -76,43 +76,60 @@ void PrintTable(const CalibrationInfo &info)
     const CalibrationAnalysis &ana (items[iana]);
     cout << "Analysis " << ana.name << ", " << ana.flavor
 	 << ", " << ana.operatingPoint << endl;
-    
+    cout << endl; cout << "\\" << "hline" << endl;
+
     for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++){
       const CalibrationBin &bin(ana.bins[ibin]);
       string binname (OPBinName(bin));
       if (!ibin)
-	cout << "\tBin " << binname << " & ";
+	cout << "Bin " << binname << " & ";
       else if (ibin==ana.bins.size()-1)
 	cout << binname << " \\" << "\\";
       else
 	cout << binname << " & ";
     }
-    cout << endl;
-
-    for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++){
-      const CalibrationBin &bin(ana.bins[ibin]);
-      if (!ibin)
-	cout << "\tCentral value & " << bin.centralValue << "+-" << bin.centralValueStatisticalError << " & ";
-      else if (ibin==ana.bins.size()-1)
-	cout << bin.centralValue << "+-" << bin.centralValueStatisticalError << " \\" << "\\";
-      else
-	cout << bin.centralValue << "+-" << bin.centralValueStatisticalError << " & ";
-    }
-    cout << endl;
+    cout << endl; cout << "\\" << "hline" << endl;
     
+    vector<double> totSyst;
+
     for (unsigned int i = 0; i < ana.bins[0].systematicErrors.size(); i++){
       for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++){
 	const CalibrationBin &bin(ana.bins[ibin]);
 	const SystematicError &sys(bin.systematicErrors[i]);
 	if (!ibin)
-	  cout << "\t" << sys.name << " & " << (sys.value/bin.centralValue*100) << "% & ";
+	  cout << sys.name << " & " << (sys.value/bin.centralValue*100) << "% & ";
 	else if (ibin==ana.bins.size()-1)
 	  cout << (sys.value/bin.centralValue*100) << "% \\" << "\\";
 	else
-	  cout << (sys.value/bin.centralValue*100) << "% & ";	
+	  cout << (sys.value/bin.centralValue*100) << "% & ";
+	if (!i)
+	  totSyst.push_back((sys.value/bin.centralValue*100)*(sys.value/bin.centralValue*100));
+	else
+	  totSyst[ibin]+=(sys.value/bin.centralValue*100)*(sys.value/bin.centralValue*100);
       }
-      cout << endl;
+      cout << endl; cout << "\\" << "hline" << endl;
     }
+
+    for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++){
+      if (!ibin)
+	cout << "Total systematic & " << sqrt(totSyst[ibin]) << "% & ";
+      else if (ibin==ana.bins.size()-1)
+	cout << sqrt(totSyst[ibin]) << "% \\" << "\\";
+      else 
+	cout << sqrt(totSyst[ibin]) << "% & ";
+    }
+    cout << endl; cout << "\\" << "hline" << endl;
+
+    for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++){
+      const CalibrationBin &bin(ana.bins[ibin]);
+      if (!ibin)
+	cout << "Statistics & " << bin.centralValueStatisticalError*100 << "% & ";
+      else if (ibin==ana.bins.size()-1)
+	cout << bin.centralValueStatisticalError*100 << "% \\" << "\\";
+      else
+	cout << bin.centralValueStatisticalError*100 << "% & ";
+    }
+    cout << endl; cout << "\\" << "hline" << endl;
   }
 }
 
