@@ -19,8 +19,8 @@ using namespace std;
 using namespace BTagCombination;
 
 void Usage(void);
-void PrintList(const CalibrationInfo &info);
-void PrintTable(const CalibrationInfo &info);
+void PrintList(const CalibrationInfo &info, const float &prec);
+void PrintTable(const CalibrationInfo &info, const float &prec);
 
 int main(int argc, char **argv)
 {
@@ -34,17 +34,27 @@ int main(int argc, char **argv)
   vector<string> otherFlags;
   ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
+  float prec=2;
+
+  for (unsigned int i = 0; i < otherFlags.size(); i++) {
+    if (otherFlags[i].substr(0,10) == "precision=") {
+      istringstream is(otherFlags[i].substr(10,otherFlags[i].length()-10));
+      is >> prec;
+      break;
+    }
+  }
+
   for (unsigned int i = 0; i < otherFlags.size(); i++) {
     if (otherFlags[i] == "list")
-      PrintList(info);
+      PrintList(info,prec);
     else if (otherFlags[i] == "table")
-      PrintTable(info);
+      PrintTable(info,prec);
   }
   
   return 0;
 }
 
-void PrintList(const CalibrationInfo &info)
+void PrintList(const CalibrationInfo &info, const float &prec)
 {
 
   const vector<CalibrationAnalysis> &items(info.Analyses);
@@ -58,7 +68,7 @@ void PrintList(const CalibrationInfo &info)
 
     for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++){
       const CalibrationBin &bin(ana.bins[ibin]);
-      cout << "  Bin with CV " << bin.centralValue << " +- " << bin.centralValueStatisticalError << endl;
+      cout << setw(5) << setprecision(prec) << "  Bin with CV " << bin.centralValue << " +- " << bin.centralValueStatisticalError << endl;
 
       for(unsigned int isys = 0; isys < bin.systematicErrors.size(); isys++) {
 	const SystematicError &sys(bin.systematicErrors[isys]);
@@ -68,7 +78,7 @@ void PrintList(const CalibrationInfo &info)
   }
 }
 
-void PrintTable(const CalibrationInfo &info)
+void PrintTable(const CalibrationInfo &info, const float &prec)
 {
 
   const vector<CalibrationAnalysis> &items(info.Analyses);
@@ -97,7 +107,7 @@ void PrintTable(const CalibrationInfo &info)
 	const CalibrationBin &bin(ana.bins[ibin]);
 	const SystematicError &sys(bin.systematicErrors[i]);
 	if (!ibin)
-	  cout << sys.name << " & " << (sys.value/bin.centralValue*100) << "% & ";
+	  cout << setw(5) << setprecision(prec) << sys.name << " & " << (sys.value/bin.centralValue*100) << "% & ";
 	else if (ibin==ana.bins.size()-1)
 	  cout << (sys.value/bin.centralValue*100) << "% \\" << "\\";
 	else
@@ -138,5 +148,6 @@ void Usage(void)
   cout << "FTGenerateSummary <file-options>" << endl;
   cout << "  --list - list the breakdown of syst uncertainties bin by bin" << endl;
   cout << "  --table - print summary table in latex format for all syst uncertainties" << endl;
+  cout << "  --precision - option for displaying the number of digits (default is 2)" << endl;
 }
 
