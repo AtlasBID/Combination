@@ -34,7 +34,7 @@ int main(int argc, char **argv)
   vector<string> otherFlags;
   ParseOPInputArgs ((const char**)&(argv[1]), argc-1, info, otherFlags);
 
-  float prec=2;
+  float prec=1;
 
   for (unsigned int i = 0; i < otherFlags.size(); i++) {
     if (otherFlags[i].substr(0,10) == "precision=") {
@@ -107,7 +107,7 @@ void PrintTable(const CalibrationInfo &info, const float &prec)
 	const CalibrationBin &bin(ana.bins[ibin]);
 	const SystematicError &sys(bin.systematicErrors[i]);
 	if (!ibin)
-	  cout << setw(5) << setprecision(prec) << sys.name << " & " << (sys.value/bin.centralValue*100) << "% & ";
+	  cout << fixed << setprecision(prec) << sys.name << " & " << (sys.value/bin.centralValue*100) << "% & ";
 	else if (ibin==ana.bins.size()-1)
 	  cout << (sys.value/bin.centralValue*100) << "% \\" << "\\";
 	else
@@ -148,6 +148,6 @@ void Usage(void)
   cout << "FTGenerateSummary <file-options>" << endl;
   cout << "  --list - list the breakdown of syst uncertainties bin by bin" << endl;
   cout << "  --table - print summary table in latex format for all syst uncertainties" << endl;
-  cout << "  --precision - option for displaying the number of digits (default is 2)" << endl;
+  cout << "  --precision - option for displaying the number of digits after the decimal point (default is 1)" << endl;
 }
 
