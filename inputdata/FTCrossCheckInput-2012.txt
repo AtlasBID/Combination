@@ -2,6 +2,10 @@
 calibration pTrel
 calibration system8
 calibration ttbar_pdf
+calibration ttbar_pdf_emu_2jets
+calibration ttbar_pdf_emu_3jets
+calibration ttbar_pdf_ll_2jets
+calibration ttbar_pdf_ll_3jets
 calibration DStar
 calibration KinSel_dilep
 calibration negative_tags
