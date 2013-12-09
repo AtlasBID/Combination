@@ -390,6 +390,12 @@ struct localCalibBin
   std::vector<ErrorValue> sysErrors;
   std::vector<centralvalue> centralvalues;
   std::vector<metadata> metaData;
+  bool isExtended;
+
+  localCalibBin()
+  {
+    isExtended = false;
+  }
 
   void Convert (CalibrationBin &result)
   {
@@ -400,6 +406,8 @@ struct localCalibBin
       }
     result.centralValue = centralvalues[0].value;
     result.centralValueStatisticalError = centralvalues[0].error;
+    
+    result.isExtended = isExtended;
 
     for (unsigned int i = 0; i < sysErrors.size(); i++)
       {
@@ -417,6 +425,11 @@ struct localCalibBin
     for (unsigned int i = 0; i < metaData.size(); i++) {
       result.metadata[metaData[i].name] = make_pair(metaData[i].value[0], metaData[i].error);
     }
+  }
+
+  void SetExtended()
+  {
+    isExtended = true;
   }
 
   void AddSysError (const ErrorValue &v)
@@ -464,7 +477,7 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 
       localBinFinder.name("Bin finder");
 
-      localBinFinder = lit("bin") 
+      localBinFinder = (lit("bin")  | lit("exbin")[bind(&localCalibBin::SetExtended, _val)])
 	> '(' > boundary_list [bind(&localCalibBin::SetBins, _val, _1)] > ')'
 	> '{'
 	> *(sysErrors[bind(&localCalibBin::AddSysError, _val, _1)]

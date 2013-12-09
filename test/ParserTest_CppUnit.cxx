@@ -46,6 +46,9 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseSimpleAnalysisWithSlashSys);
   CPPUNIT_TEST( testParseSimpleAnalysisWithFunnyBinning );
 
+  CPPUNIT_TEST( testParseSimpleAnalysisWithOneExtendedBin );
+  CPPUNIT_TEST(testParseRoundTripExtendedBin);
+
   CPPUNIT_TEST(testParseRoundTrip);
   CPPUNIT_TEST(testParseRoundTrip2);
   CPPUNIT_TEST(testParseRoundTrip3);
@@ -211,6 +214,7 @@ class ParserTest : public CppUnit::TestFixture
     stringstream str1;
     str1 << "The number of bin boundaries is " << bin0.binSpec.size() << endl;
     CPPUNIT_ASSERT_MESSAGE(str1.str(), bin0.binSpec.size() == 1);
+    CPPUNIT_ASSERT_MESSAGE("Binis marked extended", !bin0.isExtended);
     CalibrationBinBoundary bb = bin0.binSpec[0];
     CPPUNIT_ASSERT(bb.lowvalue == 20);
     CPPUNIT_ASSERT(bb.variable == "pt");
@@ -322,6 +326,48 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (-0.05*0.1/100.0, e.value, 0.001);
   }
 
+  // Test the extended analysis bin specification
+  void testParseSimpleAnalysisWithOneExtendedBin()
+  {
+    cout << "Test testParseSimpleAnalysisWithOneExtendedBin" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){exbin(20<pt<30){central_value(0.5,0.01)}}"));
+    
+    CPPUNIT_ASSERT(result.Analyses.size() == 1);
+    CalibrationAnalysis ana = result.Analyses[0];
+    stringstream str;
+    str << "  Found " << ana.bins.size() << endl;
+    CPPUNIT_ASSERT_MESSAGE(str.str(), ana.bins.size() == 1);
+    CalibrationBin bin0 = ana.bins[0];
+    cout << "  Found bins to do spec in: " << bin0.binSpec.size() << endl;
+    stringstream str1;
+    str1 << "The number of bin boundaries is " << bin0.binSpec.size() << endl;
+    CPPUNIT_ASSERT_MESSAGE(str1.str(), bin0.binSpec.size() == 1);
+    CPPUNIT_ASSERT_MESSAGE("Bin is not extended", bin0.isExtended);
+    CalibrationBinBoundary bb = bin0.binSpec[0];
+    CPPUNIT_ASSERT(bb.lowvalue == 20);
+    CPPUNIT_ASSERT(bb.variable == "pt");
+    CPPUNIT_ASSERT(bb.highvalue == 30);
+  }
+
+  void testParseRoundTripExtendedBin()
+  {
+    cout << "Test testParseRoundTripExtendedBin" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){exbin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    
+    ostringstream buffer;
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result.Analyses.size());
+    cout << result << endl;
+    buffer << result << endl;
+
+    CalibrationInfo result2 (Parse(buffer.str()));
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1, result2.Analyses.size());
+    CalibrationAnalysis ana = result2.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.bins.size());
+    CalibrationBin bin0 = ana.bins[0];
+    CPPUNIT_ASSERT(bin0.isExtended);
+  }
+
   void testParseSimpleAnalysisWithSpaceSys()
   {
     CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude , -0.1%)}}"));
@@ -387,6 +433,7 @@ class ParserTest : public CppUnit::TestFixture
     CalibrationAnalysis ana = result2.Analyses[0];
     CPPUNIT_ASSERT_EQUAL((size_t)1, ana.bins.size());
     CalibrationBin bin0 = ana.bins[0];
+    CPPUNIT_ASSERT(!bin0.isExtended);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, bin0.centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.01, bin0.centralValueStatisticalError, 0.001);
 

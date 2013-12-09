@@ -126,6 +126,9 @@ namespace BTagCombination
     double centralValue;
     double centralValueStatisticalError;
 
+    // Is it an extended errors bin
+    bool isExtended;
+
     // A property bag of meta data that might or might not be there. We keep the name
     // a value, and a possible error (or set to zero).
     std::map<std::string, std::pair<double,double> > metadata;
@@ -143,6 +146,9 @@ namespace BTagCombination
   inline bool operator== (const CalibrationBin &b1, const CalibrationBin &b2) {
     if (b1.centralValue != b2.centralValue
 	|| b1.centralValueStatisticalError != b2.centralValueStatisticalError)
+      return false;
+
+    if (b1.isExtended != b2.isExtended)
       return false;
 
     if (b1.metadata != b2.metadata
@@ -181,7 +187,11 @@ namespace BTagCombination
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
     if (CalibrationBin::gForNextPrinting & CalibrationBin::kFullInfo) {
-      out << "bin(";
+      if (b.isExtended) {
+	out << "exbin(";
+      } else {
+	out << "bin(";
+      }
       for (unsigned int i = 0; i < b.binSpec.size(); i++) {
 	if (i != 0)
 	  out << ",";
