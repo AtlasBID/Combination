@@ -10,6 +10,7 @@
 #include "CalibrationDataInterface/CalibrationDataContainer.h"
 
 #include <string>
+#include <stdexcept>
 
 
 namespace BTagCombination {
@@ -18,6 +19,12 @@ namespace BTagCombination {
   Analysis::CalibrationDataContainer *ConvertToCDI (const BTagCombination::CalibrationAnalysis &eff,
 						    const std::string &name);
 
+  class bad_cdi_config_exception : public std::runtime_error {
+  public:
+    inline bad_cdi_config_exception (const std::string &reason)
+      : runtime_error(reason)
+    {}
+  };
 }
 
 #endif

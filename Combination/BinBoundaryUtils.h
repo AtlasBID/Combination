@@ -75,7 +75,7 @@ namespace BTagCombination {
   };
 
   // Calculate the bin boundaries for a set of bins...
-  bin_boundaries calcBoundaries (const CalibrationAnalysis &ana);
+  bin_boundaries calcBoundaries (const CalibrationAnalysis &ana, bool ignoreExtrap = true);
   
   // Check that this list of bin boundaries is consistent
   // with each other
@@ -89,6 +89,14 @@ namespace BTagCombination {
 
   // Check that the correlations are between things we know about.
   void checkForValidCorrelations (const CalibrationInfo &info);
+
+  // Thrown when we discover a bin boundary error
+  class bin_boundary_error : public std::runtime_error {
+  public:
+    inline bin_boundary_error (const std::string &msg)
+      : runtime_error (msg)
+    {}
+  };
 }
 
 #endif

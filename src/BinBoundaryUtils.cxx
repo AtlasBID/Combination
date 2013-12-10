@@ -32,19 +32,21 @@ namespace {
   //
   // We remove duplicates. We could use a set or similar to do that, but there are so
   // few using the find algoritm is short hand...
-  t_bin_list extract_bins (const CalibrationAnalysis &ana)
+  t_bin_list extract_bins (const CalibrationAnalysis &ana, bool ignoreExtrapolation)
   {
     t_bin_list result;
 
     for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
       const CalibrationBin &bin (ana.bins[ibin]);
-      for (unsigned int iboundary = 0; iboundary < bin.binSpec.size(); iboundary++) {
-	const CalibrationBinBoundary &bound (bin.binSpec[iboundary]);
+      if (!ignoreExtrapolation || !bin.isExtended) {
+	for (unsigned int iboundary = 0; iboundary < bin.binSpec.size(); iboundary++) {
+	  const CalibrationBinBoundary &bound (bin.binSpec[iboundary]);
 
-	pair<double,double> bp = make_pair(bound.lowvalue, bound.highvalue);
-	if (find (result[bound.variable].begin(), result[bound.variable].end(), bp)
-	    == result[bound.variable].end())
-	  result[bound.variable].push_back(bp);
+	  pair<double,double> bp = make_pair(bound.lowvalue, bound.highvalue);
+	  if (find (result[bound.variable].begin(), result[bound.variable].end(), bp)
+	      == result[bound.variable].end())
+	    result[bound.variable].push_back(bp);
+	}
       }
     }
 
@@ -222,10 +224,10 @@ namespace BTagCombination {
 
   // Grab the boundaries from the analysis, and put them into
   // an object that knows how to create historams, etc., for teh CDI.
-  bin_boundaries calcBoundaries (const CalibrationAnalysis &ana)
+  bin_boundaries calcBoundaries (const CalibrationAnalysis &ana, bool ignoreExtrap)
   {
     // Find all the bins that are in the analysis
-    t_bin_list raw_bins = extract_bins(ana);
+    t_bin_list raw_bins = extract_bins(ana, ignoreExtrap);
     if (raw_bins.size() > 2) {
       throw runtime_error(("Analysis '" + ana.name + "' has more than 2 bins!").c_str());
     }
@@ -262,7 +264,7 @@ namespace BTagCombination {
     }
 
     if (errorSeen) {
-      throw runtime_error (errmsg.str().c_str());
+      throw bin_boundary_error (errmsg.str().c_str());
     }
 
     return result;

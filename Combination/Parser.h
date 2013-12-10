@@ -141,6 +141,11 @@ namespace BTagCombination
 			 kFullInfo = 2,
 			 kROOTFormatted = 4};
     static unsigned int gForNextPrinting;
+
+    // Default the values that don't initialize.
+    CalibrationBin()
+    : centralValue(0.0), centralValueStatisticalError(0.0), isExtended(false)
+    {}
   };
 
   inline bool operator== (const CalibrationBin &b1, const CalibrationBin &b2) {

@@ -112,13 +112,17 @@ namespace {
       }
 
       return values;
+    } catch (bad_cdi_config_exception &e) {
+      ostringstream msg;
+      msg << "Error while processing analysis: " << e.what() << endl
+	  << ana;
+      throw  bad_cdi_config_exception(msg.str().c_str());
     } catch (runtime_error e) {
       ostringstream msg;
       msg << "Error while processing analysis: " << e.what() << endl
 	  << ana;
       throw runtime_error(msg.str().c_str());
     }
-
   }
 
   // Extract central value and statistical error from a bin
@@ -127,7 +131,21 @@ namespace {
     return make_pair(bin.centralValue, bin.centralValueStatisticalError);
   }
 
-  // Helper to find errors. Lord, what-for to have lambda functions enabled in ATLAS already!
+  // Get the extrapolation error - which is whatever the sys error is.
+  pair<double, double> get_extrapolation_error (const CalibrationBin &bin)
+  {
+    if (bin.isExtended) {
+      if (bin.systematicErrors.size() != 1) {
+	throw bad_cdi_config_exception ("Extrapolation bin does not have exactly one systematic error");
+      }
+      double v = bin.systematicErrors[0].value;
+      return make_pair(v, v);
+    } else {
+      return make_pair((double)0.0, (double)0.0);
+    }
+  }
+
+ // Helper to find errors. Lord, what-for to have lambda functions enabled in ATLAS already!
   class find_error
   {
   public:
@@ -167,6 +185,11 @@ namespace {
     set<string> result;
     for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
       const CalibrationBin &bin (ana.bins[ibin]);
+
+      // Ignore extended bins.
+      if (bin.isExtended)
+	continue;
+
       transform (bin.systematicErrors.begin(), bin.systematicErrors.end(),
 		 inserter(result, result.begin()),
 		 bind<const string&>(&SystematicError::name, _1));
@@ -193,6 +216,11 @@ namespace {
   {
     CalibrationAnalysis ana (eff);
     for (vector<CalibrationBin>::iterator itr = ana.bins.begin(); itr != ana.bins.end(); itr++) {
+      // Ignore extended guys. They should already be converted
+      if (itr->isExtended)
+	continue;
+
+      // Total up all systematics
       double totS = 0.0;
       for (vector<SystematicError>::const_iterator i_s = itr->systematicErrors.begin(); i_s != itr->systematicErrors.end(); i_s++) {
 	totS += i_s->value*i_s->value;
@@ -239,6 +267,15 @@ namespace {
       if (is_uncorrelated(ana, *e_name))
 	result->setUncorrelated(e_name->c_str());
 
+    }
+
+    // If there are any extrapolation bins, then set that too.
+    bin_boundaries_hist ebins = calcBoundaries(ana, false);
+    TH2 *extrap_errors = set_bin_values(ebins, ana, "extrap", get_extrapolation_error);
+    if (extrap_errors->GetMaximum() > 0.0) {
+      result->setUncertainty("extrapolation", extrap_errors);
+    } else {
+      delete extrap_errors;
     }
 
     return result;
@@ -414,7 +451,7 @@ namespace BTagCombination {
 
     try {
       return ConvertToCDIRegularBins(eff, name);
-    } catch (exception &) {
+    } catch (bin_boundary_error &e) {
     }
       
     // If we are here, then the irregular binning is the only hope.

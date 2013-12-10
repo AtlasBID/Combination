@@ -30,11 +30,15 @@ class CDIConverterTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testBasicGetIrregularSF );
   CPPUNIT_TEST( testUncorrelatedErrors );
   CPPUNIT_TEST( testForSystematics );
+  CPPUNIT_TEST( testForNoExtrapolation );
 
+  CPPUNIT_TEST_EXCEPTION( testExtendedBinBadSys, bad_cdi_config_exception );
   CPPUNIT_TEST( testExtendedBinNormalArea );
   CPPUNIT_TEST( testExtendedBinExtendedArea );
+  CPPUNIT_TEST( testIrregularBinningWithExtension );
 
   CPPUNIT_TEST( testBeyondTheEdge );
+  CPPUNIT_TEST( testBeyondTheEdgeIrregular );
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -173,9 +177,9 @@ class CDIConverterTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (4.0, r, 0.001);
   }
 
-  void testForSystematics()
+  // Generate an analysis with no extrapolation in it.
+  CalibrationAnalysis generate_no_extrap_ana()
   {
-    cout << "Testing for systematics" << endl;
     CalibrationAnalysis ana;
     ana.name = "ana1";
     ana.flavor = "bottom";
@@ -204,6 +208,14 @@ class CDIConverterTest : public CppUnit::TestFixture
     b1.systematicErrors.push_back(e);
     
     ana.bins.push_back(b1);
+    return ana;
+  }
+
+  void testForSystematics()
+  {
+    cout << "Testing for systematics" << endl;
+    
+    CalibrationAnalysis ana (generate_no_extrap_ana());
 
     CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
     CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
@@ -238,9 +250,35 @@ class CDIConverterTest : public CppUnit::TestFixture
     }
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
     CPPUNIT_ASSERT_EQUAL (true, found);
-    
 
     cout << "Done testing for systematics" << endl;
+  }
+
+  void testForNoExtrapolation()
+  {
+    cout << "Testing for systematics" << endl;
+    CalibrationAnalysis ana(generate_no_extrap_ana());
+
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
+
+    //
+    // Get a list of uncertianties
+    //
+
+    Analysis::CalibrationDataVariables v;
+    v.jetPt = 50.e3;
+    v.jetEta = -1.1;
+    v.jetAuthor = "AntiKt4Topo";
+
+    map<string, UncertaintyResult> all;
+    CalibrationDataContainer::CalibrationStatus stat;
+    stat = c->getUncertainties(v, all);
+
+    for (map<string, UncertaintyResult>::const_iterator itr = all.begin(); itr != all.end(); itr++) {
+      cout << "Found Sys: " << itr->first << endl;
+    }
+    CPPUNIT_ASSERT_EQUAL ((size_t)5, all.size());
   }
 
   void testUncorrelatedErrors()
@@ -329,6 +367,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     e.name = "extendederror";
     e.uncorrelated = true;
     e.value = 0.2;
+    b2.systematicErrors.push_back(e);
 
     ana.bins.push_back(b2);
     return ana;
@@ -348,24 +387,32 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
 
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.2, r, 0.001);
 
-    stat = c->getStatUncertainty(v, r);
+    UncertaintyResult uncr;
+    stat = c->getUncertainty("extrapolation", v, uncr);
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, uncr.first, 0.001);
 
     map<string, UncertaintyResult> allerrors;
     stat = c->getUncertainties(v, allerrors);
-    //CPPUNIT_ASSERT_EQUAL((size_t)5, allerrors.size());
 
     CPPUNIT_ASSERT(allerrors.find("cerr") != allerrors.end());
     CPPUNIT_ASSERT(allerrors.find("result") != allerrors.end());
     CPPUNIT_ASSERT(allerrors.find("statistics") != allerrors.end());
     CPPUNIT_ASSERT(allerrors.find("systematics") != allerrors.end());
-    CPPUNIT_ASSERT(allerrors.find("extendederror") != allerrors.end());
+    CPPUNIT_ASSERT(allerrors.find("extrapolation") != allerrors.end());
+  }
+
+  void testExtendedBinBadSys()
+  {
+    CalibrationAnalysis ana (generateExtendedBinnedAna());
+    // With no sys error in the extension bin, we should get a crash here.
+    ana.bins[1].systematicErrors.clear();
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
   }
 
   void testExtendedBinNormalArea()
@@ -396,17 +443,33 @@ class CDIConverterTest : public CppUnit::TestFixture
     for (map<string, UncertaintyResult>::const_iterator itr = allerrors.begin(); itr != allerrors.end(); itr++) {
       cout << " --> Error " << itr->first << endl;
     }
-    CPPUNIT_ASSERT_EQUAL((size_t)1+3, allerrors.size());
+
+    for (map<string, UncertaintyResult>::const_iterator itr = allerrors.begin(); itr != allerrors.end(); itr++) {
+      cout << "Found Sys: " << itr->first << endl;
+    }
+
+    CPPUNIT_ASSERT_EQUAL((size_t)1+4, allerrors.size());
 
     CPPUNIT_ASSERT(allerrors.find("cerr") != allerrors.end());
     CPPUNIT_ASSERT(allerrors.find("result") != allerrors.end());
     CPPUNIT_ASSERT(allerrors.find("statistics") != allerrors.end());
     CPPUNIT_ASSERT(allerrors.find("systematics") != allerrors.end());
+    CPPUNIT_ASSERT(allerrors.find("extrapolation") != allerrors.end());
+  }
+
+  void testIrregularBinningWithExtension()
+  {
+    CPPUNIT_ASSERT(false);
   }
 
   // Make sure we fail correctly if we ask for a number outside the
   // range that the CDI was made with.
   void testBeyondTheEdge()
+  {
+    CPPUNIT_ASSERT(false);
+  }
+
+  void testBeyondTheEdgeIrregular()
   {
     CPPUNIT_ASSERT(false);
   }
