@@ -355,7 +355,7 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     stat = c->getStatUncertainty(v, r);
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.3, r, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
 
     map<string, UncertaintyResult> allerrors;
     stat = c->getUncertainties(v, allerrors);

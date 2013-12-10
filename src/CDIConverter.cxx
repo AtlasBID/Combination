@@ -343,8 +343,8 @@ namespace {
       return _h;
     }
 
-    private:
-      TH1F* _h;
+  private:
+    TH1F* _h;
   };
 
   //
