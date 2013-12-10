@@ -35,14 +35,14 @@ class CDIConverterTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION( testExtendedBinBadSys, bad_cdi_config_exception );
   CPPUNIT_TEST( testExtendedBinNormalArea );
   CPPUNIT_TEST( testExtendedBinExtendedArea );
-  CPPUNIT_TEST( testIrregularBinningWithExtension );
+  CPPUNIT_TEST_EXCEPTION( testIrregularBinningWithExtension, bad_cdi_config_exception );
 
   CPPUNIT_TEST( testBeyondTheEdge );
   CPPUNIT_TEST( testBeyondTheEdgeIrregular );
 
   CPPUNIT_TEST_SUITE_END();
 
-  void testBasicGetSF()
+  CalibrationAnalysis generate_1bin_sys()
   {
     CalibrationAnalysis ana;
     ana.name = "ana1";
@@ -74,7 +74,12 @@ class CDIConverterTest : public CppUnit::TestFixture
     b1.systematicErrors.push_back(e);
     
     ana.bins.push_back(b1);
+    return ana;
+  }
 
+  void testBasicGetSF()
+  {
+    CalibrationAnalysis ana(generate_1bin_sys());
     CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
     CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
 
@@ -95,9 +100,8 @@ class CDIConverterTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
   }
 
-  void testBasicGetIrregularSF()
+  CalibrationAnalysis generate_ireggular_binning()
   {
-    cout << "Starting testBasicGetIrregularSF()" << endl;
     CalibrationAnalysis ana;
     ana.name = "ana1";
     ana.flavor = "bottom";
@@ -139,6 +143,44 @@ class CDIConverterTest : public CppUnit::TestFixture
     b1.binSpec[1].highvalue = 2.5;
     b1.centralValue = 4.0;
     ana.bins.push_back(b1);
+
+    return ana;
+  }
+
+  // Add an extension bin onto the iregular binning.
+  CalibrationAnalysis generate_ireggular_binning_withext() {
+    CalibrationAnalysis ana (generate_ireggular_binning());
+
+    CalibrationBin b1;
+    b1.centralValue = 1.1;
+    b1.centralValueStatisticalError = 0.2;
+    b1.isExtended = true;
+
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 200.0;
+    bb1.highvalue = 300.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "exterror";
+    e.value = 0.1;
+    e.uncorrelated = false;
+    b1.systematicErrors.push_back(e);
+    
+    ana.bins.push_back(b1);
+
+    return ana;
+  }
+
+  void testBasicGetIrregularSF()
+  {
+    cout << "Starting testBasicGetIrregularSF()" << endl;
+    CalibrationAnalysis ana (generate_ireggular_binning());
 
     CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
     CalibrationDataMappedHistogramContainer *c = dynamic_cast<CalibrationDataMappedHistogramContainer *>(craw);
@@ -412,7 +454,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     CalibrationAnalysis ana (generateExtendedBinnedAna());
     // With no sys error in the extension bin, we should get a crash here.
     ana.bins[1].systematicErrors.clear();
-    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    ConvertToCDI (ana, "bogus");
   }
 
   void testExtendedBinNormalArea()
@@ -457,25 +499,54 @@ class CDIConverterTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(allerrors.find("extrapolation") != allerrors.end());
   }
 
+  // We can't currently put an extension histo into a CDI that has
+  // irregular binning.
   void testIrregularBinningWithExtension()
   {
-    CPPUNIT_ASSERT(false);
+    CalibrationAnalysis ana (generate_ireggular_binning_withext());
+    ConvertToCDI (ana, "bogus");
   }
 
   // Make sure we fail correctly if we ask for a number outside the
   // range that the CDI was made with.
   void testBeyondTheEdge()
   {
-    CPPUNIT_ASSERT(false);
+    CalibrationAnalysis ana(generate_1bin_sys());
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
+
+    Analysis::CalibrationDataVariables v;
+    v.jetPt = 250.e3;
+    v.jetEta = -1.1;
+    v.jetAuthor = "AntiKt4Topo";
+
+    TObject *obj = nullptr;
+    double r;
+    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kRange, stat);
   }
 
+  // Make sure if we ask for someone outside the range we get back
+  // a fail.
   void testBeyondTheEdgeIrregular()
   {
-    CPPUNIT_ASSERT(false);
+    CalibrationAnalysis ana (generate_ireggular_binning());
+
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    CalibrationDataMappedHistogramContainer *c = dynamic_cast<CalibrationDataMappedHistogramContainer *>(craw);
+
+    Analysis::CalibrationDataVariables v;
+    v.jetPt = 350e3;
+    v.jetEta = -1.1;
+    v.jetAuthor = "AntiKt4Topo";
+
+    TObject *obj = nullptr;
+    double r;
+    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kRange, stat);
   }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CDIConverterTest);
-
-// The common atlas test driver
-//#include <TestPolicy/CppUnit_testdriver.cxx>

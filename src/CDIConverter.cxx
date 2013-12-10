@@ -390,6 +390,13 @@ namespace {
   //
   CalibrationDataContainer *ConvertToCDIIrregularBins (const CalibrationAnalysis &eff, const std::string &name)
   {
+    // We can't currently deal with extension bins, so fail.
+    for (vector<CalibrationBin>::const_iterator itr = eff.bins.begin(); itr != eff.bins.end(); itr++) {
+      if (itr->isExtended) {
+	throw bad_cdi_config_exception("The CDI does not support extrapolation bins when irregular binning exists");
+      }
+    }
+
     //
     // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
     //
