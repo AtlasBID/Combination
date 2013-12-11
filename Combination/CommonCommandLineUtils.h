@@ -47,6 +47,9 @@ namespace BTagCombination {
   // Returns a name that is how we partition everything (flavor, tagger, jet, op, etc.).
   std::string OPIndependentName (const CalibrationAnalysis &ana);
 
+  // Returns a name that uses flavor, tagger, op, but not jet.
+  std::string OPByFlavorTaggerOp (const CalibrationAnalysis &ana);
+
   // Returns a name that uses calib for partition everything
   std::string OPByCalibName (const CalibrationAnalysis &ana);
   // Returns a name that uses calib for partition everything - use the eff rather than the OP

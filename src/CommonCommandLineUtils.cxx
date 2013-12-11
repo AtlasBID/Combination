@@ -430,6 +430,15 @@ namespace BTagCombination {
     return msg.str();
   }
 
+  string OPByFlavorTaggerOp (const CalibrationAnalysis &ana)
+  {
+    ostringstream msg;
+    msg << ana.flavor
+	<< "-" << ana.tagger
+	<< "-" << ana.operatingPoint;
+    return msg.str();
+  }
+
   string OPByCalibName (const CalibrationAnalysis &ana)
   {
     ostringstream msg;

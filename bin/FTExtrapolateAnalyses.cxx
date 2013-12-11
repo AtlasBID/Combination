@@ -37,7 +37,8 @@ namespace {
   {
     map<string, vector<CalibrationAnalysis> > results;
     for (vector<CalibrationAnalysis>::const_iterator itr = anas.begin(); itr != anas.end(); itr++) {
-      string name (OPIndependentName(*itr));
+      string name (OPByFlavorTaggerOp(*itr));
+      cout << "Partitioning by " << name << endl;
       results[name].push_back(*itr);
     }
     return results;
@@ -103,6 +104,7 @@ int main(int argc, char **argv)
     map<string, vector<CalibrationAnalysis> >::const_iterator e_itr = groupedExtrap.find(itr->first);
     if (e_itr == groupedExtrap.end()) {
       // Easy, no extrapolation, just copy.
+      cout << "Didn't find it: " << itr->first << endl;
       for (vector<CalibrationAnalysis>::const_iterator a_itr = itr->second.begin(); a_itr != itr->second.end(); a_itr++) {
 	results.push_back(*a_itr);
       }
