@@ -65,6 +65,12 @@ namespace BTagCombination {
   CalibrationAnalysis addExtrapolation (const CalibrationAnalysis &extrapolated,
 					const CalibrationAnalysis &ana)
   {
+    // Make sure we aren't extrapolating twice!
+    for (vector<CalibrationBin>::const_iterator itr = ana.bins.begin(); itr != ana.bins.end(); itr++) {
+      if (itr->isExtended)
+	throw runtime_error ("Can't extrapolate an analysis with extrapolated bins");
+    }
+
     // Get the bin boundaries of everything
     bin_boundaries ana_bounds (calcBoundaries(ana));
     bin_boundaries extr_bounds (calcBoundaries(extrapolated));
@@ -99,8 +105,6 @@ namespace BTagCombination {
 	extrapolated_axis = *itr;
       }
     }
-
-    // If there is no extrapolated axis, then we are done!
 
     // Get the last extrapolated bin, and normalize the size of the error there, and then
     // start looping through the extrapolated bins adding them in as extrapolated bins. These
@@ -137,14 +141,18 @@ namespace BTagCombination {
     set<set<CalibrationBinBoundary> > all_analysis_bin_boundaries(listAnalysisBins(ana));
     for (vector<CalibrationBin>::const_iterator e_itr = extrapolated.bins.begin(); e_itr != extrapolated.bins.end(); e_itr++) {
       set<CalibrationBinBoundary> all_bounds(boundary_set(e_itr->binSpec));
-      cout << "Looking at bin " << OPBinName(all_bounds) << endl;
       if (all_analysis_bin_boundaries.find(all_bounds) == all_analysis_bin_boundaries.end()) {
-	cout << "  it isn't an analysis bin" << endl;
 	set<CalibrationBinBoundary> bounds (boundary_set_without(extrapolated_axis, e_itr->binSpec));
 	if (ana_sys.find(bounds) != ana_sys.end()) {
-	  cout << "  And it is in the ana sys dict" << endl;
 	  double ext_sys_current = bin_sys(*e_itr);
-	  double ext_sys_new = ext_sys_current/ext_sys[bounds] * ana_sys[bounds];
+	  double ext_sys_base = ext_sys[bounds];
+	  if (ext_sys_current < ext_sys_base) {
+	    throw runtime_error("Extrapolated bin's error is smaller than the matching one in the analysis!");
+	  }
+	  double ana_sys_base (ana_sys[bounds]);
+	  double ext_sys_new = ext_sys_current/ext_sys_base * ana_sys_base;
+	  // Do the quad calc to figure out what this component should be.
+	  ext_sys_new = sqrt(ext_sys_new*ext_sys_new - ana_sys_base*ana_sys_base);
 	  r.bins.push_back(create_extrapolated_bin (ext_sys_new, *e_itr));
 	}
       }

@@ -22,6 +22,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin);
   CPPUNIT_TEST (testNoExtrapolation);
   CPPUNIT_TEST (testExtrapolate1binPtHigh2ExtBins);
+  CPPUNIT_TEST (testExtrapolate1binExactlyZero);
 
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binNegative, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtAndEta, runtime_error);
@@ -62,6 +63,45 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     b1.systematicErrors.push_back(e);
     
     ana.bins.push_back(b1);
+    return ana;
+  }
+
+  CalibrationAnalysis generate_2bin_ana()
+  {
+    // Simple 2 bin analysis
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "SV0";
+    ana.operatingPoint = "0.1";
+    ana.jetAlgorithm = "AntiKt";
+
+    CalibrationBin b1;
+    b1.centralValue = 1.1;
+    b1.centralValueStatisticalError = 0.2;
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 100.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "err";
+    e.value = 0.1;
+    e.uncorrelated = false;
+    b1.systematicErrors.push_back(e);
+    
+    ana.bins.push_back(b1);
+
+    /// Second bin looks a lot like the first bin!
+    b1.binSpec[0].lowvalue = 100.0;
+    b1.binSpec[0].highvalue = 200.0;
+    ana.bins.push_back(b1);
+
     return ana;
   }
 
@@ -180,8 +220,22 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     SystematicError e2(result.bins[1].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
 
-    // Doubles in size from the first one
-    CPPUNIT_ASSERT_EQUAL(double(0.2), e2.value);
+    // Doubles in size from the first one.
+    // The extrapolation figures out the total, but will add in quad with the other errors,
+    // so a funny quad subtraction occurs.
+    CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
+  }
+
+  // the bins have exactly the same error - so the extrapolated error shoudl be zero.
+  void testExtrapolate1binExactlyZero()
+  {
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
+    extrap.bins[1].systematicErrors[0].value = extrap.bins[0].systematicErrors[0].value;
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+    SystematicError e2(result.bins[1].systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(double(0.0), e2.value);
   }
 
   // Do the extrapolation on the low side
@@ -206,8 +260,9 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     SystematicError e2(result.bins[1].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
 
-    // Doubles in size from the first one
-    CPPUNIT_ASSERT_EQUAL(double(0.2), e2.value);
+    // The extrapolation figures out the total, but will add in quad with the other errors,
+    // so a funny quad subtraction occurs.
+    CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
   }
 
   // 1 bin analysis, extended on the pt side, but the sys error calls for shrinking
@@ -254,13 +309,37 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   // If this guy already has extrapolations applied to it, then fail.
   void testExtrapolateTwice()
   {
+    CalibrationAnalysis ana (generate_2bin_ana());
+    ana.bins[1].isExtended = true; // fake out the extrapolation having happened once already.
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
   }
 
   // If the bins match exactly, there is no extrapolation. Shouldn't harm
   // anything.
   void testNoExtrapolation()
   {
-    CPPUNIT_ASSERT (false);
+    CalibrationAnalysis ana (generate_2bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+
+    CPPUNIT_ASSERT_EQUAL(size_t(2), result.bins.size());
+    CPPUNIT_ASSERT (!result.bins[0].isExtended);
+    CPPUNIT_ASSERT (!result.bins[1].isExtended);
+
+    // First bin error should remain untouched
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[0].systematicErrors.size());
+    SystematicError e1(result.bins[0].systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("err"), e1.name);
+    CPPUNIT_ASSERT_EQUAL(double(0.1), e1.value);
+
+    // Extrapolated bins have only one error
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[1].systematicErrors.size());
+    SystematicError e2(result.bins[1].systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("err"), e2.name);
+    CPPUNIT_ASSERT_EQUAL(double(0.1), e2.value);
   }
 
   // Make sure that extrapolation happens when we have two bins in eta the match our
