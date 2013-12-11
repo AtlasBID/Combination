@@ -19,16 +19,21 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST (testExtrapolate1binPtHigh);
   CPPUNIT_TEST (testExtrapolate1binPtLow);
   CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBins);
-  CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin);
   CPPUNIT_TEST (testNoExtrapolation);
   CPPUNIT_TEST (testExtrapolate1binPtHigh2ExtBins);
   CPPUNIT_TEST (testExtrapolate1binExactlyZero);
 
-  CPPUNIT_TEST_EXCEPTION (testExtrapolate1binNegative, runtime_error);
+  // Bad extrapolation binning - 2D extension, gaps, overlaps, etc.
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtAndEta, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtGap, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtOverlap, runtime_error);
+
+  // Dummy x-checks
   CPPUNIT_TEST_EXCEPTION (testExtrapolateTwice, runtime_error);
+  CPPUNIT_TEST_EXCEPTION (testExtrapolate1binNegative, runtime_error);
+
+  // Fail b.c. we don't support extrapolating irregular binning
+  CPPUNIT_TEST_EXCEPTION (testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolationWithSingleEtaBinWithMultipleExtrapolation, runtime_error);
 
   CPPUNIT_TEST_SUITE_END();
@@ -179,6 +184,17 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     b1.systematicErrors[0].value = 0.2; // x2 error size
     ana.bins.push_back(b1);
 
+    return ana;
+  }
+
+  CalibrationAnalysis generate_3bin_extrap_in_pthigh()
+  {
+    CalibrationAnalysis ana(generate_2bin_extrap_in_pthigh());
+    CalibrationBin b(ana.bins[1]);
+    b.binSpec[0].lowvalue = 200.0;
+    b.binSpec[0].highvalue = 300.0;
+    b.systematicErrors[0].value *= 2; // x2 larger
+    ana.bins.push_back(b);
     return ana;
   }
 
@@ -462,21 +478,44 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   // a single bin in eta.
   void testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin ()
   {
-    CPPUNIT_ASSERT (false);
+    cout << "Starting testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin..." << endl;
+
+    CalibrationAnalysis ana(generate_2bin_2eta_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
+    extrap.bins[0].binSpec[1].highvalue = 4.0;
+    extrap.bins[1].binSpec[1].highvalue = 4.0;
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
   }
 
   // Single bin in eta, but the extrapolation has multiple. Since the
   // multiple will not match exactly, this should fail.
   void testExtrapolationWithSingleEtaBinWithMultipleExtrapolation()
   {
-    CPPUNIT_ASSERT (false);
+    cout << "Starting testExtrapolationWithSingleEtaBinWithMultipleExtrapolation..." << endl;
+    CalibrationAnalysis ana(generate_1bin_ana());
+    ana.bins[0].binSpec[1].highvalue = 4.0;
+    CalibrationAnalysis extrap (generate_2bin_2eta_extrap_in_pthigh());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
   }
 
   // Make sure if there are multiple extrapolation bins that overlap we don't really
   // care as long as the last one overlaps with ana before the jump off point.
   void testExtrapolate1binPtHigh2ExtBins()
   {
-    CPPUNIT_ASSERT (false);
+    cout << "Starting testExtrapolate1binPtHigh2ExtBins" << endl;
+    CalibrationAnalysis ana(generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_3bin_extrap_in_pthigh());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+    CPPUNIT_ASSERT_EQUAL(size_t(3), result.bins.size());
+    CPPUNIT_ASSERT (result.bins[2].isExtended);
+
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[2].systematicErrors.size());
+    SystematicError e2(result.bins[2].systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
+    CPPUNIT_ASSERT_EQUAL(sqrt(0.4*0.4-0.1*0.1), e2.value);
   }
 
 };
