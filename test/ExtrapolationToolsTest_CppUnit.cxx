@@ -105,6 +105,44 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     return ana;
   }
 
+  CalibrationAnalysis generate_2bin_2eta_ana()
+  {
+    // Simple 1 bin analysis
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "SV0";
+    ana.operatingPoint = "0.1";
+    ana.jetAlgorithm = "AntiKt";
+
+    CalibrationBin b1;
+    b1.centralValue = 1.1;
+    b1.centralValueStatisticalError = 0.2;
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 100.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "err";
+    e.value = 0.1;
+    e.uncorrelated = false;
+    b1.systematicErrors.push_back(e);
+    
+    ana.bins.push_back(b1);
+
+    b1.binSpec[1].lowvalue = 2.5;
+    b1.binSpec[1].highvalue = 4.0;
+    ana.bins.push_back(b1);
+
+    return ana;
+  }
+
   CalibrationAnalysis generate_2bin_extrap_in_pthigh()
   {
     // Extend the standard 1 bin in pt on the high side
@@ -194,6 +232,56 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     CalibrationAnalysis ana(generate_2bin_extrap_in_pthigh());
     ana.bins[1].binSpec[0].lowvalue = -100.0;
     ana.bins[1].binSpec[0].highvalue = 0.0;
+    return ana;
+  }
+
+  CalibrationAnalysis generate_2bin_2eta_extrap_in_pthigh()
+  {
+    // Extend the standard 1 bin in pt on the high side
+    // Simple 1 bin analysis
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "SV0";
+    ana.operatingPoint = "0.1";
+    ana.jetAlgorithm = "AntiKt";
+
+    CalibrationBin b1;
+    b1.centralValue = 1.1;
+    b1.centralValueStatisticalError = 0.2;
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 100.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "extr";
+    e.value = 0.1;
+    e.uncorrelated = false;
+    b1.systematicErrors.push_back(e);
+    ana.bins.push_back(b1);
+
+    // high eta bin
+    b1.binSpec[1].lowvalue = 2.5;
+    b1.binSpec[1].highvalue = 4.0;
+    ana.bins.push_back(b1);
+
+    // pt extension
+    b1.binSpec[0].lowvalue = 100.0;
+    b1.binSpec[0].highvalue = 200.0;
+    b1.systematicErrors[0].value = 0.2; // x2 error size
+    ana.bins.push_back(b1);
+
+    // low eta extension
+    b1.binSpec[1].lowvalue = 0.0;
+    b1.binSpec[1].highvalue = 2.5;
+    ana.bins.push_back(b1);
+    
     return ana;
   }
 
@@ -346,7 +434,28 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   // extrapolation.
   void testExtrapolateWithMulitpleEtaBins()
   {
-    CPPUNIT_ASSERT (false);
+    cout << "Starting testExtrapolateWithMulitpleEtaBins" << endl;
+    CalibrationAnalysis ana (generate_2bin_2eta_ana());
+    CalibrationAnalysis extrap (generate_2bin_2eta_extrap_in_pthigh());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+
+    CPPUNIT_ASSERT_EQUAL(size_t(4), result.bins.size());
+    CPPUNIT_ASSERT (!result.bins[0].isExtended);
+    CPPUNIT_ASSERT (!result.bins[1].isExtended);
+    CPPUNIT_ASSERT (result.bins[2].isExtended);
+    CPPUNIT_ASSERT (result.bins[3].isExtended);
+
+    // Extrapolated bins have only one error
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[2].systematicErrors.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[3].systematicErrors.size());
+
+    SystematicError e1(result.bins[2].systematicErrors[0]);
+    SystematicError e2(result.bins[3].systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e1.name);
+    CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
+    CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e1.value);
+    CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
   }
 
   // The analysis has multiple bins in eta, but the extrapolation has only

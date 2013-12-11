@@ -316,7 +316,8 @@ namespace BTagCombination {
 	  if (!find_exact_match(pblist, tbin)
 	      && spans_bins(pblist, tbin)) {
 	    ostringstream err;
-	    err << "Bins in '" << anames[i_n] << "' have inconsistent boundaries" ;
+	    err << "Bins in '" << anames[i_n] << "' have inconsistent boundaries ("
+		<< tbin.first << ", " << tbin.second << ")";
 	    throw runtime_error (err.str().c_str());
 	  }
 	}
