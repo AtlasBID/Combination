@@ -61,3 +61,11 @@ op MV1c 60 AntiKt4TopoLC 0.8349
 op MV1c 70 AntiKt4TopoLC 0.7068
 op MV1c 80 AntiKt4TopoLC 0.4051
 op MV1c 90 AntiKt4TopoLC 0.0836
+
+op JetFitterCharm 90 AntiKt4TopoEM -0.9_NONE
+op JetFitterCharm 20 AntiKt4TopoEM -0.9_0.95
+op JetFitterCharm 10 AntiKt4TopoEM -0.9_2.5
+
+op JetFitterCharm 90 AntiKt4TopoLC -0.9_NONE
+op JetFitterCharm 20 AntiKt4TopoLC -0.9_0.95
+op JetFitterCharm 10 AntiKt4TopoLC -0.9_2.5
