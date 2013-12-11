@@ -23,10 +23,11 @@ jet AntiKt4TopoLCJVF0_75
 
 tagger MV1
 tagger MV1c
-tagger JetFitterCOMBCharm
+tagger JetFitterCharm
 tagger SV0
 
 op MV1 30 AntiKt4TopoEM 0.992670537
+op MV1 40 AntiKt4TopoEM 0.992665769
 op MV1 50 AntiKt4TopoEM 0.992515446
 op MV1 60 AntiKt4TopoEM 0.9867
 op MV1 70 AntiKt4TopoEM 0.8119
@@ -35,6 +36,7 @@ op MV1 85 AntiKt4TopoEM 0.1644
 op MV1 90 AntiKt4TopoEM 0.0616
        	  
 op MV1 30 AntiKt4TopoLC 0.994450
+op MV1 40 AntiKt4TopoLC 0.994430
 op MV1 50 AntiKt4TopoLC 0.993981
 op MV1 60 AntiKt4TopoLC 0.9827
 op MV1 70 AntiKt4TopoLC 0.7892
@@ -43,6 +45,7 @@ op MV1 85 AntiKt4TopoLC 0.1340
 op MV1 90 AntiKt4TopoLC 0.0617
    
 op MV1c 30 AntiKt4TopoEM 0.9848
+op MV1c 40 AntiKt4TopoEM 0.9662
 op MV1c 50 AntiKt4TopoEM 0.9237
 op MV1c 57 AntiKt4TopoEM 0.8674
 op MV1c 60 AntiKt4TopoEM 0.8353
@@ -51,6 +54,7 @@ op MV1c 80 AntiKt4TopoEM 0.4050
 op MV1c 90 AntiKt4TopoEM 0.0822
            
 op MV1c 30 AntiKt4TopoLC 0.9853
+op MV1c 40 AntiKt4TopoLC 0.9654
 op MV1c 50 AntiKt4TopoLC 0.9195
 op MV1c 57 AntiKt4TopoLC 0.8641
 op MV1c 60 AntiKt4TopoLC 0.8349
