@@ -18,10 +18,17 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST (testExtrapolate1binPtHigh);
   CPPUNIT_TEST (testExtrapolate1binPtLow);
+  CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBins);
+  CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin);
+  CPPUNIT_TEST (testNoExtrapolation);
+  CPPUNIT_TEST (testExtrapolate1binPtHigh2ExtBins);
+
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binNegative, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtAndEta, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtGap, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtOverlap, runtime_error);
+  CPPUNIT_TEST_EXCEPTION (testExtrapolateTwice, runtime_error);
+  CPPUNIT_TEST_EXCEPTION (testExtrapolationWithSingleEtaBinWithMultipleExtrapolation, runtime_error);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -52,9 +59,6 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     e.name = "err";
     e.value = 0.1;
     e.uncorrelated = false;
-    b1.systematicErrors.push_back(e);
-    e.name = "uerr";
-    e.uncorrelated = true;
     b1.systematicErrors.push_back(e);
     
     ana.bins.push_back(b1);
@@ -148,14 +152,15 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CalibrationAnalysis generate_2bin_extrap_in_ptlow()
   {
     CalibrationAnalysis ana(generate_2bin_extrap_in_pthigh());
-    ana.bins[0].binSpec[0].lowvalue = -100.0;
-    ana.bins[0].binSpec[0].highvalue = 0.0;
+    ana.bins[1].binSpec[0].lowvalue = -100.0;
+    ana.bins[1].binSpec[0].highvalue = 0.0;
     return ana;
   }
 
   // Do the pt extrapolation, on the high side.
   void testExtrapolate1binPtHigh()
   {
+    cout << "Starting testExtrapolate1binPtHigh()" << endl;
     CalibrationAnalysis ana (generate_1bin_ana());
     CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
 
@@ -166,14 +171,14 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
     // First bin error should remain untouched
     CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[0].systematicErrors.size());
-    SystematicError e1(result.bins[1].systematicErrors[0]);
+    SystematicError e1(result.bins[0].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("err"), e1.name);
     CPPUNIT_ASSERT_EQUAL(double(0.1), e1.value);
 
     // Extrapolated bins have only one error
     CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[1].systematicErrors.size());
     SystematicError e2(result.bins[1].systematicErrors[0]);
-    CPPUNIT_ASSERT_EQUAL(string("extr"), e2.name);
+    CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
 
     // Doubles in size from the first one
     CPPUNIT_ASSERT_EQUAL(double(0.2), e2.value);
@@ -192,14 +197,14 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
     // First bin error should remain untouched
     CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[0].systematicErrors.size());
-    SystematicError e1(result.bins[1].systematicErrors[0]);
+    SystematicError e1(result.bins[0].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("err"), e1.name);
     CPPUNIT_ASSERT_EQUAL(double(0.1), e1.value);
 
     // Extrapolated bins have only one error
     CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[1].systematicErrors.size());
     SystematicError e2(result.bins[1].systematicErrors[0]);
-    CPPUNIT_ASSERT_EQUAL(string("extr"), e2.name);
+    CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
 
     // Doubles in size from the first one
     CPPUNIT_ASSERT_EQUAL(double(0.2), e2.value);
@@ -244,6 +249,46 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     extrap.bins[1].binSpec[0].lowvalue = 95;
 
     CalibrationAnalysis result (addExtrapolation(extrap, ana));
+  }
+
+  // If this guy already has extrapolations applied to it, then fail.
+  void testExtrapolateTwice()
+  {
+  }
+
+  // If the bins match exactly, there is no extrapolation. Shouldn't harm
+  // anything.
+  void testNoExtrapolation()
+  {
+    CPPUNIT_ASSERT (false);
+  }
+
+  // Make sure that extrapolation happens when we have two bins in eta the match our
+  // extrapolation.
+  void testExtrapolateWithMulitpleEtaBins()
+  {
+    CPPUNIT_ASSERT (false);
+  }
+
+  // The analysis has multiple bins in eta, but the extrapolation has only
+  // a single bin in eta.
+  void testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin ()
+  {
+    CPPUNIT_ASSERT (false);
+  }
+
+  // Single bin in eta, but the extrapolation has multiple. Since the
+  // multiple will not match exactly, this should fail.
+  void testExtrapolationWithSingleEtaBinWithMultipleExtrapolation()
+  {
+    CPPUNIT_ASSERT (false);
+  }
+
+  // Make sure if there are multiple extrapolation bins that overlap we don't really
+  // care as long as the last one overlaps with ana before the jump off point.
+  void testExtrapolate1binPtHigh2ExtBins()
+  {
+    CPPUNIT_ASSERT (false);
   }
 
 };

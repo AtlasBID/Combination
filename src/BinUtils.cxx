@@ -6,6 +6,20 @@
 
 using namespace std;
 
+namespace {
+  using namespace BTagCombination;
+
+  // Helper function that returns the true if the coordinate matching the axis name has the value val.
+  bool has_low_coord (const string &axis_name, const double val, const vector<CalibrationBinBoundary> &coords) {
+    for (vector<CalibrationBinBoundary>::const_iterator itr = coords.begin(); itr != coords.end(); itr++) {
+      if (itr->variable == axis_name
+	  && itr->lowvalue == val)
+	return true;
+    }
+    return false;
+  }
+}
+
 namespace BTagCombination {
 
   //
@@ -138,4 +152,31 @@ namespace BTagCombination {
     }
     return results;
   }
+
+  // Calc the total bin systematic error
+  double bin_sys (const CalibrationBin &b)
+  {
+    double total = 0.0;
+    for (vector<SystematicError>::const_iterator itr = b.systematicErrors.begin(); itr != b.systematicErrors.end(); itr++) {
+      double v = itr->value;
+      total += v*v;
+    }
+
+    return sqrt(total);
+  }
+
+  // Find all bins with a common low edge for a partiuclar axis.
+  vector<CalibrationBin> find_bins_with_low_edge(const string &axis_name, const double axis_low_val, const vector<CalibrationBin> allbins)
+  {
+    vector<CalibrationBin> r;
+
+    for (vector<CalibrationBin>::const_iterator itr = allbins.begin(); itr != allbins.end(); itr++) {
+      if (has_low_coord(axis_name, axis_low_val, itr->binSpec)) {
+	r.push_back(*itr);
+      }
+    }
+
+    return r;
+  }
+
 }

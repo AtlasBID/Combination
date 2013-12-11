@@ -35,6 +35,11 @@ namespace BTagCombination {
   // Alter a sys error to be correlated
   std::vector<CalibrationAnalysis> makeSysErrorUncorrelated(const std::vector<CalibrationAnalysis> &analyses, const std::string &sysErrorName);
   
+  // Find all bins in the list that contain a specified low edge value
+  std::vector<CalibrationBin> find_bins_with_low_edge(const std::string &axis_name, const double axis_low_val, const std::vector<CalibrationBin> allbins);
+
+  // Return the total systematic error (added in quad) that this bin has.
+  double bin_sys (const CalibrationBin &bin);
 }
 
 #endif

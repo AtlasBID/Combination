@@ -28,6 +28,13 @@ class BinUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST( testRemoveAllButBinMetadata );
   CPPUNIT_TEST( testRemoveBinMetadata );
+
+  CPPUNIT_TEST( testFindBinWithLowEdge);
+
+  CPPUNIT_TEST( testBinSysNone );
+  CPPUNIT_TEST( testBinSysOne );
+  CPPUNIT_TEST( testBinSysTwo );
+
   CPPUNIT_TEST_SUITE_END();
 
   void testListNoBins()
@@ -105,6 +112,72 @@ class BinUtilsTest : public CppUnit::TestFixture
     set<CalibrationBinBoundary> abin(*(bins.begin()));
     CPPUNIT_ASSERT_EQUAL ((size_t)1, abin.size());
     CPPUNIT_ASSERT_EQUAL ((string) "eta", abin.begin()->variable);
+  }
+
+  void testFindBinWithLowEdge()
+  {
+    CalibrationAnalysis ana;
+    CalibrationBin b;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b.binSpec.push_back(bound);
+    ana.bins.push_back(b);
+
+    vector<CalibrationBin> bins = find_bins_with_low_edge( "eta", 0.0, ana.bins);
+    CPPUNIT_ASSERT_EQUAL(size_t(1), bins.size());
+    CPPUNIT_ASSERT_EQUAL(b, bins[0]);
+  }
+
+  void testBinSysNone()
+  {
+    CalibrationBin b;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b.binSpec.push_back(bound);
+
+    double r = bin_sys(b);
+    CPPUNIT_ASSERT_EQUAL(0.0, r);
+  }
+
+  void testBinSysOne()
+  {
+    CalibrationBin b;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b.binSpec.push_back(bound);
+    SystematicError e;
+    e.name = "hi";
+    e.value = 0.2;
+    b.systematicErrors.push_back(e);
+
+    double r = bin_sys(b);
+    CPPUNIT_ASSERT_EQUAL(0.2, r);
+  }
+
+  void testBinSysTwo()
+  {
+    CalibrationBin b;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b.binSpec.push_back(bound);
+    SystematicError e;
+    e.name = "hi";
+    e.value = 2;
+    b.systematicErrors.push_back(e);
+    e.name = "there";
+    e.value = 2;
+    b.systematicErrors.push_back(e);
+
+    double r = bin_sys(b);
+    CPPUNIT_ASSERT_EQUAL(sqrt(8), r);
   }
 
   void testRemoveBin()
