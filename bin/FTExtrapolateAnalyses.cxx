@@ -85,11 +85,15 @@ int main(int argc, char **argv)
     }
   }
 
-  // Check inputs!
-  if (extrapolationAnalyses.size() != extrapolationAnas.size()) {
+  // Check inputs to make sure that we have the right size.
+  if (extrapolationAnalyses.size() == 0
+      && extrapolationAnas.size() > 0) {
     cout << "Unable to find all the extrapolation analyses" << endl;
     for (size_t i = 0; i < extrapolationAnas.size(); i++) {
-      cout << "  Found " << extrapolationAnas[i].name << endl;
+      cout << "  Found in input " << extrapolationAnas[i].name << endl;
+    }
+    for (size_t i = 0; i < extrapolationAnalyses.size(); i++) {
+      cout << "  Expected in input " << extrapolationAnalyses[i] << endl;
     }
     usage();
     return 1;
