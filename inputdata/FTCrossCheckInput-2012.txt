@@ -6,6 +6,11 @@ calibration ttbar_pdf_emu_2jets
 calibration ttbar_pdf_emu_3jets
 calibration ttbar_pdf_ll_2jets
 calibration ttbar_pdf_ll_3jets
+calibration ttbar_pdf_7bins
+calibration ttbar_pdf_emu_2jets_7bins
+calibration ttbar_pdf_emu_3jets_7bins
+calibration ttbar_pdf_ll_2jets_7bins
+calibration ttbar_pdf_ll_3jets_7bins
 calibration DStar
 calibration KinSel_dilep
 calibration negative_tags
