@@ -481,6 +481,8 @@ namespace BTagCombination {
 		 ) {
 	return "80";
       } else if (ana.operatingPoint == "0.0714225"
+		 || ana.operatingPoint == "0.1644"
+		 || ana.operatingPoint == "0.1340"
 		 ) {
 	return "85";
       } else {
@@ -520,9 +522,19 @@ namespace BTagCombination {
       }
     } else if (ana.tagger == "JetFitterCOMBNNc") {
       if (ana.operatingPoint == "1.33") {
-	return "50";
+        return "50";
       } else if (ana.operatingPoint == "0.98") {
-	return "55";
+        return "55";
+      } else {
+        return "JetFitterCOMBNNc_unknown";
+      }
+    } else if (ana.tagger == "JetFitterCharm") {
+      if (ana.operatingPoint == "-0.9_NONE") {
+	return "90";
+      } else if (ana.operatingPoint == "-0.9_0.95") {
+	return "20";
+      } else if (ana.operatingPoint == "-0.9_2.5") {
+	return "10";
       } else {
 	return "JetFitterCOMBNNc_unknown";
       }
