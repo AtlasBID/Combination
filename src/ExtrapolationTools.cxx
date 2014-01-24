@@ -15,10 +15,11 @@ using namespace std;
 namespace {
   using namespace BTagCombination;
 
-  // Helper function that will create a new extended analysis bin.
-  CalibrationBin create_extrapolated_bin (double newsys, const CalibrationBin &bin)
+  // Helper function that will create a new extended analysis bin based on an old bin.
+  // All old sys errors will be cleared, but other than that, it remains the same.
+  CalibrationBin create_extrapolated_bin (double newsys, const CalibrationBin &templateBin)
   {
-    CalibrationBin b(bin);
+    CalibrationBin b(templateBin);
     b.systematicErrors.clear();
     SystematicError e;
     e.name = "extrapolated";
@@ -28,7 +29,7 @@ namespace {
     return b;
   }
 
-  // Helper function to return bin coordinates minus a particular item.
+  // Helper function to return bin coordinates minus a particular axis cordinate.
   set<CalibrationBinBoundary> boundary_set_without(const string &axis, const vector<CalibrationBinBoundary> &coords) {
     set<CalibrationBinBoundary> r;
     for (vector<CalibrationBinBoundary>::const_iterator itr = coords.begin(); itr != coords.end(); itr++) {
@@ -40,11 +41,7 @@ namespace {
 
   // Helper function to return bin coordinates
   set<CalibrationBinBoundary> boundary_set (const vector<CalibrationBinBoundary> &coords) {
-    set<CalibrationBinBoundary> r;
-    for (vector<CalibrationBinBoundary>::const_iterator itr = coords.begin(); itr != coords.end(); itr++) {
-      r.insert(*itr);
-    }
-    return r;
+    return set<CalibrationBinBoundary> (coords.begin(), coords.end());
   }
 
   // Helper function that will catalog the bins by coordinates other than the axis
