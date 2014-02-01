@@ -1,0 +1,44 @@
+
+calibration ttbar_pdf
+calibration ttbar_pdf_emu_2jets
+calibration ttbar_pdf_emu_3jets
+calibration ttbar_pdf_ll_2jets
+calibration ttbar_pdf_ll_3jets
+calibration ttbar_pdf_6bins
+calibration ttbar_pdf_emu_2jets_6bins
+calibration ttbar_pdf_emu_3jets_6bins
+calibration ttbar_pdf_ll_2jets_6bins
+calibration ttbar_pdf_ll_3jets_6bins
+calibration ttbar_kinsel
+calibration DStar
+calibration negative_tags
+
+jet AntiKt4Topo
+
+tagger SV0
+tagger IP3DSV1
+tagger JetFitterCOMBNN
+tagger JetFitterCOMBNNc
+tagger MV1
+
+op SV0 50 AntiKt4Topo 5.65
+
+op IP3DSV1 60 AntiKt4Topo 4.55
+op IP3DSV1 70 AntiKt4Topo 1.70
+op IP3DSV1 80 AntiKt4Topo -0.80
+
+op JetFitterCOMBNN 57 AntiKt4Topo 2.20
+op JetFitterCOMBNN 60 AntiKt4Topo 1.80
+op JetFitterCOMBNN 70 AntiKt4Topo 0.35
+op JetFitterCOMBNN 80 AntiKt4Topo -1.25
+
+op JetFitterCOMBNNc 50 AntiKt4Topo 1.33
+op JetFitterCOMBNNc 55 AntiKt4Topo 0.98
+
+op MV1 60 AntiKt4Topo 0.905363
+op MV1 70 AntiKt4Topo 0.601713
+op MV1 75 AntiKt4Topo 0.404219
+op MV1 85 AntiKt4Topo 0.0714225
+
+
+
