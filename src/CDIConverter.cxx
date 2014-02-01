@@ -241,6 +241,15 @@ namespace {
   {
     CalibrationDataHistogramContainer *result = new CalibrationDataHistogramContainer(name.c_str());
 
+    // grab the hadronization setting...
+    map<string,string>::const_iterator hadFind = eff.metadata_s.find("Hadronization");
+    string hadronization ("test");
+    if (hadFind == eff.metadata_s.end()) {
+      cout << "Error: Analysis " << eff.name << " has no hadronization setting." << endl;
+    } else {
+      result->setHadronisation(hadronization);
+    }
+
     //
     // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
     //
