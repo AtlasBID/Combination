@@ -264,6 +264,7 @@ namespace BTagCombination
     std::vector<CalibrationBin> bins; // List of bins with the actual 
 
     std::map<std::string, std::vector<double> > metadata; // Meta data that we might pull along. Basically a property bag, with a list of numbers.
+    std::map<std::string, std::string> metadata_s; // Meta data, strings.
   };
 
   inline bool operator== (const CalibrationAnalysis &a1, const CalibrationAnalysis &a2) {
@@ -294,6 +295,9 @@ namespace BTagCombination
 	<< std::endl;
     for (unsigned int i = 0; i < ana.bins.size(); i++)
       out << "  " << ana.bins[i] << std::endl;
+    for (std::map<std::string, std::string>::const_iterator itr = ana.metadata_s.begin(); itr != ana.metadata_s.end(); itr++) {
+      out << " meta_data_s (" << itr->first << ", " << itr->second << ")" << std::endl;
+    }
     for (std::map<std::string, std::vector<double> >::const_iterator itr = ana.metadata.begin(); itr != ana.metadata.end(); itr++) {
       std::string t (itr->first);
       if (t.find(',') != std::string::npos)

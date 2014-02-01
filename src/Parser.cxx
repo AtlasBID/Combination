@@ -342,6 +342,21 @@ struct metadata
   }
 };
 
+struct metadata_s
+{
+  string name;
+  string value;
+
+  void SetName(const std::string &n)
+  {
+    name = n;
+  }
+  void SetValue (const string &v)
+  {
+    value = v;
+  }
+};
+
 //
 // Parse a bit of meta-data.
 template <typename Iterator>
@@ -378,6 +393,33 @@ struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
 
     qi::rule<Iterator, metadata(), ascii::space_type> start;
     NameStringParser<Iterator> name_string;
+};
+
+//
+// Parse a bit of meta-data.
+template <typename Iterator>
+struct MetaDataStringParser : qi::grammar<Iterator, metadata_s(), ascii::space_type>
+{
+  MetaDataStringParser() : MetaDataStringParser::base_type(start, "Meta Data String") {
+    using qi::lit;
+    using qi::_val;
+    using qi::labels::_1;
+    using boost::phoenix::bind;
+
+    start = lit("meta_data_s")
+      > '('
+      > name_string[bind(&metadata_s::SetName, _val, _1)]
+      > *qi::lit(' ')
+      > ','
+      > value_string[bind(&metadata_s::SetValue, _val, _1)]
+      > ')';
+
+    start.name("Meta data String");
+  }
+
+  qi::rule<Iterator, metadata_s(), ascii::space_type> start;
+  NameStringParser<Iterator> name_string;
+  NameStringParser<Iterator> value_string;
 };
 
 //
@@ -517,6 +559,7 @@ class CAHolder {
   inline void SetJet (const std::string &j) { result.jetAlgorithm = j; }
   inline void AddBin (const CalibrationBin &b) { result.bins.push_back(b); }
   inline void AddMD (const metadata &m) { result.metadata[m.name] = m.value; }
+  inline void AddMV (const metadata_s &m) { result.metadata_s[m.name] = m.value; }
 
   inline void Convert(CalibrationAnalysis &holder) { holder = result; }
 private:
@@ -528,8 +571,8 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
 {
   CalibrationAnalysisParser()
     : CalibrationAnalysisParser::base_type(start, "Analysis"),
-    metadataParser(false)
-    {
+      metadataParser(false)
+  {
     using ascii::char_;
     using qi::lexeme;
     using qi::lit;
@@ -546,6 +589,7 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
       > ')'
       > '{'
       > *(binParser[bind(&CAHolder::AddBin, _val, _1)]
+	  | metadataStringParser[bind(&CAHolder::AddMV, _val, _1)]
 	  | metadataParser[bind(&CAHolder::AddMD, _val, _1)]
 	  )
       > '}';
@@ -554,14 +598,15 @@ struct CalibrationAnalysisParser : qi::grammar<Iterator, CalibrationAnalysis(), 
     start = localCAHolder[bind(&CAHolder::Convert, _1, _val)];
   }
 
-    //qi::rule<Iterator, std::string(), ascii::space_type> name_string;
-    qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
-    qi::rule<Iterator, CAHolder(), ascii::space_type> localCAHolder;
+  //qi::rule<Iterator, std::string(), ascii::space_type> name_string;
+  qi::rule<Iterator, CalibrationAnalysis(), ascii::space_type> start;
+  qi::rule<Iterator, CAHolder(), ascii::space_type> localCAHolder;
 
-    CalibrationBinParser<Iterator> binParser;
-    MetaDataParser<Iterator> metadataParser;
+  CalibrationBinParser<Iterator> binParser;
+  MetaDataParser<Iterator> metadataParser;
+  MetaDataStringParser<Iterator> metadataStringParser;
 
-    NameStringParser<Iterator> name_string;
+  NameStringParser<Iterator> name_string;
 };
 
 //
