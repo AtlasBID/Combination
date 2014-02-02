@@ -25,6 +25,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST (testExtrapolate1bin2CorErrors);
   CPPUNIT_TEST (testExtrapolate1bin2ACorErrors);
   CPPUNIT_TEST (testExtrapolate1bin2CorErrorsBin1);
+  CPPUNIT_TEST (testExtrapolate1binNegative);
 
   // Bad extrapolation binning - 2D extension, gaps, overlaps, etc.
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtAndEta, runtime_error);
@@ -33,7 +34,6 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
   // Dummy x-checks
   CPPUNIT_TEST_EXCEPTION (testExtrapolateTwice, runtime_error);
-  CPPUNIT_TEST_EXCEPTION (testExtrapolate1binNegative, runtime_error);
 
   // Fail b.c. we don't support extrapolating irregular binning
   CPPUNIT_TEST_EXCEPTION (testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin, runtime_error);
@@ -541,6 +541,8 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     extrap.bins[1].systematicErrors[0].value = 0.05;
 
     CalibrationAnalysis result (addExtrapolation(extrap, ana));
+    SystematicError e2(result.bins[1].systematicErrors[0]);
+    CPPUNIT_ASSERT_EQUAL(0.0, e2.value);
   }
 
   // 1 bin analysis, extended on the pt side, and eta size (should throw b.c. we
