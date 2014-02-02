@@ -466,7 +466,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   inputdata.open(inputfile.c_str());
 
   string name="", jet="", tagger="", op="";
-  vector<string> m_names, m_jets, m_taggers, m_wps;
+  vector<string> m_names, m_jets, m_taggers, m_wps, m_hadronizations;
   map <string, string> m_ops;
   
   string token;
@@ -517,11 +517,12 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
     output << endl;
   }
   
-  string line;
-  ifstream inputdata2;
-  inputdata2.open(inputfile.c_str());
+  inputdata.clear();
+  inputdata.seekg(0, ios::beg);
 
-  while (getline(inputdata2,line)) {
+  string line;
+
+  while (getline(inputdata,line)) {
     if (line.find("op")!=string::npos) {
       std::istringstream iss (line);
       vector<string> words;
@@ -550,6 +551,49 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
     output << "ERROR! OP " << ana.operatingPoint << " for tagger " << ana.tagger << " and jet collection " << ana.jetAlgorithm 
 	   << " unknown. Known OPs for tagger " << ana.tagger << " are: " << endl;
     for (unsigned int i=0; i<m_wps.size(); i++) output << "'" << m_wps.at(i) << "' ";
+    output << endl;
+  }
+  
+  inputdata.clear();
+  inputdata.seekg(0, ios::beg);
+  
+  while (getline(inputdata,line)) {
+    if (line.find("hadronization")!=string::npos) {
+      std::istringstream iss (line);
+      vector<string> words;
+      for (int n=0; n<3; n++) {
+	string word;
+	iss >> word;
+	if (n==1)      words.push_back(word);
+	else if (n==2) words.push_back(word);
+      }
+      string hadronization;
+      std::map<std::string, std::string> meta = ana.metadata_s;
+      for (std::map<std::string, std::string>::const_iterator itr = ana.metadata_s.begin(); itr != ana.metadata_s.end(); itr++) {
+	if (words.at(0) == ana.name) {
+	  m_hadronizations.push_back(words.at(1));
+	}
+      }
+    }
+  }
+
+  isFound=false;
+  string hadronization;  
+  for (unsigned int i=0; i<m_hadronizations.size(); i++) {
+    std::map<std::string, std::string> meta = ana.metadata_s;
+    for (std::map<std::string, std::string>::const_iterator itr = ana.metadata_s.begin(); itr != ana.metadata_s.end(); itr++) {
+      if (itr->first == "Hadronization") {
+	hadronization = itr->second;
+	if (hadronization == m_hadronizations.at(i)) {
+	  isFound=true; break;
+	}
+      }
+    }
+  }
+  if(!isFound) {
+    output << "ERROR! Hadronization for calibration " << ana.name
+	   << " unknown. Should be: " << endl;
+    for (unsigned int i=0; i<m_hadronizations.size(); i++) output << "'" << m_hadronizations.at(i) << "' ";
     output << endl;
   }
 }

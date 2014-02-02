@@ -74,3 +74,20 @@ op JetFitterCharm 10 AntiKt4TopoEM -0.9_2.5
 op JetFitterCharm 90 AntiKt4TopoLC -0.9_NONE
 op JetFitterCharm 20 AntiKt4TopoLC -0.9_0.95
 op JetFitterCharm 10 AntiKt4TopoLC -0.9_2.5
+
+hadronization pTrel Pythia8EvtGen
+hadronization system8 Pythia8EvtGen
+hadronization ttbar_pdf Pythia6
+hadronization ttbar_pdf_emu_2jets Pythia6
+hadronization ttbar_pdf_emu_3jets Pythia6
+hadronization ttbar_pdf_ll_2jets Pythia6
+hadronization ttbar_pdf_ll_3jets Pythia6
+hadronization ttbar_pdf_7bins Pythia6
+hadronization ttbar_pdf_emu_2jets_7bins Pythia6
+hadronization ttbar_pdf_emu_3jets_7bins Pythia6
+hadronization ttbar_pdf_ll_2jets_7bins Pythia6
+hadronization ttbar_pdf_ll_3jets_7bins Pythia6
+hadronization DStar Pythia8EvtGen
+hadronization KinSel_dilep Pythia8EvtGen
+hadronization negative_tags Pythia8EvtGen
+hadronization MCcalib Pythia8EvtGen
