@@ -146,11 +146,12 @@ namespace BTagCombination {
 	  if (ext_sys_current < ext_sys_base) {
 	    ostringstream err;
 	    err << "Extrapolated bin's error (" << ext_sys_current << ")"
-		<< " is smaller than the last bin matching the analysis (" << ext_sys_base << ")."
-		<< " "
-		<< "Analysis: " << OPFullName(r) << "  "
-		<< "Extrapolation: " << OPFullName(extrapolated) << " (" << OPBinName(e_itr->binSpec) << ")";
-	    throw runtime_error(err.str());
+		<< " is smaller than the last bin matching the analysis (" << ext_sys_base << ")." << endl
+		<< "  Analysis: " << OPFullName(r) << endl
+		<< "  Extrapolation: " << OPFullName(extrapolated) << " (" << OPBinName(e_itr->binSpec) << ")"
+		<< "  --> Reset to be identical";
+	    cerr << err.str() << endl;
+	    ext_sys_current = ext_sys_base;
 	  }
 	  double ana_sys_base (ana_sys[bounds]);
 	  double ext_sys_new = ext_sys_current/ext_sys_base * ana_sys_base;
