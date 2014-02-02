@@ -76,7 +76,18 @@ namespace BTagCombination {
     vector<bin_boundaries> bbs;
     bbs.push_back(ana_bounds);
     bbs.push_back(extr_bounds);
-    checkForConsitentBoundaries(bbs);
+
+    try {
+      checkForConsitentBoundaries(bbs);
+    } catch (runtime_error &excp) {
+      ostringstream err;
+      err << "Extrapolation failed because bins were inconsistent" << endl
+	  << "  Analysis: " << OPFullName(ana) << endl
+	  << "  Extrapolation: " << OPFullName(extrapolated) << endl
+	  << "  Error: " << excp.what();
+
+      throw runtime_error(err.str());
+    }
 
     // To do the extrapolation, we have to figure out what axis the extension is going on (and make sure
     // we are only doing it in one!).

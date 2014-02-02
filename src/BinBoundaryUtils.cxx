@@ -317,7 +317,7 @@ namespace BTagCombination {
 	      && spans_bins(pblist, tbin)) {
 	    ostringstream err;
 	    err << "Bins in '" << anames[i_n] << "' have inconsistent boundaries ("
-		<< tbin.first << ", " << tbin.second << ")";
+		<< tbin.first << "-" << anames[i_n] << "-" << tbin.second << ")";
 	    throw runtime_error (err.str().c_str());
 	  }
 	}
