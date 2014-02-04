@@ -767,6 +767,7 @@ namespace BTagCombination
 	for (set<set<CalibrationBinBoundary> >::const_iterator i_be = templateBinning.begin(); i_be != templateBinning.end(); i_be++) {
 	  err << " - " << OPBinName(*i_be) << endl;
 	}
+	err << "  -> Analysis: " << ana.name << endl;
 	throw runtime_error (err.str().c_str());
       }
 
@@ -788,10 +789,11 @@ namespace BTagCombination
       // Make sure there are no gaps in any of the coverage
       if (!BinAreaCovered(itr->first, itr->second)) {
 	ostringstream err;
-	err << "Gaps discovered in binning covering " << OPBinName(itr->first) << ". The following has a gap: " << endl;
+	err << "Gaps or extra overlaps discovered in binning covering " << OPBinName(itr->first) << ". The following has a gap/overlap: " << endl;
 	for (size_t i = 0; i < itr->second.size(); i++) {
 	  err << "  - " << OPBinName(itr->second[i]) << endl;
 	}
+	err << "  -> Analysis: " << ana.name << endl;
 	throw runtime_error (err.str().c_str());
       }
     }
