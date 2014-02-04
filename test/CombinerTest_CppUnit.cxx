@@ -61,6 +61,8 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTrackMetadataByBin );
   CPPUNIT_TEST ( testAnaTrackMetadata );
 
+  CPPUNIT_TEST_EXCEPTION ( testTwoBinsOverlapOne, std::runtime_error );
+
   CPPUNIT_TEST_EXCEPTION ( rebinEmpty, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( rebinToEmpty, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( rebinMissingBin, std::runtime_error );
@@ -1185,6 +1187,62 @@ class CombinerTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.1, b_2.centralValueStatisticalError, 0.001);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0/sqrt(1.0/(0.1*0.1)+1.0/(0.2*0.2)), b_1.centralValueStatisticalError, 0.001);
+  }
+
+  void testTwoBinsOverlapOne()
+  {
+    cout << "Starting fit testTwoBinsOverlapOne" << endl;
+
+    // Two ana, One bin in one, two bins in the other that fit in the one bin
+    // we should get back a single bin.
+    // This shoudl fail as we don't know how to rebin in the middle of a fit
+    // with the current software.
+
+    CalibrationBin b1;
+    b1.centralValue = 0.0;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 5.0;
+    b1.binSpec.push_back(bound);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+
+    ana2.name = "ptrel";
+    ana2.bins[0].centralValue = 1.0;
+    ana2.bins[0].centralValueStatisticalError = 0.1;
+    ana2.bins[0].binSpec[0].highvalue = 2.5;
+
+    b1.centralValue = 0.0;
+    b1.binSpec[0].lowvalue = 2.5;
+    b1.binSpec[0].highvalue = 5.0;
+    ana2.bins.push_back(b1);
+
+    vector<CalibrationAnalysis> inputs;
+    inputs.push_back (ana1);
+    inputs.push_back (ana2);
+
+    setupRoo();
+    CalibrationAnalysis result (CombineSimilarAnalyses(inputs));
+    cout << "Result of the weird bin test:" << endl;
+    cout << result << endl;
+
+    //CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
+
+    //CalibrationBin b_1 (result.bins[0]);
+
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, b_1.binSpec[0].lowvalue, 0.01);
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, b_1.binSpec[0].highvalue, 0.01);
   }
 
   void testAnaTwoDifBinsDiffSys()

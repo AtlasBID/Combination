@@ -219,7 +219,7 @@ namespace {
 
     for (map<string, vector<CalibrationBinBoundary> >::const_iterator i = binfo.begin(); i != binfo.end(); i++) {
       if (i->second.size() != 2)
-	throw runtime_error ("Internal error, bin overlap bin comparison has only one element: " + i->first);
+	return false;
       const CalibrationBinBoundary &bb1(i->second[0]);
       const CalibrationBinBoundary &bb2(i->second[1]);
 
@@ -229,6 +229,37 @@ namespace {
 	return false;
     }
     return true;
+  }
+
+  // Return the list of bins in two analyses that overlap
+  vector<CalibrationBin> PartialOverlappingBins (const CalibrationAnalysis &a1, const CalibrationAnalysis &a2)
+  {
+    for (vector<CalibrationBin>::const_iterator i_b1 = a1.bins.begin(); i_b1 != a1.bins.end(); i_b1++) {
+      set<CalibrationBinBoundary> b1_bins (i_b1->binSpec.begin(), i_b1->binSpec.end());
+      for (vector<CalibrationBin>::const_iterator i_b2 = a2.bins.begin(); i_b2 != a2.bins.end(); i_b2++) {
+	set<CalibrationBinBoundary> b2_bins (i_b2->binSpec.begin(), i_b2->binSpec.end());
+	if (BinsOverlap(*i_b1, *i_b2) && (b1_bins != b2_bins)) {
+	  vector<CalibrationBin> result;
+	  result.push_back(*i_b1);
+	  result.push_back(*i_b2);
+	  return result;
+	}
+      }
+    }
+    return vector<CalibrationBin>();
+  }
+
+  // Return any bins in two analyses that overlap partially.
+  vector<CalibrationBin> PartialOverlappingBins (const vector<CalibrationAnalysis> &anas)
+  {
+    for(vector<CalibrationAnalysis>::const_iterator i_a1 = anas.begin(); i_a1 != anas.end(); i_a1++) {
+      for(vector<CalibrationAnalysis>::const_iterator i_a2 (i_a1); i_a2 != anas.end(); i_a2++) {
+	vector<CalibrationBin> r (PartialOverlappingBins(*i_a1, *i_a2));
+	if (r.size() > 0)
+	  return r;
+      }
+    }
+    return vector<CalibrationBin>();
   }
 
   // Make sure that the bin area is totally covered by "bins". There are all sorts of crazy things
@@ -465,6 +496,17 @@ namespace BTagCombination
     if (ana.size() == 1) {
       return result;
     }
+
+    vector<CalibrationBin> partialOverlap (PartialOverlappingBins(ana));
+    if (partialOverlap.size() > 0) {
+      cerr << "Error: Found partially overlapping bins during fit! Not allowed!" << endl;
+      for (unsigned int i = 0; i < partialOverlap.size(); i++) {
+	cerr<< "  " << partialOverlap[i] << endl;
+      }
+      throw runtime_error ("Partial overlap of analyses found!");
+    }
+
+
     result.bins.clear();
 
     //
@@ -634,6 +676,14 @@ namespace BTagCombination
     vector<CalibrationAnalysis> result;
     for(t_anaMap::const_iterator i_ana = analysesInCommon.begin(); i_ana != analysesInCommon.end(); i_ana++) {
       if (i_ana->second.size() > 1) {
+	vector<CalibrationBin> partialOverlap (PartialOverlappingBins(i_ana->second));
+	if (partialOverlap.size() > 0) {
+	  cerr << "Error: Found partially overlapping bins during fit! Not allowed!" << endl;
+	  for (unsigned int i = 0; i < partialOverlap.size(); i++) {
+	    cerr<< "  " << partialOverlap[i] << endl;
+	  }
+	  throw runtime_error ("Partial overlap of analyses found!");
+	}
 	set<set<CalibrationBinBoundary> > allBins (listAllBins(i_ana->second));
 	vector<CalibrationAnalysis> binByBinFits;
 	for (set<set<CalibrationBinBoundary> >::const_iterator i_bin = allBins.begin(); i_bin != allBins.end(); i_bin++) {
