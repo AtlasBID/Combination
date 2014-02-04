@@ -563,6 +563,16 @@ namespace BTagCombination
     ctx.SetVerbose(verbose);
     map<string, vector<CalibrationBin> > bins =  FillContextWithCommonAnaInfo(ctx, anas, "", verbose);
       
+    // Make sure that we have a good setup for a fit - no non-overlapping bins.
+    vector<CalibrationBin> partialOverlap (PartialOverlappingBins(anas));
+    if (partialOverlap.size() > 0) {
+      cerr << "Error: Found partially overlapping bins during fit! Not allowed!" << endl;
+      for (unsigned int i = 0; i < partialOverlap.size(); i++) {
+	cerr<< "  " << partialOverlap[i] << endl;
+      }
+      throw runtime_error ("Partial overlap of analyses found!");
+    }
+
     // We make an assumption about the fit name here, and the way the fit is being done (const over flavor, tag, OP).
     string fitName = anas[0].flavor
       + ":" + anas[0].tagger
