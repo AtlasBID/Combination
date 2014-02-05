@@ -567,15 +567,8 @@ namespace BTagCombination {
 
   string OPBinName (const vector<CalibrationBinBoundary> &binspec)
   {
-    ostringstream msg;
-    for (unsigned int i = 0; i < binspec.size(); i++) {
-      if (i > 0)
-	msg << ":";
-      msg << binspec[i].lowvalue
-	  << "-" << binspec[i].variable
-	  << "-" << binspec[i].highvalue;
-    }
-    return msg.str();
+    // Ordering is important, so we should have it all powered by something that sorts.
+    return OPBinName(set<CalibrationBinBoundary>(binspec.begin(), binspec.end()));
   }
 
   string OPBinName (const set<CalibrationBinBoundary> &binspec)

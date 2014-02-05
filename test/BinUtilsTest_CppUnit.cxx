@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
+#include <set>
 
 using namespace std;
 using namespace BTagCombination;
@@ -25,6 +26,9 @@ class BinUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST( testRemoveBin );
   CPPUNIT_TEST( testRemoveOnlyBins );
+
+  CPPUNIT_TEST ( testBinBoundarySetCompare );
+  CPPUNIT_TEST ( testBinBoundarySetCompareReverse );
 
   CPPUNIT_TEST( testRemoveAllButBinMetadata );
   CPPUNIT_TEST( testRemoveBinMetadata );
@@ -65,6 +69,53 @@ class BinUtilsTest : public CppUnit::TestFixture
     set<CalibrationBinBoundary> abin(*(bins.begin()));
     CPPUNIT_ASSERT_EQUAL ((size_t)1, abin.size());
     CPPUNIT_ASSERT_EQUAL ((string) "eta", abin.begin()->variable);
+  }
+
+  void testBinBoundarySetCompare()
+  {
+    // Test that a set equality works correctly. Many of these utilities depend
+    // upon it.
+
+    CalibrationBinBoundary b1;
+    b1.variable = "eta";
+    b1.lowvalue = 0.0;
+    b1.highvalue = 2.5;
+    
+    CalibrationBinBoundary b2;
+    b2.variable = "pt";
+    b2.lowvalue = 30.0;
+    b2.highvalue = 60.0;
+    
+    set<CalibrationBinBoundary> s1, s2;
+    s1.insert(b1);
+    s1.insert(b2);
+    s2.insert(b1);
+    s2.insert(b2);
+
+    CPPUNIT_ASSERT (s1 == s2);
+  }
+  void testBinBoundarySetCompareReverse()
+  {
+    // Test that a set equality works correctly. Many of these utilities depend
+    // upon it.
+
+    CalibrationBinBoundary b1;
+    b1.variable = "eta";
+    b1.lowvalue = 0.0;
+    b1.highvalue = 2.5;
+    
+    CalibrationBinBoundary b2;
+    b2.variable = "pt";
+    b2.lowvalue = 30.0;
+    b2.highvalue = 60.0;
+    
+    set<CalibrationBinBoundary> s1, s2;
+    s1.insert(b1);
+    s1.insert(b2);
+    s2.insert(b2);
+    s2.insert(b1);
+
+    CPPUNIT_ASSERT (s1 == s2);
   }
 
   void testListTwoSameBins()

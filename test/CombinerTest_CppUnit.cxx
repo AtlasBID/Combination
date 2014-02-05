@@ -61,6 +61,11 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTrackMetadataByBin );
   CPPUNIT_TEST ( testAnaTrackMetadata );
 
+  CPPUNIT_TEST ( testAnaTwoBinsTwoCoords );
+  CPPUNIT_TEST ( testAnaTwoBinsTwoCoordsReverse );
+  CPPUNIT_TEST ( testAnaTwoBinsTwoCoordsBBB );
+  CPPUNIT_TEST ( testAnaTwoBinsTwoCoordsReverseBBB );
+
   CPPUNIT_TEST_EXCEPTION ( testTwoBinsOverlapOne, std::runtime_error );
 
   CPPUNIT_TEST_EXCEPTION ( rebinEmpty, std::runtime_error );
@@ -977,6 +982,298 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e2.value, 0.001);
     cout << "Finishing testAnaTwoBinsByBin" << endl;
 
+  }
+
+  void testAnaTwoBinsTwoCoords()
+  {
+    // Two analyses, simple, each has one bin specified by two
+    // parameters (pt, eta). They are specified in the same order.
+    // Answer should be one bin.
+
+    cout << "Starting testAnaTwoBinsTwoCords" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bb1;
+    bb1.variable = "eta";
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.variable = "pt";
+    bb2.lowvalue = 30;
+    bb2.highvalue = 40;
+    b1.binSpec.push_back(bb2);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    // ana 2
+
+    CalibrationBin b2;
+    b2.centralValue = 0.5;
+    b2.centralValueStatisticalError = 0.1;
+    b2.binSpec.push_back(bb1);
+    b2.binSpec.push_back(bb2);
+
+    CalibrationAnalysis ana2;
+    ana2.name = "ptrel";
+    ana2.flavor = "bottom";
+    ana2.tagger = "comb";
+    ana2.operatingPoint = "0.50";
+    ana2.jetAlgorithm = "AntiKt4Topo";
+    ana2.bins.push_back(b2);
+
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs, true));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CPPUNIT_ASSERT_EQUAL (size_t(2), b_1.binSpec.size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_1.centralValue, 0.01);
+
+    cout << "Finishing testAnaTwoBinsTwoCoords" << endl;
+  }
+
+  void testAnaTwoBinsTwoCoordsReverse()
+  {
+    // Two analyses, simple, each has one bin specified by two
+    // parameters (pt, eta). They are specified in the same order.
+    // Answer should be one bin.
+
+    cout << "Starting testAnaTwoBinsTwoCords" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bb1;
+    bb1.variable = "eta";
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.variable = "pt";
+    bb2.lowvalue = 30;
+    bb2.highvalue = 40;
+    b1.binSpec.push_back(bb2);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    // ana 2
+
+    CalibrationBin b2;
+    b2.centralValue = 0.5;
+    b2.centralValueStatisticalError = 0.1;
+    b2.binSpec.push_back(bb2);
+    b2.binSpec.push_back(bb1);
+
+    CalibrationAnalysis ana2;
+    ana2.name = "ptrel";
+    ana2.flavor = "bottom";
+    ana2.tagger = "comb";
+    ana2.operatingPoint = "0.50";
+    ana2.jetAlgorithm = "AntiKt4Topo";
+    ana2.bins.push_back(b2);
+
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs, true));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CPPUNIT_ASSERT_EQUAL (size_t(2), b_1.binSpec.size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_1.centralValue, 0.01);
+
+    cout << "Finishing testAnaTwoBinsTwoCoords" << endl;
+  }
+
+  void testAnaTwoBinsTwoCoordsBBB()
+  {
+    // Two analyses, simple, each has one bin specified by two
+    // parameters (pt, eta). They are specified in the same order.
+    // Answer should be one bin.
+
+    cout << "Starting testAnaTwoBinsTwoCords" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bb1;
+    bb1.variable = "eta";
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.variable = "pt";
+    bb2.lowvalue = 30;
+    bb2.highvalue = 40;
+    b1.binSpec.push_back(bb2);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    // ana 2
+
+    CalibrationBin b2;
+    b2.centralValue = 0.5;
+    b2.centralValueStatisticalError = 0.1;
+    b2.binSpec.push_back(bb1);
+    b2.binSpec.push_back(bb2);
+
+    CalibrationAnalysis ana2;
+    ana2.name = "ptrel";
+    ana2.flavor = "bottom";
+    ana2.tagger = "comb";
+    ana2.operatingPoint = "0.50";
+    ana2.jetAlgorithm = "AntiKt4Topo";
+    ana2.bins.push_back(b2);
+
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs, true, kCombineBySingleBin));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CPPUNIT_ASSERT_EQUAL (size_t(2), b_1.binSpec.size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_1.centralValue, 0.01);
+
+    cout << "Finishing testAnaTwoBinsTwoCoords" << endl;
+  }
+
+  void testAnaTwoBinsTwoCoordsReverseBBB()
+  {
+    // Two analyses, simple, each has one bin specified by two
+    // parameters (pt, eta). They are specified in the same order.
+    // Answer should be one bin.
+
+    cout << "Starting testAnaTwoBinsTwoCords" << endl;
+
+    CalibrationBin b1;
+    b1.centralValue = 0.5;
+    b1.centralValueStatisticalError = 0.1;
+
+    CalibrationBinBoundary bb1;
+    bb1.variable = "eta";
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    b1.binSpec.push_back(bb1);
+
+    CalibrationBinBoundary bb2;
+    bb2.variable = "pt";
+    bb2.lowvalue = 30;
+    bb2.highvalue = 40;
+    b1.binSpec.push_back(bb2);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    // ana 2
+
+    CalibrationBin b2;
+    b2.centralValue = 0.5;
+    b2.centralValueStatisticalError = 0.1;
+    b2.binSpec.push_back(bb2);
+    b2.binSpec.push_back(bb1);
+
+    CalibrationAnalysis ana2;
+    ana2.name = "ptrel";
+    ana2.flavor = "bottom";
+    ana2.tagger = "comb";
+    ana2.operatingPoint = "0.50";
+    ana2.jetAlgorithm = "AntiKt4Topo";
+    ana2.bins.push_back(b2);
+
+
+    CalibrationInfo inputs;
+    inputs.Analyses.push_back (ana1);
+    inputs.Analyses.push_back (ana2);
+
+    inputs.CombinationAnalysisName = "combined";
+
+    setupRoo();
+    vector<CalibrationAnalysis> results (CombineAnalyses(inputs, true, kCombineBySingleBin));
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+    CalibrationAnalysis &result(results[0]);
+
+    cout << "Result: " << endl;
+    cout << result << endl;
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.bins.size());
+
+    CalibrationBin b_1 (result.bins[0]);
+    CPPUNIT_ASSERT_EQUAL (size_t(2), b_1.binSpec.size());
+
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_1.centralValue, 0.01);
+
+    cout << "Finishing testAnaTwoBinsTwoCoords" << endl;
   }
 
   void testAnaTrackMetadataByBin()

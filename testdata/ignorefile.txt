@@ -1,1 +1,1 @@
-ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:25-pt-40:0-eta-4.5
+ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:0-eta-4.5:25-pt-40

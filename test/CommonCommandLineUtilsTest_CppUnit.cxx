@@ -32,6 +32,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST( testOPName );
   CPPUNIT_TEST( testOPBin );
+  CPPUNIT_TEST( testOPBinOrdering );
 
   CPPUNIT_TEST ( testIgnoreFlag );
   CPPUNIT_TEST ( testIgnoreFlagWildcard );
@@ -155,7 +156,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
 			  "--ignore",
-			  "ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:25-pt-40:0-eta-4.5"
+			  "ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:0-eta-4.5:25-pt-40"
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
@@ -196,7 +197,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     vector<string> unknown;
     const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
 			  "--ignore",
-			  "ttbar_kin_ljets-.*-JetTaggerCOMBNN-0.60-AntiKt4Topo:25-pt-40:0-eta-4.5"
+			  "ttbar_kin_ljets-.*-JetTaggerCOMBNN-0.60-AntiKt4Topo:0-eta-4.5:25-pt-40"
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
@@ -265,6 +266,15 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
+
+    for (unsigned int i = 0; i < results.Correlations.size(); i++) {
+      for (unsigned int b = 0; b < results.Correlations[i].bins.size(); b++) {
+	cout << "Found a corelation: " 
+	     << OPIgnoreFormat(results.Correlations[i], results.Correlations[i].bins[b])
+	     << endl;
+      }
+    }
+
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
   }
 
@@ -308,6 +318,34 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     bin.binSpec.push_back(spec2);
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("2 bin boundary", string("0-eta-2.5:0-pt-95"), OPBinName(bin));
+  }
+
+  void testOPBinOrdering()
+  {
+    // It shouldn't matter what order you put bin-spec into a bin.
+
+    CalibrationBin bin1;
+    CalibrationBinBoundary spec1;
+    spec1.lowvalue = 0;
+    spec1.highvalue = 2.5;
+    spec1.variable = "eta";
+    bin1.binSpec.push_back(spec1);
+
+    CalibrationBinBoundary spec2;
+    spec2.lowvalue = 0;
+    spec2.highvalue = 2.5;
+    spec2.variable = "pt";
+    bin1.binSpec.push_back(spec2);
+
+    string inorder (OPBinName(bin1));
+
+    CalibrationBin bin2;
+    bin2.binSpec.push_back(spec2);
+    bin2.binSpec.push_back(spec1);
+
+    string rorder (OPBinName(bin2));
+
+    CPPUNIT_ASSERT_EQUAL (inorder, rorder);
   }
 
   void testSplitAnalysis()
