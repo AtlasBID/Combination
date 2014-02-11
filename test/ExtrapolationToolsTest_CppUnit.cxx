@@ -27,6 +27,9 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST (testExtrapolate1bin2CorErrorsBin1);
   CPPUNIT_TEST (testExtrapolate1binNegative);
 
+  // Check the central value and stat error
+  CPPUNIT_TEST (testExtrapolate1binCV);
+
   // Bad extrapolation binning - 2D extension, gaps, overlaps, etc.
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtAndEta, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtGap, runtime_error);
@@ -164,8 +167,8 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     ana.jetAlgorithm = "AntiKt";
 
     CalibrationBin b1;
-    b1.centralValue = 1.1;
-    b1.centralValueStatisticalError = 0.2;
+    b1.centralValue = 1.3;
+    b1.centralValueStatisticalError = 0.4;
     CalibrationBinBoundary bb1;
     bb1.lowvalue = 0.0;
     bb1.highvalue = 100.0;
@@ -411,6 +414,23 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     // The extrapolation figures out the total, but will add in quad with the other errors,
     // so a funny quad subtraction occurs.
     CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
+  }
+
+  // Make sure the cv is set properly.
+  void testExtrapolate1binCV()
+  {
+    cout << "Starting testExtrapolate1binCV()" << endl;
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+
+    CPPUNIT_ASSERT_EQUAL(size_t(2), result.bins.size());
+    CPPUNIT_ASSERT (result.bins[1].isExtended);
+
+    // The central value 
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(result.bins[0].centralValue, result.bins[1].centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(result.bins[0].centralValueStatisticalError, result.bins[1].centralValueStatisticalError, 0.01);
   }
 
   // The extrapolation has multiple correlated errors in in both bins.

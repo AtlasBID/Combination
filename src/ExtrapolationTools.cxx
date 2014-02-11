@@ -126,6 +126,7 @@ namespace BTagCombination {
     map<set<CalibrationBinBoundary>, CalibrationBin> ext_bin_info (bin_dict(extrapolated_axis, ext_bins_ledge));
     map<set<CalibrationBinBoundary>, double> ana_sys;
     map<set<CalibrationBinBoundary>, double> ext_sys;
+    map<set<CalibrationBinBoundary>, CalibrationBin> ana_bin_cache;
     for (map<set<CalibrationBinBoundary>,CalibrationBin>::const_iterator a_itr = ana_bin_info.begin(); a_itr != ana_bin_info.end(); a_itr++) {
       map<set<CalibrationBinBoundary>,CalibrationBin>::const_iterator e_itr = ext_bin_info.find(a_itr->first);
       if (e_itr == ext_bin_info.end()) {
@@ -139,6 +140,7 @@ namespace BTagCombination {
 
       ana_sys[a_itr->first] = bin_sys (ana_bin);
       ext_sys[a_itr->first] = bin_sys (ext_bin);
+      ana_bin_cache[a_itr->first] = ana_bin;
     }
 
     // Go through each of the extrapolated bins, and add a bin into the analysis.
@@ -168,7 +170,7 @@ namespace BTagCombination {
 	  double ext_sys_new = ext_sys_current/ext_sys_base * ana_sys_base;
 	  // Do the quad calc to figure out what this component should be.
 	  ext_sys_new = sqrt(ext_sys_new*ext_sys_new - ana_sys_base*ana_sys_base);
-	  r.bins.push_back(create_extrapolated_bin (ext_sys_new, *e_itr));
+	  r.bins.push_back(create_extrapolated_bin (ext_sys_new, ana_bin_cache[bounds]));
 	}
       }
     }
