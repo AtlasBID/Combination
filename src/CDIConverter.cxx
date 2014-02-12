@@ -243,7 +243,7 @@ namespace {
 
     // grab the hadronization setting...
     map<string,string>::const_iterator hadFind = eff.metadata_s.find("Hadronization");
-    string hadronization ("test");
+    string hadronization ("unknown");
     if (hadFind == eff.metadata_s.end()) {
       cout << "Warning: Analysis " << eff.name << " has no hadronization setting." << endl;
       cout << "  -> Hadronization has been left unset for this calibration!" << endl;
