@@ -82,8 +82,11 @@ namespace BTagCombination {
     } catch (runtime_error &excp) {
       ostringstream err;
       err << "Extrapolation failed because bins were inconsistent" << endl
-	  << "  Analysis: " << OPFullName(ana) << endl
-	  << "  Extrapolation: " << OPFullName(extrapolated) << endl
+	  << "  Analysis: " << OPFullName(ana) << endl;
+      for (unsigned int i = 0; i < ana.bins.size(); i++) {
+	err << "    " << OPBinName(ana.bins[i])  << endl;
+      }
+      err << "  Extrapolation: " << OPFullName(extrapolated) << endl
 	  << "  Error: " << excp.what();
 
       throw runtime_error(err.str());
