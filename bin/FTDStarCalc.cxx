@@ -126,9 +126,10 @@ namespace {
 	for (size_t ib = 0; ib < bSFBins.size(); ib++) {
 	  cerr << "  -> " << OPBinName(bSFBins[ib]) << endl;
 	}
-	throw runtime_error ("Unable to find proper bin in bSF template.");
+	cerr << "  ** Skipping bin" << endl;
+      } else {
+	RescaleBin(dstarBins[i], i_bsfBin->second);
       }
-      RescaleBin(dstarBins[i], i_bsfBin->second);
     }
   }
 
