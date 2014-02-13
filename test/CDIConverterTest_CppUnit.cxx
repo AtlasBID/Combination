@@ -298,7 +298,7 @@ class CDIConverterTest : public CppUnit::TestFixture
 
   void testForNoExtrapolation()
   {
-    cout << "Testing for systematics" << endl;
+    cout << "Testing for NoExtrapolation" << endl;
     CalibrationAnalysis ana(generate_no_extrap_ana());
 
     CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
