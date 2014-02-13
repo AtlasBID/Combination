@@ -780,10 +780,10 @@ namespace BTagCombination
     //
 
     for (map<set<CalibrationBinBoundary>, vector<CalibrationBin> >::const_iterator itr = matchedBins.begin(); itr != matchedBins.end(); itr++) {
+
+      // If there are zero source bins, then it is as if this guy didn't exist!
       if (itr->second.size() == 0) {
-	ostringstream err;
-	err << "Bin " << OPBinName(itr->first) << " has no source bins for the analysis for rebinning";
-	throw runtime_error (err.str().c_str());
+	continue;
       }
 
       // Make sure there are no gaps in any of the coverage
@@ -805,6 +805,11 @@ namespace BTagCombination
     CalibrationAnalysis result (ana);
     result.bins.clear();
     for (map<set<CalibrationBinBoundary>, vector<CalibrationBin> >::const_iterator itr = matchedBins.begin(); itr != matchedBins.end(); itr++) {
+
+      // If there are zero source bins, then it is as if this guy didn't exist!
+      if (itr->second.size() == 0) {
+	continue;
+      }
 
       CalibrationBin b (CombineBinsWeightedAverage(itr->second));
       b.binSpec = vector<CalibrationBinBoundary>(itr->first.begin(), itr->first.end());
