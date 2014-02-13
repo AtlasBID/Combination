@@ -248,8 +248,9 @@ namespace {
       cout << "Warning: Analysis " << eff.name << " has no hadronization setting." << endl;
       cout << "  -> Hadronization has been left unset for this calibration!" << endl;
     } else {
-      result->setHadronisation(hadronization);
+      hadronization = hadFind->second;
     }
+    result->setHadronisation(hadronization);
 
     //
     // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
