@@ -224,7 +224,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     // The bin with the extended error
 
     CalibrationBin b2;
-    b2.centralValue = 1.2;
+    b2.centralValue = 1.4;
     b2.centralValueStatisticalError = 0.3;
     b2.isExtended = true;
 
@@ -239,7 +239,7 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     e.name = "extendederror";
     e.uncorrelated = true;
-    e.value = 0.2;
+    e.value = 0.3;
     b2.systematicErrors.push_back(e);
 
     ana.bins.push_back(b2);
@@ -431,15 +431,13 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
-
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
+    //CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
+    //CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    //CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     UncertaintyResult uncr;
-    stat = c->getUncertainty("cerr", v, uncr);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, uncr.first, 0.001);
+    CalibrationDataContainer::CalibrationStatus stat = c->getUncertainty("cerr", v, uncr);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kRange, stat);
 
     stat = c->getUncertainty("extrapolation", v, uncr);
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);

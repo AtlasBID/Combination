@@ -98,7 +98,8 @@ namespace {
   TH2 *set_bin_values (const bin_boundaries_hist &bins,
 		       const CalibrationAnalysis &ana,
 		       const string &hist_name,
-		       const Pred &getter)
+		       const Pred &getter,
+		       bool extendedOK = false)
   {
     try {
       // Create the histo
@@ -107,8 +108,10 @@ namespace {
       // Now loop over all bins in the analysis.
       for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
 	const CalibrationBin &bin (ana.bins[ibin]);
-	pair<double, double> val_and_error (getter(bin));
-	bins.set_bin_contents (values, bin.binSpec, val_and_error.first, val_and_error.second);
+	if (extendedOK || !bin.isExtended) {
+	  pair<double, double> val_and_error (getter(bin));
+	  bins.set_bin_contents (values, bin.binSpec, val_and_error.first, val_and_error.second);
+	}
       }
 
       return values;
@@ -277,12 +280,11 @@ namespace {
 
       if (is_uncorrelated(ana, *e_name))
 	result->setUncorrelated(e_name->c_str());
-
     }
 
     // If there are any extrapolation bins, then set that too.
     bin_boundaries_hist ebins = calcBoundaries(ana, false);
-    TH2 *extrap_errors = set_bin_values(ebins, ana, "extrap", get_extrapolation_error);
+    TH2 *extrap_errors = set_bin_values(ebins, ana, "extrap", get_extrapolation_error, true);
     if (extrap_errors->GetMaximum() > 0.0) {
       result->setUncertainty("extrapolation", extrap_errors);
     } else {
