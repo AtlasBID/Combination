@@ -431,6 +431,14 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     // The central value 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(result.bins[0].centralValue, result.bins[1].centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(result.bins[0].centralValueStatisticalError, result.bins[1].centralValueStatisticalError, 0.01);
+
+    // Bin boundaries
+    CalibrationBinBoundary b1 (result.bins[0].binSpec[0]);
+    CalibrationBinBoundary bext (result.bins[1].binSpec[0]);
+
+    CPPUNIT_ASSERT_EQUAL(b1.variable, bext.variable);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(100.0, b1.highvalue, 0.1);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(100.0, bext.lowvalue, 0.1);
   }
 
   // The extrapolation has multiple correlated errors in in both bins.
