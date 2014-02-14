@@ -34,6 +34,7 @@ class CDIConverterTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST_EXCEPTION( testExtendedBinBadSys, bad_cdi_config_exception );
   CPPUNIT_TEST( testExtendedBinNormalArea );
+  CPPUNIT_TEST( testExtendedBinExtendedAreaNoAffectNormal );
   CPPUNIT_TEST( testExtendedBinExtendedArea );
   CPPUNIT_TEST_EXCEPTION( testIrregularBinningWithExtension, bad_cdi_config_exception );
 
@@ -75,29 +76,6 @@ class CDIConverterTest : public CppUnit::TestFixture
     
     ana.bins.push_back(b1);
     return ana;
-  }
-
-  void testBasicGetSF()
-  {
-    CalibrationAnalysis ana(generate_1bin_sys());
-    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
-    CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
-
-    Analysis::CalibrationDataVariables v;
-    v.jetPt = 50.e3;
-    v.jetEta = -1.1;
-    v.jetAuthor = "AntiKt4Topo";
-
-    TObject *obj = nullptr;
-    double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
-
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
-
-    stat = c->getStatUncertainty(v, r);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
   }
 
   CalibrationAnalysis generate_ireggular_binning()
@@ -177,6 +155,120 @@ class CDIConverterTest : public CppUnit::TestFixture
     return ana;
   }
 
+  // Generate an analysis with no extrapolation in it.
+  CalibrationAnalysis generate_no_extrap_ana()
+  {
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "SV0";
+    ana.operatingPoint = "0.1";
+    ana.jetAlgorithm = "AntiKt";
+
+    CalibrationBin b1;
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 100.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "err";
+    e.value = 0.1;
+    e.uncorrelated = false;
+    b1.systematicErrors.push_back(e);
+    e.name = "uerr";
+    e.uncorrelated = true;
+    b1.systematicErrors.push_back(e);
+    
+    ana.bins.push_back(b1);
+    return ana;
+  }
+
+  CalibrationAnalysis generateExtendedBinnedAna()
+  {
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "SV0";
+    ana.operatingPoint = "0.1";
+    ana.jetAlgorithm = "AntiKt";
+
+    // The normal bin
+
+    CalibrationBin b1;
+    b1.centralValue = 1.1;
+    b1.centralValueStatisticalError = 0.2;
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 100.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "cerr";
+    e.uncorrelated = false;
+    e.value = 0.2;
+    b1.systematicErrors.push_back(e);
+
+    ana.bins.push_back(b1);
+
+    // The bin with the extended error
+
+    CalibrationBin b2;
+    b2.centralValue = 1.2;
+    b2.centralValueStatisticalError = 0.3;
+    b2.isExtended = true;
+
+    bb1.lowvalue = 100.0;
+    bb1.highvalue = 200.0;
+    bb1.variable = "pt";
+    b2.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b2.binSpec.push_back(bb1);
+
+    e.name = "extendederror";
+    e.uncorrelated = true;
+    e.value = 0.2;
+    b2.systematicErrors.push_back(e);
+
+    ana.bins.push_back(b2);
+    return ana;
+  }
+
+  void testBasicGetSF()
+  {
+    CalibrationAnalysis ana(generate_1bin_sys());
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
+
+    Analysis::CalibrationDataVariables v;
+    v.jetPt = 50.e3;
+    v.jetEta = -1.1;
+    v.jetAuthor = "AntiKt4Topo";
+
+    TObject *obj = nullptr;
+    double r;
+    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
+
+    stat = c->getStatUncertainty(v, r);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
+  }
+
   void testBasicGetIrregularSF()
   {
     cout << "Starting testBasicGetIrregularSF()" << endl;
@@ -217,40 +309,6 @@ class CDIConverterTest : public CppUnit::TestFixture
     stat = c->getResult(v, r, obj);
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (4.0, r, 0.001);
-  }
-
-  // Generate an analysis with no extrapolation in it.
-  CalibrationAnalysis generate_no_extrap_ana()
-  {
-    CalibrationAnalysis ana;
-    ana.name = "ana1";
-    ana.flavor = "bottom";
-    ana.tagger = "SV0";
-    ana.operatingPoint = "0.1";
-    ana.jetAlgorithm = "AntiKt";
-
-    CalibrationBin b1;
-    CalibrationBinBoundary bb1;
-    bb1.lowvalue = 0.0;
-    bb1.highvalue = 100.0;
-    bb1.variable = "pt";
-    b1.binSpec.push_back(bb1);
-    bb1.lowvalue = 0.0;
-    bb1.highvalue = 2.5;
-    bb1.variable = "abseta";
-    b1.binSpec.push_back(bb1);
-
-    SystematicError e;
-    e.name = "err";
-    e.value = 0.1;
-    e.uncorrelated = false;
-    b1.systematicErrors.push_back(e);
-    e.name = "uerr";
-    e.uncorrelated = true;
-    b1.systematicErrors.push_back(e);
-    
-    ana.bins.push_back(b1);
-    return ana;
   }
 
   void testForSystematics()
@@ -359,62 +417,6 @@ class CDIConverterTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(false, c->isBinCorrelated("uerr"));
   }
 
-  CalibrationAnalysis generateExtendedBinnedAna()
-  {
-    CalibrationAnalysis ana;
-    ana.name = "ana1";
-    ana.flavor = "bottom";
-    ana.tagger = "SV0";
-    ana.operatingPoint = "0.1";
-    ana.jetAlgorithm = "AntiKt";
-
-    // The normal bin
-
-    CalibrationBin b1;
-    b1.centralValue = 1.1;
-    b1.centralValueStatisticalError = 0.2;
-    CalibrationBinBoundary bb1;
-    bb1.lowvalue = 0.0;
-    bb1.highvalue = 100.0;
-    bb1.variable = "pt";
-    b1.binSpec.push_back(bb1);
-    bb1.lowvalue = 0.0;
-    bb1.highvalue = 2.5;
-    bb1.variable = "abseta";
-    b1.binSpec.push_back(bb1);
-
-    SystematicError e;
-    e.name = "cerr";
-    e.uncorrelated = false;
-    b1.systematicErrors.push_back(e);
-    
-    ana.bins.push_back(b1);
-
-    // The bin with the extended error
-
-    CalibrationBin b2;
-    b2.centralValue = 1.2;
-    b2.centralValueStatisticalError = 0.3;
-    b2.isExtended = true;
-
-    bb1.lowvalue = 100.0;
-    bb1.highvalue = 200.0;
-    bb1.variable = "pt";
-    b2.binSpec.push_back(bb1);
-    bb1.lowvalue = 0.0;
-    bb1.highvalue = 2.5;
-    bb1.variable = "abseta";
-    b2.binSpec.push_back(bb1);
-
-    e.name = "extendederror";
-    e.uncorrelated = true;
-    e.value = 0.2;
-    b2.systematicErrors.push_back(e);
-
-    ana.bins.push_back(b2);
-    return ana;
-  }
-
   void testExtendedBinExtendedArea()
   {
     CalibrationAnalysis ana (generateExtendedBinnedAna());
@@ -432,12 +434,54 @@ class CDIConverterTest : public CppUnit::TestFixture
     CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
 
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.2, r, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     UncertaintyResult uncr;
-    stat = c->getUncertainty("extrapolation", v, uncr);
+    stat = c->getUncertainty("cerr", v, uncr);
     CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, uncr.first, 0.001);
+
+    stat = c->getUncertainty("extrapolation", v, uncr);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.3, uncr.first, 0.001);
+
+    map<string, UncertaintyResult> allerrors;
+    stat = c->getUncertainties(v, allerrors);
+
+    CPPUNIT_ASSERT(allerrors.find("cerr") != allerrors.end());
+    CPPUNIT_ASSERT(allerrors.find("result") != allerrors.end());
+    CPPUNIT_ASSERT(allerrors.find("statistics") != allerrors.end());
+    CPPUNIT_ASSERT(allerrors.find("systematics") != allerrors.end());
+    CPPUNIT_ASSERT(allerrors.find("extrapolation") != allerrors.end());
+  }
+
+  void testExtendedBinExtendedAreaNoAffectNormal()
+  {
+    CalibrationAnalysis ana (generateExtendedBinnedAna());
+
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    CalibrationDataHistogramContainer *c = dynamic_cast<CalibrationDataHistogramContainer *>(craw);
+
+    Analysis::CalibrationDataVariables v;
+    v.jetPt = 50.e3;
+    v.jetEta = -1.1;
+    v.jetAuthor = "AntiKt4Topo";
+
+    TObject *obj = nullptr;
+    double r;
+    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
+
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
+
+    UncertaintyResult uncr;
+    stat = c->getUncertainty("cerr", v, uncr);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, uncr.first, 0.001);
+
+    stat = c->getUncertainty("extrapolation", v, uncr);
+    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, uncr.first, 0.001);
 
     map<string, UncertaintyResult> allerrors;
     stat = c->getUncertainties(v, allerrors);
