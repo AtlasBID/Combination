@@ -32,7 +32,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST( testOPName );
   CPPUNIT_TEST( testOPBin );
-  CPPUNIT_TEST( testOPBinOrdering );
+  CPPUNIT_TEST( testOPBinOrdering1 );
+  CPPUNIT_TEST( testOPBinOrdering2 );
+  CPPUNIT_TEST( testOPIgnoreCorrelatedOrdering );
 
   CPPUNIT_TEST ( testIgnoreFlag );
   CPPUNIT_TEST ( testIgnoreFlagWildcard );
@@ -261,7 +263,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     vector<string> unknown;
     const char *argv[] = {"../testdata/cor.txt",
 			  "--ignore",
-			  "pTrel-system8-bottom-MV1-0.905363-AntiKt4Topo:110-pt-140:0-abseta-2.5"
+			  "pTrel-system8-bottom-MV1-0.905363-AntiKt4Topo:0-abseta-2.5:110-pt-140"
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
@@ -320,7 +322,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL_MESSAGE("2 bin boundary", string("0-eta-2.5:0-pt-95"), OPBinName(bin));
   }
 
-  void testOPBinOrdering()
+  void testOPBinOrdering1()
   {
     // It shouldn't matter what order you put bin-spec into a bin.
 
@@ -346,6 +348,72 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     string rorder (OPBinName(bin2));
 
     CPPUNIT_ASSERT_EQUAL (inorder, rorder);
+  }
+
+  void testOPBinOrdering2()
+  {
+    // It shouldn't matter what order you put bin-spec into a bin.
+
+    CalibrationBin bin1;
+    CalibrationBinBoundary spec1;
+    spec1.lowvalue = 0;
+    spec1.highvalue = 2.5;
+    spec1.variable = "eta";
+    bin1.binSpec.push_back(spec1);
+
+    CalibrationBinBoundary spec2;
+    spec2.lowvalue = 30.0;
+    spec2.highvalue = 40.0;
+    spec2.variable = "pt";
+    bin1.binSpec.push_back(spec2);
+
+    string inorder (OPBinName(bin1));
+
+    CalibrationBin bin2;
+    bin2.binSpec.push_back(spec2);
+    bin2.binSpec.push_back(spec1);
+
+    string rorder (OPBinName(bin2));
+
+    CPPUNIT_ASSERT_EQUAL (inorder, rorder);
+  }
+
+  void testOPIgnoreCorrelatedOrdering()
+  {
+    // It shouldn't matter what order you put bin-spec into a bin.
+
+    CalibrationBinBoundary spec1;
+    spec1.lowvalue = 0;
+    spec1.highvalue = 2.5;
+    spec1.variable = "eta";
+
+    CalibrationBinBoundary spec2;
+    spec2.lowvalue = 30.0;
+    spec2.highvalue = 40.0;
+    spec2.variable = "pt";
+
+    BinCorrelation bin1;
+    bin1.binSpec.push_back(spec1);
+    bin1.binSpec.push_back(spec2);
+
+    BinCorrelation bin2;
+    bin2.binSpec.push_back(spec2);
+    bin2.binSpec.push_back(spec1);
+
+    // Create a correlated analysis to "host" this thing.
+    AnalysisCorrelation cor;
+    cor.analysis1Name = "s8";
+    cor.analysis2Name = "pTrel";
+    cor.flavor = "bottom";
+    cor.tagger = "MV1";
+    cor.operatingPoint = "0.601517";
+    cor.jetAlgorithm = "AntiKt4Topo";
+
+    pair<string, string> p1 (OPIgnoreCorrelatedFormat(cor, bin1));
+    pair<string, string> p2 (OPIgnoreCorrelatedFormat(cor, bin2));
+
+    CPPUNIT_ASSERT_EQUAL (p1.first, p2.first);
+    CPPUNIT_ASSERT_EQUAL (p1.second, p2.second);
   }
 
   void testSplitAnalysis()

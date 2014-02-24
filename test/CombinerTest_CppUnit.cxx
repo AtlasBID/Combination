@@ -53,8 +53,11 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testAnaTwoSameBinsUnCor3 );
 
   CPPUNIT_TEST ( testAnaTwoSameBinsStatCor );
+  CPPUNIT_TEST ( testAnaTwoSameBinsStatCorDiffBin );
   CPPUNIT_TEST ( testAnaTwoSameBinsStatCorByBin );
   CPPUNIT_TEST ( testAnaTwoSameBinsStatCorBad );
+  CPPUNIT_TEST ( testAnaTwoSameBinsStatCor2DCordinate1 );
+  CPPUNIT_TEST ( testAnaTwoSameBinsStatCor2DCordinate2 );
 
   CPPUNIT_TEST ( testAnaTwoDifBinsNoFit );
 
@@ -645,6 +648,203 @@ class CombinerTest : public CppUnit::TestFixture
     // came over otherwise other tests in this file would have failed.
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, b.centralValue, 0.01);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, b.centralValueStatisticalError, 0.001);
+
+    // Make sure the systematic errors that came back are "good" too.
+    CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());
+  }
+
+  // Do a test with a 2D set of coordinates (eta, pt).
+  // Specify them in order.
+  void testAnaTwoSameBinsStatCor2DCordinate1()
+  {
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 1.0;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound1, bound2;
+    bound1.variable = "eta";
+    bound1.lowvalue = 0.0;
+    bound1.highvalue = 2.5;
+    bound2.variable = "pt";
+    bound2.lowvalue = 30.0;
+    bound2.highvalue = 40.0;
+    b1.binSpec.push_back(bound1);
+    b1.binSpec.push_back(bound2);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    AnalysisCorrelation c1;
+    c1.analysis1Name = "s8";
+    c1.analysis2Name = "ptrel";
+    c1.flavor = "bottom";
+    c1.tagger = "comb";
+    c1.operatingPoint = "0.50";
+    c1.jetAlgorithm = "AntiKt4Topo";
+
+    BinCorrelation bc1;
+    bc1.hasStatCorrelation = true;
+    bc1.statCorrelation = 1.0;
+    bc1.binSpec.push_back(bound1);
+    bc1.binSpec.push_back(bound2);
+    c1.bins.push_back(bc1);
+
+    CalibrationInfo info;
+    info.Analyses.push_back (ana1);
+    info.Analyses.push_back (ana2);
+    info.Correlations.push_back(c1);
+
+    setupRoo();
+    vector<CalibrationAnalysis> result (CombineAnalyses(info));
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.size());
+
+    CalibrationBin b (result[0].bins[0]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(2), b.binSpec.size());
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, b.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, b.centralValueStatisticalError, 0.001);
+
+    // Make sure the systematic errors that came back are "good" too.
+    CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());
+  }
+
+  // Do a test with a 2D set of coordinates (eta, pt).
+  // Specify them in reverse order in the correlation bin.
+  void testAnaTwoSameBinsStatCor2DCordinate2()
+  {
+    cout << "Starting testAnaTwoSameBinsStatCor2DCordinate2()" << endl;
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 1.0;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound1, bound2;
+    bound1.variable = "eta";
+    bound1.lowvalue = 0.0;
+    bound1.highvalue = 2.5;
+    bound2.variable = "pt";
+    bound2.lowvalue = 30.0;
+    bound2.highvalue = 40.0;
+    b1.binSpec.push_back(bound1);
+    b1.binSpec.push_back(bound2);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    AnalysisCorrelation c1;
+    c1.analysis1Name = "s8";
+    c1.analysis2Name = "ptrel";
+    c1.flavor = "bottom";
+    c1.tagger = "comb";
+    c1.operatingPoint = "0.50";
+    c1.jetAlgorithm = "AntiKt4Topo";
+
+    BinCorrelation bc1;
+    bc1.hasStatCorrelation = true;
+    bc1.statCorrelation = 1.0;
+    bc1.binSpec.push_back(bound2);
+    bc1.binSpec.push_back(bound1);
+    c1.bins.push_back(bc1);
+
+    CalibrationInfo info;
+    info.Analyses.push_back (ana1);
+    info.Analyses.push_back (ana2);
+    info.Correlations.push_back(c1);
+
+    setupRoo();
+    vector<CalibrationAnalysis> result (CombineAnalyses(info));
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.size());
+
+    CalibrationBin b (result[0].bins[0]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(2), b.binSpec.size());
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, b.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, b.centralValueStatisticalError, 0.001);
+
+    // Make sure the systematic errors that came back are "good" too.
+    CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());
+  }
+
+  void testAnaTwoSameBinsStatCorDiffBin()
+  {
+    // Single analysis - test simple case!
+    CalibrationBin b1;
+    b1.centralValue = 1.0;
+    b1.centralValueStatisticalError = 0.1;
+    CalibrationBinBoundary bound;
+    bound.variable = "eta";
+    bound.lowvalue = 0.0;
+    bound.highvalue = 2.5;
+    b1.binSpec.push_back(bound);
+
+    CalibrationAnalysis ana1;
+    ana1.name = "s8";
+    ana1.flavor = "bottom";
+    ana1.tagger = "comb";
+    ana1.operatingPoint = "0.50";
+    ana1.jetAlgorithm = "AntiKt4Topo";
+    ana1.bins.push_back(b1);
+
+    CalibrationAnalysis ana2 (ana1);
+    ana2.name = "ptrel";
+
+    AnalysisCorrelation c1;
+    c1.analysis1Name = "s8";
+    c1.analysis2Name = "ptrel";
+    c1.flavor = "bottom";
+    c1.tagger = "comb";
+    c1.operatingPoint = "0.50";
+    c1.jetAlgorithm = "AntiKt4Topo";
+
+    BinCorrelation bc1;
+    bc1.hasStatCorrelation = true;
+    bc1.statCorrelation = 1.0;
+    bound.lowvalue = 2.5;
+    bound.highvalue = 5.0;
+    bc1.binSpec.push_back(bound);
+    c1.bins.push_back(bc1);
+
+    CalibrationInfo info;
+    info.Analyses.push_back (ana1);
+    info.Analyses.push_back (ana2);
+    info.Correlations.push_back(c1);
+
+    setupRoo();
+    vector<CalibrationAnalysis> result (CombineAnalyses(info));
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), result.size());
+
+    CalibrationBin b (result[0].bins[0]);
+
+    CPPUNIT_ASSERT_EQUAL (size_t(1), b.binSpec.size());
+
+    // We know a bit of how the code is tructured - if the bin came over, everything under it
+    // came over otherwise other tests in this file would have failed.
+    CPPUNIT_ASSERT_DOUBLES_EQUAL (1.0, b.centralValue, 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1/sqrt(2.0), b.centralValueStatisticalError, 0.001);
 
     // Make sure the systematic errors that came back are "good" too.
     CPPUNIT_ASSERT_EQUAL((size_t)0, b.systematicErrors.size());

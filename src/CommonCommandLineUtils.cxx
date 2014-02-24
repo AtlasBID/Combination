@@ -589,15 +589,7 @@ namespace BTagCombination {
 
   string OPBinName (const BinCorrelation &bin)
   {
-    ostringstream msg;
-    for (unsigned int i = 0; i < bin.binSpec.size(); i++) {
-      if (i > 0)
-	msg << ":";
-      msg << bin.binSpec[i].lowvalue
-	  << "-" << bin.binSpec[i].variable
-	  << "-" << bin.binSpec[i].highvalue;
-    }
-    return msg.str();
+    return OPBinName(bin.binSpec);
   }
 
   // The format of the name used in the ignore command line option

@@ -82,6 +82,7 @@ namespace {
       for (unsigned int i_bin = 0; i_bin < a.bins.size(); i_bin++) {
 	const CalibrationBin &b(a.bins[i_bin]);
 	string binName(OPBinName(b));
+	cout << "  -> Adding bin " << prefix+binName << endl;
 	bybins[prefix + binName].push_back(b);
 	FillContextWithBinInfo(ctx, b, prefix, OPIgnoreFormat(a, b), verbose);
       }
@@ -586,6 +587,8 @@ namespace BTagCombination
 
 	Measurement *m1 = ctx.FindMeasurement(aNames.first);
 	Measurement *m2 = ctx.FindMeasurement(aNames.second);
+
+	cout << "  -> Looking for coreleaction between " << aNames.first << " and " << aNames.second << endl;
 
 	if (m1 == 0 || m2 == 0) {
 	  if (!(m1 == 0 && m2 == 0)) {
