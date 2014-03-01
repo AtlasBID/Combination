@@ -16,6 +16,8 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE (ExtrapolationToolsTest );
 
+  CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtHighNoErrors, std::runtime_error);
+
   CPPUNIT_TEST (testExtrapolate1binPtHigh);
   CPPUNIT_TEST (testExtrapolate1binPtLow);
   CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBins);
@@ -189,6 +191,45 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     b1.binSpec[0].lowvalue = 100.0;
     b1.binSpec[0].highvalue = 200.0;
     b1.systematicErrors[0].value = 0.2; // x2 error size
+    ana.bins.push_back(b1);
+
+    return ana;
+  }
+
+  CalibrationAnalysis generate_2bin_extrap_in_pthigh_ZeroErrors()
+  {
+    // Extend the standard 1 bin in pt on the high side
+    // Simple 1 bin analysis
+    CalibrationAnalysis ana;
+    ana.name = "ana1";
+    ana.flavor = "bottom";
+    ana.tagger = "SV0";
+    ana.operatingPoint = "0.1";
+    ana.jetAlgorithm = "AntiKt";
+
+    CalibrationBin b1;
+    b1.centralValue = 1.3;
+    b1.centralValueStatisticalError = 0.0;
+    CalibrationBinBoundary bb1;
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 100.0;
+    bb1.variable = "pt";
+    b1.binSpec.push_back(bb1);
+    bb1.lowvalue = 0.0;
+    bb1.highvalue = 2.5;
+    bb1.variable = "abseta";
+    b1.binSpec.push_back(bb1);
+
+    SystematicError e;
+    e.name = "extr";
+    e.value = 0.1;
+    e.uncorrelated = false;
+    b1.systematicErrors.push_back(e);
+    ana.bins.push_back(b1);
+
+    b1.binSpec[0].lowvalue = 100.0;
+    b1.binSpec[0].highvalue = 200.0;
+    b1.systematicErrors[0].value = 0.0; // The extrapolated error is zero - very bad!
     ana.bins.push_back(b1);
 
     return ana;
@@ -414,6 +455,16 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     // The extrapolation figures out the total, but will add in quad with the other errors,
     // so a funny quad subtraction occurs.
     CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
+  }
+
+  // Do the pt extrapolation, on the high side.
+  void testExtrapolate1binPtHighNoErrors()
+  {
+    cout << "Starting testExtrapolate1binPtHighNoErrors()" << endl;
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh_ZeroErrors());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
   }
 
   // Make sure the cv is set properly.
