@@ -296,7 +296,7 @@ namespace BTagCombination
     for (unsigned int i = 0; i < ana.bins.size(); i++)
       out << "  " << ana.bins[i] << std::endl;
     for (std::map<std::string, std::string>::const_iterator itr = ana.metadata_s.begin(); itr != ana.metadata_s.end(); itr++) {
-      out << " meta_data_s (" << itr->first << ", " << itr->second << ")" << std::endl;
+      out << "  meta_data_s (" << itr->first << ", " << itr->second << ")" << std::endl;
     }
     for (std::map<std::string, std::vector<double> >::const_iterator itr = ana.metadata.begin(); itr != ana.metadata.end(); itr++) {
       std::string t (itr->first);
