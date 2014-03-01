@@ -138,7 +138,7 @@ struct ErrorValue
   {
     error = err;
     if (isnan(err)) {
-      throw runtime_error("error value is NaN - not legal!");
+      throw runtime_error("error value is NaN during input - not legal!");
     }
     relative = false;
     uncorrelated = false;
@@ -162,8 +162,6 @@ struct ErrorValue
   void SetName (const std::string &n)
   {
     name = n;
-    //const size_t endStr = n.find_last_not_of(" \t");
-    //name = name.substr(0, endStr+1);
   }
 
   void CopyErrorAndRelative(const ErrorValue &cp)

@@ -234,8 +234,9 @@ namespace BTagCombination
 	  out << "sys";
 	}
 	out << " (" << quoteStringIf(b.systematicErrors[i].name)
-	    << ", " << relativeErrorCalc(b.centralValue, b.systematicErrors[i].value)
-	    << "%)";
+	    << ", " << (b.centralValue != 0 ? relativeErrorCalc(b.centralValue, b.systematicErrors[i].value) : b.systematicErrors[i].value)
+	    << (b.centralValue == 0 ? "" : "%")
+	    << ")";
       }
 
       for (std::map<std::string, std::pair<double,double> >::const_iterator itr = b.metadata.begin(); itr != b.metadata.end(); itr++) {
