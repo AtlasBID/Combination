@@ -137,6 +137,9 @@ struct ErrorValue
   ErrorValue(double err = 0.0)
   {
     error = err;
+    if (isnan(err)) {
+      throw runtime_error("error value is NaN - not legal!");
+    }
     relative = false;
     uncorrelated = false;
   }
@@ -283,6 +286,9 @@ struct centralvalue
   }
   void SetValue (const double v)
   {
+    if (isnan(v)) {
+      throw runtime_error ("Unable to parse a central value for a bin that is NaN");
+    }
     value = v;
   }
 };
@@ -442,10 +448,9 @@ struct localCalibBin
   void Convert (CalibrationBin &result)
   {
     result.binSpec = binSpec;
-    if (centralvalues.size() != 1)
-      {
-	throw std::runtime_error("One and only one central value must be present in each bin");
-      }
+    if (centralvalues.size() != 1) {
+      throw std::runtime_error("One and only one central value must be present in each bin");
+    }
     result.centralValue = centralvalues[0].value;
     result.centralValueStatisticalError = centralvalues[0].error;
     
