@@ -17,6 +17,10 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE (ExtrapolationToolsTest );
 
   CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtHighNoErrors, std::runtime_error);
+  CPPUNIT_TEST_EXCEPTION (testExtrapolate1binPtHighNoErrors2, std::runtime_error);
+
+  CPPUNIT_TEST (testExtrapolate1binPtHighErrors);
+  CPPUNIT_TEST (testExtrapolate1binPtHighErrors2);
 
   CPPUNIT_TEST (testExtrapolate1binPtHigh);
   CPPUNIT_TEST (testExtrapolate1binPtLow);
@@ -196,7 +200,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     return ana;
   }
 
-  CalibrationAnalysis generate_2bin_extrap_in_pthigh_ZeroErrors()
+  CalibrationAnalysis generate_2bin_extrap_in_pthigh_ZeroErrors(int nerr = 1, double eval1 = 0.1, double eval2 = 0.0)
   {
     // Extend the standard 1 bin in pt on the high side
     // Simple 1 bin analysis
@@ -209,7 +213,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
     CalibrationBin b1;
     b1.centralValue = 1.3;
-    b1.centralValueStatisticalError = 0.0;
+    b1.centralValueStatisticalError = 1.0;
     CalibrationBinBoundary bb1;
     bb1.lowvalue = 0.0;
     bb1.highvalue = 100.0;
@@ -220,16 +224,29 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     bb1.variable = "abseta";
     b1.binSpec.push_back(bb1);
 
-    SystematicError e;
-    e.name = "extr";
-    e.value = 0.1;
-    e.uncorrelated = false;
-    b1.systematicErrors.push_back(e);
+    for (int i = 0; i < nerr; i++) {
+      SystematicError e;
+      ostringstream ename;
+      ename << "extr_" << i;
+      e.name = ename.str();
+      e.value = eval1;
+      e.uncorrelated = false;
+      b1.systematicErrors.push_back(e);
+    }
     ana.bins.push_back(b1);
 
     b1.binSpec[0].lowvalue = 100.0;
     b1.binSpec[0].highvalue = 200.0;
-    b1.systematicErrors[0].value = 0.0; // The extrapolated error is zero - very bad!
+    b1.systematicErrors.clear();
+    for (int i = 0; i < nerr; i++) {
+      SystematicError e;
+      ostringstream ename;
+      ename << "extr_" << i;
+      e.name = ename.str();
+      e.value = eval2;
+      e.uncorrelated = false;
+      b1.systematicErrors.push_back(e);
+    }
     ana.bins.push_back(b1);
 
     return ana;
@@ -463,6 +480,36 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     cout << "Starting testExtrapolate1binPtHighNoErrors()" << endl;
     CalibrationAnalysis ana (generate_1bin_ana());
     CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh_ZeroErrors());
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+  }
+
+  // Do the pt extrapolation, on the high side.
+  void testExtrapolate1binPtHighNoErrors2()
+  {
+    cout << "Starting testExtrapolate1binPtHighNoErrors()" << endl;
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh_ZeroErrors(10));
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+  }
+
+  // Do the pt extrapolation, on the high side.
+  void testExtrapolate1binPtHighErrors()
+  {
+    cout << "Starting testExtrapolate1binPtHighNoErrors()" << endl;
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh_ZeroErrors(1, 0.1, 0.1));
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+  }
+
+  // Do the pt extrapolation, on the high side.
+  void testExtrapolate1binPtHighErrors2()
+  {
+    cout << "Starting testExtrapolate1binPtHighNoErrors()" << endl;
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh_ZeroErrors(10, 0.1, 0.1));
 
     CalibrationAnalysis result (addExtrapolation(extrap, ana));
   }
