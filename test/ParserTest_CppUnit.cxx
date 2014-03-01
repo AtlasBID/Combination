@@ -49,6 +49,10 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testParseSimpleAnalysisWithOneExtendedBin );
   CPPUNIT_TEST(testParseRoundTripExtendedBin);
 
+  CPPUNIT_TEST_EXCEPTION(writeNanCV, std::runtime_error);
+  CPPUNIT_TEST_EXCEPTION(writeNanCVS, std::runtime_error);
+  CPPUNIT_TEST_EXCEPTION(writeNanSYS, std::runtime_error);
+
   CPPUNIT_TEST(testParseRoundTrip);
   CPPUNIT_TEST(testParseRoundTrip2);
   CPPUNIT_TEST(testParseRoundTrip3);
@@ -417,6 +421,28 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("dude"), e.name);
     CPPUNIT_ASSERT_EQUAL(true, e.uncorrelated);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.05*0.1/100.0, e.value, 0.001);
+  }
+
+  void writeNanCV()
+  {
+    cout << "Test writeNanCV" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    result.Analyses[0].bins[0].centralValue = NAN;
+    cout << result << endl;
+  }
+  void writeNanCVS()
+  {
+    cout << "Test writeNanCVS" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    result.Analyses[0].bins[0].centralValueStatisticalError = NAN;
+    cout << result << endl;
+  }
+  void writeNanSYS()
+  {
+    cout << "Test writeNanSYS" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    result.Analyses[0].bins[0].systematicErrors[0].value = NAN;
+    cout << result << endl;
   }
 
   void testParseRoundTrip()

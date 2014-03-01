@@ -15,6 +15,8 @@
 #include <istream>
 #include <iostream>
 #include <cmath>
+#include <sstream>
+#include <stdexcept>
 
 namespace BTagCombination
 {
@@ -191,6 +193,11 @@ namespace BTagCombination
   }
 
   inline std::ostream &operator<< (std::ostream &out, const CalibrationBin &b) {
+    if (isnan(b.centralValue) || isnan(b.centralValueStatisticalError)) {
+      std::ostringstream err;
+      err << "Central value or stat error is NaN - can not write out bin";
+      throw std::runtime_error(err.str());
+    }
     if (CalibrationBin::gForNextPrinting & CalibrationBin::kFullInfo) {
       if (b.isExtended) {
 	out << "exbin(";
@@ -214,6 +221,11 @@ namespace BTagCombination
       }
       
       for (size_t i = 0; i < b.systematicErrors.size(); i++) {
+	if (isnan(b.systematicErrors[i].value)) {
+	  std::ostringstream err;
+	  err << "Systematic Error is NaN - can not write out bin";
+	  throw std::runtime_error(err.str());
+	}
 	out << std::endl
 	  << "    ";
 	if (b.systematicErrors[i].uncorrelated) {
