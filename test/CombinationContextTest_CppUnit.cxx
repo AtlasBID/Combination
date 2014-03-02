@@ -4,6 +4,7 @@
 
 #include "Combination/CombinationContext.h"
 #include "Combination/Measurement.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include <RooRealVar.h>
 #include <RooMsgService.h>

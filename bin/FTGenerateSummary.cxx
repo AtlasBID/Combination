@@ -6,6 +6,7 @@
 
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/BinNameUtils.h"
 
 #include <iostream>
 #include <iomanip>

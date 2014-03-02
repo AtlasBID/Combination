@@ -8,6 +8,7 @@
 ///
 
 #include "Combination/Parser.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>

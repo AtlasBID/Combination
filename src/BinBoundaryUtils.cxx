@@ -4,6 +4,7 @@
 //
 #include "Combination/BinBoundaryUtils.h"
 #include "Combination/BinUtils.h"
+#include "Combination/BinNameUtils.h"
 #include "Combination/CommonCommandLineUtils.h"
 
 #include <sstream>

@@ -5,6 +5,7 @@
 #include "Combination/Parser.h"
 #include "Combination/CDIConverter.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include <string>
 #include <vector>

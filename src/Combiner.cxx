@@ -9,6 +9,8 @@
 #include "Combination/CombinationContext.h"
 #include "Combination/Measurement.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/BinNameUtils.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include <RooRealVar.h>
 

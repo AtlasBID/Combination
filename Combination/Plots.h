@@ -6,7 +6,7 @@
 #ifndef __COMBINATION_PLOTS__
 #define __COMBINATION_PLOTS__
 
-#include "Combination/Parser.h"
+#include "Combination/CalibrationDataModel.h"
 
 #include <TDirectory.h>
 #include <vector>

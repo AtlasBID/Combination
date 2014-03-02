@@ -5,8 +5,8 @@
 #include "Combination/CDIConverter.h"
 #include "Combination/BinBoundaryUtils.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
-#include "CalibrationDataInterface/CalibrationDataContainer.h"
 #include "CalibrationDataInterface/CalibrationDataContainer.h"
 
 #include "TH2F.h"

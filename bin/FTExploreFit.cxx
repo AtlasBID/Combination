@@ -10,6 +10,7 @@
 #include "Combination/Combiner.h"
 #include "Combination/BinUtils.h"
 #include "Combination/Plots.h"
+#include "Combination/BinNameUtils.h"
 
 #include <RooMsgService.h>
 #include <TFile.h>

@@ -3,6 +3,7 @@
 ///
 
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/BinNameUtils.h"
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>

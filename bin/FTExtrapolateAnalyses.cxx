@@ -5,6 +5,8 @@
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/ExtrapolationTools.h"
+#include "Combination/CalibrationDataModelStreams.h"
+#include "Combination/BinNameUtils.h"
 
 #include <string>
 #include <vector>

@@ -6,6 +6,8 @@
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/BinBoundaryUtils.h"
+#include "Combination/BinNameUtils.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include <vector>
 #include <set>

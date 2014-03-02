@@ -3,7 +3,7 @@
 #include "Combination/ExtrapolationTools.h"
 #include "Combination/BinBoundaryUtils.h"
 #include "Combination/BinUtils.h"
-#include "Combination/Parser.h"
+#include "Combination/BinNameUtils.h"
 #include "Combination/CommonCommandLineUtils.h"
 
 #include <vector>

@@ -7,6 +7,7 @@
 
 #include "Combination/Combiner.h"
 #include "Combination/BinUtils.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include <RooMsgService.h>
 

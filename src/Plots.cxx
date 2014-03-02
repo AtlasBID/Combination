@@ -4,8 +4,9 @@
 //
 
 #include "Combination/Plots.h"
-#include "Combination/CommonCommandLineUtils.h"
+#include "Combination/BinNameUtils.h"
 #include "Combination/AtlasLabels.h"
+#include "Combination/CalibrationDataModelStreams.h"
 
 #include "TGraphErrors.h"
 #include "TCanvas.h"
@@ -25,6 +26,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <iomanip>
+#include <iostream>
 
 using namespace std;
 

@@ -7,6 +7,8 @@
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/Combiner.h"
+#include "Combination/CalibrationDataModelStreams.h"
+#include "Combination/BinNameUtils.h"
 
 #include <RooMsgService.h>
 
