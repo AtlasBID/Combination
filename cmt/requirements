@@ -63,6 +63,8 @@ private
 #
 use AtlasBoost                  AtlasBoost-*             External
 use AtlasExpat                  AtlasExpat-*             External
+use JetTagInfo                  JetTagInfo-*             PhysicsAnalysis/JetTagging
+use JetEvent                    JetEvent-*               Reconstruction/Jet
 
 #
 # The boost templates get a little deep! :-)
