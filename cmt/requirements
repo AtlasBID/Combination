@@ -62,6 +62,7 @@ private
 # We need the boost library
 #
 use AtlasBoost                  AtlasBoost-*             External
+use AtlasExpat                  AtlasExpat-*             External
 
 #
 # The boost templates get a little deep! :-)
