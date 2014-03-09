@@ -406,7 +406,13 @@ namespace {
     // We can't currently deal with extension bins, so fail.
     for (vector<CalibrationBin>::const_iterator itr = eff.bins.begin(); itr != eff.bins.end(); itr++) {
       if (itr->isExtended) {
-	throw bad_cdi_config_exception("The CDI does not support extrapolation bins when irregular binning exists");
+	ostringstream err;
+	err << "The CDI does not support extrapolation bins when irregular binning exists (analysis "
+	    << eff.name 
+	    << " - " 
+	    << name 
+	    << ")";
+	throw bad_cdi_config_exception(err.str());
       }
     }
 
@@ -469,13 +475,24 @@ namespace BTagCombination {
   {
     // Try the regular flat/grid binning first.
 
+    string binError;
     try {
       return ConvertToCDIRegularBins(eff, name);
     } catch (bin_boundary_error &e) {
+      binError = e.what();
     }
       
     // If we are here, then the irregular binning is the only hope.
 
-    return ConvertToCDIIrregularBins(eff, name);
+    try {
+      return ConvertToCDIIrregularBins(eff, name);
+    } catch (exception &e) {
+      ostringstream err;
+      err << "Error while trying to convert to CDI analysis " << eff.name << "." << endl
+	  << "  Failed to do a regular size bins: " << binError << endl
+	  <<  " Failed to do an irregular bin size: " << e.what() << endl;
+      cerr << err.str() << endl;
+      throw;
+    }
   }
 }
