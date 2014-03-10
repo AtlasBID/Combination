@@ -1,17 +1,17 @@
-
-calibration ttbar_pdf
-calibration ttbar_pdf_emu_2jets
-calibration ttbar_pdf_emu_3jets
-calibration ttbar_pdf_ll_2jets
-calibration ttbar_pdf_ll_3jets
-calibration ttbar_pdf_6bins
-calibration ttbar_pdf_emu_2jets_6bins
-calibration ttbar_pdf_emu_3jets_6bins
-calibration ttbar_pdf_ll_2jets_6bins
-calibration ttbar_pdf_ll_3jets_6bins
+calibration TopPDF_emu2J
+calibration TopPDF_emu3J
+calibration TopPDF_ll2J
+calibration TopPDF_ll3J
+calibration TopPDF_6bins_emu2J
+calibration TopPDF_6bins_emu3J
+calibration TopPDF_6bins_ll2J
+calibration TopPDF_6bins_ll3J
 calibration ttbar_kinsel
+calibration pTrel
+calibration system8
 calibration DStar
 calibration negative_tags
+calibration MCcalib
 
 jet AntiKt4Topo
 
@@ -38,19 +38,20 @@ op JetFitterCOMBNNc 55 AntiKt4Topo 0.98
 op MV1 60 AntiKt4Topo 0.905363
 op MV1 70 AntiKt4Topo 0.601713
 op MV1 75 AntiKt4Topo 0.404219
+op MV1 80 AntiKt4Topo 0.164
 op MV1 85 AntiKt4Topo 0.0714225
 
-hadronization ttbar_pdf Pythia6
-hadronization ttbar_pdf_emu_2jets Pythia6
-hadronization ttbar_pdf_emu_3jets Pythia6
-hadronization ttbar_pdf_ll_2jets Pythia6
-hadronization ttbar_pdf_ll_3jets Pythia6
-hadronization ttbar_pdf_6bins Pythia6
-hadronization ttbar_pdf_emu_2jets_6bins Pythia6
-hadronization ttbar_pdf_emu_3jets_6bins Pythia6
-hadronization ttbar_pdf_ll_2jets_6bins Pythia6
-hadronization ttbar_pdf_ll_3jets_6bins Pythia6
-hadronization ttbar_kinsel Pythia6
+hadronization TopPDF_emu2J Pythia6
+hadronization TopPDF_emu3J Pythia6
+hadronization TopPDF_ll2J Pythia6
+hadronization TopPDF_ll3J Pythia6
+hadronization TopPDF_6bins_emu2J Pythia6
+hadronization TopPDF_6bins_emu3J Pythia6
+hadronization TopPDF_6bins_ll2J Pythia6
+hadronization TopPDF_6bins_ll3J Pythia6
+hadronization ttbar_kinsel HerwigJimmy
+hadronization pTrel Pythia6
+hadronization system8 Pythia6
 hadronization DStar Pythia6
 hadronization negative_tags Pythia6
 

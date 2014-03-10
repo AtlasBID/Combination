@@ -592,7 +592,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
       }
     }
   }
-  if(!isFound) {
+  if(!isFound && ana.name!="MCcalib") {
     output << "ERROR! Hadronization for calibration " << ana.name
 	   << " unknown. Should be: " << endl;
     for (unsigned int i=0; i<m_hadronizations.size(); i++) output << "'" << m_hadronizations.at(i) << "' ";
