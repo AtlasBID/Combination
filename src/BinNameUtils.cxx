@@ -138,9 +138,14 @@ namespace BTagCombination {
 		 || ana.operatingPoint == "0.1340"
 		 ) {
 	return "85";
+      } else if (ana.operatingPoint == "0.0616"
+		 || ana.operatingPoint == "0.0617"
+		 ) {
+	return "90";
       } else {
 	return "MV1_unkown";
       }
+
     } else if (ana.tagger == "MV1c") {
       if (ana.operatingPoint == "0.9237"
 	  || ana.operatingPoint == "0.9195") {
@@ -148,10 +153,14 @@ namespace BTagCombination {
       } else if (ana.operatingPoint == "0.8674"
 		 || ana.operatingPoint == "0.8641") {
 	return "57";
+      } else if (ana.operatingPoint == "0.8353"
+		 || ana.operatingPoint == "0.8349") {
+	return "60";
       } else {
 	return "MV1c_unknown";
       }
-    } else if (ana.tagger == "IP3DSV1") {
+
+	} else if (ana.tagger == "IP3DSV1") {
       if (ana.operatingPoint == "4.55") {
 	return "60";
       } else if (ana.operatingPoint == "1.70") {
@@ -161,6 +170,7 @@ namespace BTagCombination {
       } else {
 	return "IP3DSV1_unknown";
       }
+
     } else if (ana.tagger == "JetFitterCOMBNN") {
       if (ana.operatingPoint == "2.20") {
 	return "57";
@@ -173,6 +183,7 @@ namespace BTagCombination {
       } else {
 	return "JetFitterCOMBNN_unknown";
       }
+
     } else if (ana.tagger == "JetFitterCOMBNNc") {
       if (ana.operatingPoint == "1.33") {
         return "50";
@@ -181,6 +192,7 @@ namespace BTagCombination {
       } else {
         return "JetFitterCOMBNNc_unknown";
       }
+
     } else if (ana.tagger == "JetFitterCharm") {
       if (ana.operatingPoint == "-0.9_NONE") {
 	return "90";
@@ -191,6 +203,7 @@ namespace BTagCombination {
       } else {
 	return "JetFitterCOMBNNc_unknown";
       }
+
     } else if (ana.tagger == "SV0") {
       if (ana.operatingPoint == "5.65") {
 	return "50";
