@@ -27,7 +27,7 @@ void CheckEverythingFullyCorrelated (const vector<CalibrationAnalysis> &info);
 void CheckEverythingBinByBin (const vector<CalibrationAnalysis> &info);
 void PrintNames (const CalibrationInfo &info, ostream &output);
 void PrintQNames (const CalibrationInfo &info, ostream &output);
-void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inputfile);
+bool CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inputfile);
 
 struct CaseInsensitiveCompare {
   bool operator() (const string &a, const string &b) const {
@@ -311,10 +311,13 @@ int main (int argc, char **argv)
       PrintQNames (info, *output);
 
     if (doCompareNames) {
+      bool isGood = true;
       for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
 	const CalibrationAnalysis &c(calibs[i_a]);
-	CompareNames(c, *output, inputfile);
+	if (!(CompareNames(c, *output, inputfile)))
+	  isGood = false;
       }
+      return isGood ? 0 : 1;
     }
 
     // Check to see if the bin specifications are consistent.
@@ -462,10 +465,11 @@ void PrintQNames (const CalibrationInfo &info, ostream &output)
   PrintNames(info.Analyses, output, false);
 }
 
-void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inputfile)
+bool CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inputfile)
 {
   ifstream inputdata;
   inputdata.open(inputfile.c_str());
+  bool isGood = true;
 
   string name="", jet="", tagger="", op="";
   vector<string> m_names, m_jets, m_taggers, m_wps, m_hadronizations;
@@ -491,6 +495,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   }
   if(!isFound) {
     output << "ERROR! Calibration method " << ana.name << " is unknown. Known calibration methods are: " << endl;
+    isGood = false;
     for (unsigned int i=0; i<m_names.size(); i++) output << "'" << m_names.at(i) << "' ";
     output << endl;
   }
@@ -503,6 +508,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   }
   if(!isFound) {
     output << "ERROR! Tagger " << ana.tagger << " is unknown. Known taggers are: " << endl;
+    isGood = false;
     for (unsigned int i=0; i<m_taggers.size(); i++) output << "'" << m_taggers.at(i) << "' ";
     output << endl;
   }
@@ -515,6 +521,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   }
   if(!isFound) {
     output << "ERROR! Jet algorithm " << ana.jetAlgorithm << " is unknown. Known jet algorithms are: " << endl;
+    isGood = false;
     for (unsigned int i=0; i<m_jets.size(); i++) output << "'" << m_jets.at(i) << "' ";
     output << endl;
   }
@@ -552,6 +559,7 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   if(!isFound) {
     output << "ERROR! OP " << ana.operatingPoint << " for tagger " << ana.tagger << " and jet collection " << ana.jetAlgorithm 
 	   << " unknown. Known OPs for tagger " << ana.tagger << " are: " << endl;
+    isGood = false;
     for (unsigned int i=0; i<m_wps.size(); i++) output << "'" << m_wps.at(i) << "' ";
     output << endl;
   }
@@ -595,9 +603,12 @@ void CompareNames (const CalibrationAnalysis &ana, ostream &output, string &inpu
   if(!isFound && ana.name!="MCcalib") {
     output << "ERROR! Hadronization for calibration " << ana.name
 	   << " unknown. Should be: " << endl;
+    isGood = false;
     for (unsigned int i=0; i<m_hadronizations.size(); i++) output << "'" << m_hadronizations.at(i) << "' ";
     output << endl;
   }
+
+  return isGood;
 }
 
 void Usage(void)
