@@ -4,11 +4,10 @@ calibration PDF_emu_2jets
 calibration PDF_emu_3jets
 calibration PDF_ll_2jets
 calibration PDF_ll_3jets
-calibration PDF_7bins
-calibration PDF_emu_2jets_7bins
-calibration PDF_emu_3jets_7bins
-calibration PDF_ll_2jets_7bins
-calibration PDF_ll_3jets_7bins
+calibration PDF_6bins_emu_2jets
+calibration PDF_6bins_emu_3jets
+calibration PDF_6bins_ll_2jets
+calibration PDF_6bins_ll_3jets
 
 calibration ttbar_pdf
 calibration ttbar_pdf_emu_2jets
@@ -20,6 +19,11 @@ calibration ttbar_pdf_emu_2jets_7bins
 calibration ttbar_pdf_emu_3jets_7bins
 calibration ttbar_pdf_ll_2jets_7bins
 calibration ttbar_pdf_ll_3jets_7bins
+
+calibration ttbar_topo_emu
+
+calibration KinSel_dilep_3j
+calibration KinSel_dilep_2j
 
 calibration pTrel
 calibration system8
