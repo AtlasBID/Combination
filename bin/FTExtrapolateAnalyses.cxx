@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     } else {
       // Do the extrapolation
       if (e_itr->second.size() > 1) {
-	cout << "More than one extrapolated analysis to apply!" << endl;
+	cout << "More than one extrapolated analysis to apply (" << e_itr->first << ")!" << endl;
 	usage();
 	return 1;
       }
