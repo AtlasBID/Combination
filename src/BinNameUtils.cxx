@@ -156,6 +156,12 @@ namespace BTagCombination {
       } else if (ana.operatingPoint == "0.8353"
 		 || ana.operatingPoint == "0.8349") {
 	return "60";
+      } else if (ana.operatingPoint == "0.7028"
+		 || ana.operatingPoint == "0.7068") {
+	return "70";
+      } else if (ana.operatingPoint == "0.4050"
+		 || ana.operatingPoint == "0.4051") {
+	return "80";
       } else {
 	return "MV1c_unknown";
       }
