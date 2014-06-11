@@ -413,9 +413,7 @@ struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
 	> name_string[bind(&metadata::SetName, _val, _1)] >> *qi::lit(' ')
 	> ','
 	> double_[bind(&metadata::SetValue, _val, _1)]
-	> ','
-	> double_[bind(&metadata::SetError, _val, _1)]
-	> ')';
+	> ((','> double_[bind(&metadata::SetError, _val, _1)] > ')') | (')'));
     } else {
       start = lit("meta_data")
 	> '('
