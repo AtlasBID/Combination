@@ -237,6 +237,38 @@ struct NameStringParser : qi::grammar<Iterator, std::string(), ascii::space_type
   qi::rule<Iterator, std::string(), ascii::space_type> unquoted;
 };
 
+// Parse a string, that may be quoted. Deal with a trailing space by not eating it. Allowed to have ( and ) in here.
+template <typename Iterator>
+struct NameStringParserP : qi::grammar<Iterator, std::string(), ascii::space_type>
+{
+  NameStringParserP() : NameStringParserP::base_type(start, "Name String") {
+
+    using qi::lexeme;
+    using ascii::char_;
+
+    string allChars("-_a-zA-Z0-9+:.*/!=][)(");
+
+    quoted %= '"'
+      > lexeme[*qi::char_(allChars + ", ")]
+      > '"';
+
+    // This next line is problematic when you move to 17.2.4. The hold predicate below causes an
+    // explosion in boost - where it can't figure out the char.
+    unquoted %= lexeme[+(qi::char_(allChars)) >> *(qi::hold[+(qi::char_(" ")) >> +(qi::char_(allChars))])];
+
+
+    start %= quoted | unquoted;
+
+    //Maybe we can get this working uniformly later.
+    //name_word %= +(qi::char_("_a-zA-Z0-9+"));
+    //name_string %= lexeme[name_word >> *(qi::hold[+(qi::char_(' ')) >> name_word])];
+  }
+
+  qi::rule<Iterator, std::string(), ascii::space_type> start;
+  qi::rule<Iterator, std::string(), ascii::space_type> quoted;
+  qi::rule<Iterator, std::string(), ascii::space_type> unquoted;
+};
+
 
 //
 // Parse  asystematic error ("sys(JES, 0.01)", "sys(JER, 0.1%)"). We parse
@@ -396,7 +428,7 @@ struct MetaDataParser : qi::grammar<Iterator, metadata(), ascii::space_type>
   }
 
     qi::rule<Iterator, metadata(), ascii::space_type> start;
-    NameStringParser<Iterator> name_string;
+    NameStringParserP<Iterator> name_string;
 };
 
 //

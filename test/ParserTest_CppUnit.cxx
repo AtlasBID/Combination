@@ -78,6 +78,8 @@ class ParserTest : public CppUnit::TestFixture
 
   //CPPUNIT_TEST(testParseBinMetadata1);
   CPPUNIT_TEST(testParseBinMetadata2);
+  CPPUNIT_TEST(testParseBinMetadata3);
+  CPPUNIT_TEST(testParseBinMetadata4);
 
   CPPUNIT_TEST(testParseMetadata1);
   CPPUNIT_TEST(testParseMetadata2);
@@ -729,7 +731,7 @@ class ParserTest : public CppUnit::TestFixture
 
   void testParseBinMetadata2()
   {
-    cout << "Test testParseBinMetadata" << endl;
+    cout << "Test testParseBinMetadata2" << endl;
     CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)meta_data (ISR FSR, -0.1, 0.05)}}"));
     
     CPPUNIT_ASSERT(result.Analyses.size() == 1);
@@ -742,6 +744,42 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("ISR FSR"), v.first);
     CPPUNIT_ASSERT_EQUAL(-0.1, v.second.first);
     CPPUNIT_ASSERT_EQUAL(0.05, v.second.second);
+  }
+
+  void testParseBinMetadata3()
+  {
+    cout << "Test testParseBinMetadata3" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) meta_data (ISR/FSR, -0.1,1.0)}}"));
+    
+    CPPUNIT_ASSERT(result.Analyses.size() == 1);
+    CalibrationAnalysis ana = result.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.bins.size());
+    CalibrationBin bin = ana.bins[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin.metadata.size());
+    pair<string, pair<double,double> > v = *(bin.metadata.begin());
+
+    CPPUNIT_ASSERT_EQUAL(string("ISR/FSR"), v.first);
+    CPPUNIT_ASSERT_EQUAL(-0.1, v.second.first);
+
+
+    CPPUNIT_ASSERT_EQUAL(1.0, v.second.second);
+  }
+
+  void testParseBinMetadata4()
+  {
+    cout << "Test testParseBinMetadata4" << endl;
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)meta_data (ISR(FSR), -0.1,1.0)}}"));
+    
+    CPPUNIT_ASSERT(result.Analyses.size() == 1);
+    CalibrationAnalysis ana = result.Analyses[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ana.bins.size());
+    CalibrationBin bin = ana.bins[0];
+    CPPUNIT_ASSERT_EQUAL((size_t)1, bin.metadata.size());
+    pair<string, pair<double,double> > v = *(bin.metadata.begin());
+
+    CPPUNIT_ASSERT_EQUAL(string("ISR(FSR)"), v.first);
+    CPPUNIT_ASSERT_EQUAL(-0.1, v.second.first);
+    CPPUNIT_ASSERT_EQUAL(1.0, v.second.second);
   }
 
   void testParseRoundTrip8()
