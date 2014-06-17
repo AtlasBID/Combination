@@ -92,10 +92,11 @@ op JetFitterCharm 10 AntiKt4TopoLC -0.9_2.5
 
 hadronization pTrel Pythia8EvtGen
 hadronization system8 Pythia8EvtGen
-hadronization DStar Pythia8EvtGen
 hadronization KinSel_dilep Pythia8EvtGen
 hadronization negative_tags Pythia8EvtGen
 hadronization MCcalib Pythia8EvtGen
+
+hadronization DStar Pythia8
 
 hadronization PDF Pythia6
 hadronization PDF_emu_2jets Pythia6
