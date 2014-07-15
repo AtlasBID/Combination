@@ -254,6 +254,7 @@ namespace {
       hadronization = hadFind->second;
     }
     result->setHadronisation(hadronization);
+    result->setComment(eff.name);
 
     //
     // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.
