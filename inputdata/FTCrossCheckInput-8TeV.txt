@@ -1,5 +1,4 @@
 
-calibration PDF
 calibration PDF_emu_2jets
 calibration PDF_emu_3jets
 calibration PDF_ll_2jets
@@ -8,17 +7,6 @@ calibration PDF_6bins_emu_2jets
 calibration PDF_6bins_emu_3jets
 calibration PDF_6bins_ll_2jets
 calibration PDF_6bins_ll_3jets
-
-calibration ttbar_pdf
-calibration ttbar_pdf_emu_2jets
-calibration ttbar_pdf_emu_3jets
-calibration ttbar_pdf_ll_2jets
-calibration ttbar_pdf_ll_3jets
-calibration ttbar_pdf_7bins
-calibration ttbar_pdf_emu_2jets_7bins
-calibration ttbar_pdf_emu_3jets_7bins
-calibration ttbar_pdf_ll_2jets_7bins
-calibration ttbar_pdf_ll_3jets_7bins
 
 calibration ttbar_topo_emu
 calibration KinSel_dilep_3j
@@ -93,10 +81,6 @@ op JetFitterCharm 10 AntiKt4TopoLC -0.9_2.5
 hadronization pTrel Pythia8EvtGen
 hadronization system8 Pythia8EvtGen
 hadronization KinSel_dilep Pythia8EvtGen
-hadronization negative_tags Pythia8EvtGen
-hadronization MCcalib Pythia8EvtGen
-
-hadronization DStar Pythia8
 
 hadronization PDF Pythia6
 hadronization PDF_emu_2jets Pythia6
@@ -109,17 +93,12 @@ hadronization PDF_6bins_emu_3jets Pythia6
 hadronization PDF_6bins_ll_2jets Pythia6
 hadronization PDF_6bins_ll_3jets Pythia6
 
-hadronization ttbar_pdf Pythia6
-hadronization ttbar_pdf_emu_2jets Pythia6
-hadronization ttbar_pdf_emu_3jets Pythia6
-hadronization ttbar_pdf_ll_2jets Pythia6
-hadronization ttbar_pdf_ll_3jets Pythia6
-hadronization ttbar_pdf_7bins Pythia6
-hadronization ttbar_pdf_emu_2jets_7bins Pythia6
-hadronization ttbar_pdf_emu_3jets_7bins Pythia6
-hadronization ttbar_pdf_ll_2jets_7bins Pythia6
-hadronization ttbar_pdf_ll_3jets_7bins Pythia6
-
 hadronization ttbar_topo_emu Pythia6
 hadronization KinSel_dilep_3j Pythia6
 hadronization KinSel_dilep_2j Pythia6
+
+hadronization negative_tags Pythia8
+
+hadronization MCcalib Pythia8EvtGen
+
+hadronization DStar Pythia8
