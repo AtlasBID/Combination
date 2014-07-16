@@ -116,10 +116,14 @@ namespace BTagCombination {
   string OPEff(const CalibrationAnalysis &ana)
   {
     if (ana.tagger == "MV1") {
-      if (ana.operatingPoint == "0.9867"
-	  || ana.operatingPoint == "0.9827"
-	  || ana.operatingPoint == "0.905363"
+      if (ana.operatingPoint == "0.992515446"
+	  || ana.operatingPoint == "0.993981"
 	  ) {
+	return "50";
+      } else if (ana.operatingPoint == "0.9867"
+		 || ana.operatingPoint == "0.9827"
+		 || ana.operatingPoint == "0.905363"
+		 ) {
 	return "60";
       } else if (ana.operatingPoint == "0.8119"
 		 || ana.operatingPoint == "0.7892"
