@@ -361,7 +361,7 @@ struct metadata
   double error;
 
   metadata()
-    : value(0.0), error(0.0)
+    : value(), error(0.0)
   { }
 
   void SetName(const std::string &n)
@@ -585,6 +585,7 @@ struct CalibrationBinParser : qi::grammar<Iterator, CalibrationBin(), ascii::spa
 // Parse the top level analysis info
 //
 class CAHolder {
+public:
   inline void SetName (const std::string &n) { result.name = n; }
   inline void SetFlavor (const std::string &f) { result.flavor = f; }
   inline void SetTagger (const std::string &t) { result.tagger = t; }
