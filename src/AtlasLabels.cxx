@@ -112,10 +112,11 @@ void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *te
   marker->SetMarkerColor(color);
   marker->SetNDC();
   marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(2.0*tsize/0.05);
+  marker->SetMarkerSize( (Size_t) (2.0*tsize/0.05));
   marker->Draw();
 
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
+  TLatex l; l.SetTextAlign(12);
+  l.SetTextSize((Float_t) tsize); 
   l.SetNDC();
   l.DrawLatex(x,y,text);
 }

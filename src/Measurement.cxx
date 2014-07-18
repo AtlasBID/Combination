@@ -14,13 +14,7 @@
 #include <stdexcept>
 #include <vector>
 
-using std::string;
-using std::map;
-using std::vector;
-using std::transform;
-using std::find_if;
-using std::back_inserter;
-using std::runtime_error;
+using namespace std;
 
 namespace {
   // Deal with a signed number we want to take a square root of by passing

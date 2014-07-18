@@ -26,13 +26,7 @@
 #include <iterator>
 #include <sstream>
 
-using std::string;
-using std::map;
-using std::runtime_error;
-using std::for_each;
-using std::transform;
-using std::back_inserter;
-using std::ostringstream;
+using namespace std;
 
 namespace {
   using namespace BTagCombination;

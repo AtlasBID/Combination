@@ -14,7 +14,23 @@
     <ClInclude Include="..\..\Combination\Parser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\AtlasLabels.cxx" />
+    <ClCompile Include="..\..\src\AtlasStyle.cxx" />
+    <ClCompile Include="..\..\src\BinBoundaryUtils.cxx" />
+    <ClCompile Include="..\..\src\BinNameUtils.cxx" />
+    <ClCompile Include="..\..\src\BinUtils.cxx" />
+    <ClCompile Include="..\..\src\CalibrationDataModel.cxx" />
+    <ClCompile Include="..\..\src\CalibrationDataModelStreams.cxx" />
+    <ClCompile Include="..\..\src\CombinationContext.cxx" />
+    <ClCompile Include="..\..\src\CombinationContextBase.cxx" />
+    <ClCompile Include="..\..\src\Combiner.cxx" />
+    <ClCompile Include="..\..\src\CommonCommandLineUtils.cxx" />
+    <ClCompile Include="..\..\src\ExtrapolationTools.cxx" />
+    <ClCompile Include="..\..\src\Measurement.cxx" />
+    <ClCompile Include="..\..\src\MeasurementUtils.cxx" />
     <ClCompile Include="..\..\src\Parser.cxx" />
+    <ClCompile Include="..\..\src\Plots.cxx" />
+    <ClCompile Include="..\..\src\RooRealVarCache.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -61,6 +77,7 @@
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

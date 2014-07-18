@@ -48,7 +48,7 @@ TStyle* AtlasStyle()
   // use large fonts
   //Int_t font=72; // Helvetica italics
   Int_t font=42; // Helvetica
-  Double_t tsize=0.05;
+  Float_t tsize=0.05;
   atlasStyle->SetTextFont(font);
 
   atlasStyle->SetTextSize(tsize);
@@ -69,7 +69,7 @@ TStyle* AtlasStyle()
   // use bold lines and markers
   atlasStyle->SetMarkerStyle(20);
   atlasStyle->SetMarkerSize(1.2);
-  atlasStyle->SetHistLineWidth(2.);
+  atlasStyle->SetHistLineWidth((Width_t) 2.);
   atlasStyle->SetLineStyleString(2,"[12 12]"); // postscript dashes
 
   // get rid of X error bars 

@@ -8,12 +8,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-using std::runtime_error;
-using std::for_each;
-using std::pair;
-using std::map;
-using std::transform;
-using std::vector;
+using namespace std;
 
 RooRealVarCache::RooRealVarCache(void)
 {
