@@ -24,6 +24,7 @@
 //
 
 #include "Combination/Parser.h"
+#include "Combination/CommonCommandLineUtils.h"
 
 #include <vector>
 #include <stdexcept>
@@ -968,6 +969,12 @@ namespace BTagCombination
 
     if (!didit)
       throw runtime_error ("Unable to parse!");
+
+	//
+	// If there are any common analyses in here, we need to combine them.
+	//
+
+	result.Analyses = CombineSameAnalyses(result.Analyses);
 
     return result;
   }

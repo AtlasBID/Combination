@@ -29,6 +29,10 @@ namespace BTagCombination {
   // Split a list of analyses by the bins we often use for doing the combination.
   // Useful utility. :-)
   std::map<std::string, std::vector<CalibrationAnalysis> > BinAnalysesByJetTagFlavOp (const std::vector<CalibrationAnalysis> &anas);
+
+  // If any of the analyses in here have the same name, op, etc., combine the lists of bins. Bomb if the
+  // bins overlap or other issues are found.
+  std::vector<CalibrationAnalysis> CombineSameAnalyses(const std::vector<CalibrationAnalysis> &anas);
 }
 
 #endif

@@ -74,7 +74,7 @@ namespace BTagCombination {
 		  const std::vector<CalibrationBinBoundary> &bin_spec) const;
   };
 
-  // Calculate the bin boundaries for a set of bins...
+  // Calculate the bin boundaries for a set of bins. Error if we find inconsistencies.
   bin_boundaries calcBoundaries (const CalibrationAnalysis &ana, bool ignoreExtrap = true);
   
   // Check that this list of bin boundaries is consistent

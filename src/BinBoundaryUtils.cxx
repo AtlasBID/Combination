@@ -32,26 +32,40 @@ namespace {
   // being used.
   //
   // We remove duplicates. We could use a set or similar to do that, but there are so
-  // few using the find algoritm is short hand...
-  t_bin_list extract_bins (const CalibrationAnalysis &ana, bool ignoreExtrapolation)
+  // few using the find algoritm is short hand. The duplicates must be removed because when
+  // we are looking at a 2D (or n-D) analysis there will always be common values along
+  // any particular axis (or there had better be!).
+  //
+  // On the other hand, identical bins are not allowed!
+  t_bin_list extract_bins(const CalibrationAnalysis &ana, bool ignoreExtrapolation)
   {
-    t_bin_list result;
+	  t_bin_list result;
+	  set<vector<CalibrationBinBoundary>> binsSeen;
 
-    for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
-      const CalibrationBin &bin (ana.bins[ibin]);
-      if (!ignoreExtrapolation || !bin.isExtended) {
-	for (unsigned int iboundary = 0; iboundary < bin.binSpec.size(); iboundary++) {
-	  const CalibrationBinBoundary &bound (bin.binSpec[iboundary]);
+	  for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
+		  const CalibrationBin &bin(ana.bins[ibin]);
+		  if (!ignoreExtrapolation || !bin.isExtended) {
 
-	  pair<double,double> bp = make_pair(bound.lowvalue, bound.highvalue);
-	  if (find (result[bound.variable].begin(), result[bound.variable].end(), bp)
-	      == result[bound.variable].end())
-	    result[bound.variable].push_back(bp);
-	}
-      }
-    }
+			  // Cross check to make sure consistent.
+			  if (binsSeen.find(bin.binSpec) != binsSeen.end()) {
+				  ostringstream errtxt;
+				  errtxt << "The bin " << OPBinName(bin) << "has been seen twice in the analysis " << OPFullName(ana);
+				  throw runtime_error(errtxt.str());
+			  }
+			  binsSeen.insert(bin.binSpec);
 
-    return result;
+			  for (unsigned int iboundary = 0; iboundary < bin.binSpec.size(); iboundary++) {
+				  const CalibrationBinBoundary &bound(bin.binSpec[iboundary]);
+
+				  pair<double, double> bp = make_pair(bound.lowvalue, bound.highvalue);
+				  if (find(result[bound.variable].begin(), result[bound.variable].end(), bp)
+					  == result[bound.variable].end())
+					  result[bound.variable].push_back(bp);
+			  }
+		  }
+	  }
+
+	  return result;
   }
 
   // Helper function to order bins by their lower boundary in the "sort" algorithm.
@@ -62,35 +76,43 @@ namespace {
 
   // Given all bins make sure the are adjacent and create just a list of bin boundaries much
   // like what you would put in a histogram.
-  vector<double> get_bin_boundaries_hist (const vector<pair<double, double> > &allbins)
+  vector<double> get_bin_boundaries_hist(const vector<pair<double, double> > &allbins)
   {
-    // Put them in order
-    vector<pair<double, double> > acopy (allbins);
-    sort(acopy.begin(), acopy.end(), compare_first_of_pair);
+	  // Put them in order
+	  vector<pair<double, double> > acopy(allbins);
+	  sort(acopy.begin(), acopy.end(), compare_first_of_pair);
 
-    // Now, extract the boundaries
-    vector<double> result;
-    pair<double, double> last;
-    for (unsigned int i = 0; i < acopy.size(); i++) {
-      if (result.size() == 0) {
-	result.push_back(acopy[i].first);
-      } else {
-	if (acopy[i] == last) {
-	  throw runtime_error ("Duplicate bins found!");
-	}
-	if (last.second != acopy[i].first) {
-	  ostringstream errtxt;
-	  errtxt << "Bins must be adjacent and exclusive - "
-		 << " lower bin's upper boundary (" << last.second << ")"
-		 << " and upper bins' lower boundary (" << acopy[i].first << ") need to be the same";
-	  throw binning_error (last.second, acopy[i].first, errtxt.str());
-	}
-	result.push_back(acopy[i].first);
-      }
-      last = acopy[i];
-    }
-    result.push_back(last.second);
-    return result;
+	  // Now, extract the boundaries
+	  vector<double> result;
+	  pair<double, double> last;
+	  for (unsigned int i = 0; i < acopy.size(); i++) {
+		  if (acopy[i].first == acopy[i].second) {
+			  ostringstream errtext;
+			  errtext << "Bins can't be infinitely thing - lower and upper have the same boundary: " << acopy[i].first;
+			  throw binning_error(acopy[i].first, acopy[i].second, errtext.str());
+		  }
+		  if (result.size() == 0) {
+			  result.push_back(acopy[i].first);
+		  }
+		  else {
+			  if (acopy[i] == last) {
+				  ostringstream errtxt;
+				  throw binning_error(last.first, last.second, "Duplicate bin boundaries!");
+			  }
+			  if (last.second != acopy[i].first) {
+				  ostringstream errtxt;
+				  errtxt << "Bins must be adjacent and exclusive - "
+					  << " lower bin's upper boundary (" << last.second << ")"
+					  << " and upper bins' lower boundary (" << acopy[i].first << ") need to be the same";
+				  throw binning_error(last.second, acopy[i].first, errtxt.str());
+			  }
+			  result.push_back(acopy[i].first);
+		  }
+
+		  last = acopy[i];
+	  }
+	  result.push_back(last.second);
+	  return result;
   }
 
   CalibrationBinBoundary get_bin_boundary_for (const CalibrationBin &bin, const string &boundaryname)
@@ -225,6 +247,7 @@ namespace BTagCombination {
 
   // Grab the boundaries from the analysis, and put them into
   // an object that knows how to create historams, etc., for teh CDI.
+  // Fail fairly resolutely if we find problems (overlaps, thin bins, etc.).
   bin_boundaries calcBoundaries (const CalibrationAnalysis &ana, bool ignoreExtrap)
   {
     // Find all the bins that are in the analysis

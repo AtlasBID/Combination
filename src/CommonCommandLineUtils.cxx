@@ -6,6 +6,7 @@
 #include "Combination/CalibrationDataModel.h"
 #include "Combination/Parser.h"
 #include "Combination/CommonCommandLineUtils.h"
+#include "Combination/BinBoundaryUtils.h"
 
 #include <TSystem.h>
 
@@ -371,6 +372,36 @@ namespace BTagCombination {
       result[OPIndependentName(anas[i])].push_back(anas[i]);
     }
     return result;
+  }
+
+  //
+  // Given two analyses with the same name, combine their bins.
+  vector<CalibrationAnalysis> CombineSameAnalyses(const vector<CalibrationAnalysis> &anas)
+  {
+	  // Combine when they are the same.
+	  map<string, CalibrationAnalysis> combinedAnalyses;
+	  for (vector<CalibrationAnalysis>::const_iterator itr(anas.begin()); itr != anas.end(); itr++) {
+		  string anaName(OPFullName(*itr));
+		  map<string, CalibrationAnalysis>::const_iterator f = combinedAnalyses.find(anaName);
+		  if (f == combinedAnalyses.end()) {
+			  combinedAnalyses[anaName] = *itr;
+		  }
+		  else {
+			  combinedAnalyses[anaName].bins.insert(combinedAnalyses[anaName].bins.end(), itr->bins.begin(), itr->bins.end());
+		  }
+	  }
+
+	  // Change the map back into a list. For each one make sure we can calculate a reasonable set of binning boundaries.
+	  // Only return bins that have at least one bin in them (e.g. aren't empty!).
+	  vector<CalibrationAnalysis> result;
+	  for (map<string, CalibrationAnalysis>::const_iterator itr(combinedAnalyses.begin()); itr != combinedAnalyses.end(); itr++) {
+		  if (itr->second.bins.size() > 0) {
+			  bin_boundaries temp(calcBoundaries(itr->second, false));
+			  result.push_back(itr->second);
+		  }
+	  }
+
+	  return result;
   }
 
 }

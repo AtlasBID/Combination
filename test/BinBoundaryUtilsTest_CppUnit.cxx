@@ -26,6 +26,8 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION ( TestOverlapNegEta, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestOverlapBins, std::runtime_error );
   CPPUNIT_TEST_EXCEPTION ( TestGappedBins, std::runtime_error );
+  CPPUNIT_TEST_EXCEPTION(thinBins, std::runtime_error);
+  CPPUNIT_TEST_EXCEPTION(totalOverlapBins, std::runtime_error);
 
   CPPUNIT_TEST (TestBBOK1D);
   CPPUNIT_TEST (TestBBOK1D2);
@@ -90,6 +92,47 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
     ana.bins.push_back(b1);
 
     bin_boundaries result (calcBoundaries(ana));
+  }
+
+  void thinBins()
+  {
+	  // A bin that is infinitely thing should cause an error!
+	  CalibrationAnalysis ana;
+	  CalibrationBin b1;
+
+	  CalibrationBinBoundary bb1;
+	  bb1.lowvalue = 0.0;
+	  bb1.highvalue = 0.0;
+	  bb1.variable = "pt";
+	  b1.binSpec.push_back(bb1);
+
+	  CalibrationBinBoundary bb2;
+	  bb2.lowvalue = 0.0;
+	  bb2.highvalue = 1.5;
+	  bb2.variable = "pt";
+	  b1.binSpec.push_back(bb2);
+
+	  ana.bins.push_back(b1);
+
+	  bin_boundaries result(calcBoundaries(ana));
+  }
+
+  void totalOverlapBins()
+  {
+	  // A bin that is totally overlapping should also cause an error
+	  CalibrationAnalysis ana;
+	  CalibrationBin b1;
+
+	  CalibrationBinBoundary bb1;
+	  bb1.lowvalue = 0.0;
+	  bb1.highvalue = 1.5;
+	  bb1.variable = "pt";
+	  b1.binSpec.push_back(bb1);
+
+	  ana.bins.push_back(b1);
+	  ana.bins.push_back(b1);
+
+	  bin_boundaries result(calcBoundaries(ana));
   }
 
   void TestOverlapNegEta()

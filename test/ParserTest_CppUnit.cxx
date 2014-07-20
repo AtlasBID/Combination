@@ -29,6 +29,7 @@ class ParserTest : public CppUnit::TestFixture
 
   //CPPUNIT_TEST( testSourceComments );
 
+  CPPUNIT_TEST(testParseEmptyAnalysis);
   CPPUNIT_TEST_EXCEPTION( testParseSyntaxBasicErrorThrows, std::runtime_error );
   CPPUNIT_TEST( testParseEmptyAnalysisString );
   CPPUNIT_TEST( testParseSimpleAnalysis );
@@ -98,6 +99,9 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testSysErrorNotEqual);
   CPPUNIT_TEST(testSysErrorEqual);
 
+  CPPUNIT_TEST(testParseSplitAnalysis);
+  CPPUNIT_TEST_EXCEPTION(testParseSplitAnalysisWithOverlap, std::runtime_error);
+
   CPPUNIT_TEST_SUITE_END();
 
   void testSourceComments()
@@ -147,10 +151,17 @@ class ParserTest : public CppUnit::TestFixture
     CalibrationInfo result (Parse("AAANNNnalysis(ptrel, bottom, SV050){}"));
   }
 
+  void testParseEmptyAnalysis()
+  {
+	  cout << "Test testParseEmptyAnalysis" << endl;
+	  CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){}"));
+	  CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
+  }
+
   void testParseSimpleAnalysis()
   {
     cout << "Test testParseSimpleAnalysis" << endl;
-    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){}"));
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result:" << endl << result << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
@@ -160,13 +171,13 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.Analyses[0].tagger == "SV0");
     CPPUNIT_ASSERT(result.Analyses[0].jetAlgorithm == "MyJets");
     CPPUNIT_ASSERT(result.Analyses[0].flavor == "bottom");
-    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 0);
+    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 1);
   }
 
   void testParseSimpleAnalysisNotEqual()
   {
     cout << "Test testParseSimpleAnalysisNotEqual" << endl;
-    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, !=0, MyJets){}"));
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, !=0, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result:" << endl << result << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
@@ -175,13 +186,13 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.Analyses[0].tagger == "SV0");
     CPPUNIT_ASSERT(result.Analyses[0].jetAlgorithm == "MyJets");
     CPPUNIT_ASSERT(result.Analyses[0].flavor == "bottom");
-    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 0);
+    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 1);
   }
 
   void testParseSimpleAnalysisFunnySpaces()
   {
     cout << "Test testParseSimpleAnalysisFunnySpaces" << endl;
-    CalibrationInfo result (Parse("Analysis(ptrel ,bottom ,SV0, 0.50 ,MyJets){}"));
+    CalibrationInfo result (Parse("Analysis(ptrel ,bottom ,SV0, 0.50 ,MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result:" << endl << result << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
@@ -192,14 +203,14 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(result.Analyses[0].tagger == "SV0");
     CPPUNIT_ASSERT(result.Analyses[0].jetAlgorithm == "MyJets");
     CPPUNIT_ASSERT(result.Analyses[0].flavor == "bottom");
-    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 0);
+    CPPUNIT_ASSERT(result.Analyses[0].bins.size() == 1);
   }
 
 
   void testParseTwoAnalyses()
   {
     cout << "Test testParseTwoAnalyses" << endl;
-    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){} Analysis(system8, bottom, SV0, 0.50, MyJets) {}"));
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}} Analysis(system8, bottom, SV0, 0.50, MyJets) {bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result size is " << result.Analyses.size() << "!" << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 2);
@@ -234,6 +245,28 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT(bb.lowvalue == 20);
     CPPUNIT_ASSERT(bb.variable == "pt");
     CPPUNIT_ASSERT(bb.highvalue == 30);
+  }
+
+  void testParseSplitAnalysis()
+  {
+	  // Automaticlaly combine analyses that are split in two in the input files.
+	  cout << "Test testParseSplitAnalysis" << endl;
+	  CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}} Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(30<pt<40){central_value(0.5,0.01)}}"));
+
+	  CPPUNIT_ASSERT(result.Analyses.size() == 1);
+	  CalibrationAnalysis ana = result.Analyses[0];
+	  stringstream str;
+	  str << "  Found " << ana.bins.size() << endl;
+	  CPPUNIT_ASSERT_MESSAGE(str.str(), ana.bins.size() == 2);
+	  CPPUNIT_ASSERT_DOUBLES_EQUAL(20, ana.bins[0].binSpec[0].lowvalue, 0.1);
+	  CPPUNIT_ASSERT_DOUBLES_EQUAL(30, ana.bins[1].binSpec[0].lowvalue, 0.1);
+  }
+
+  void testParseSplitAnalysisWithOverlap()
+  {
+	  // When we combine a split analysis if two have the same bin that is BAD.
+	  cout << "Test testParseSplitAnalysis" << endl;
+	  CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}} Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<40){central_value(0.5,0.01)}}"));
   }
 
   void testParseSimpleAnalysisWithFunnyBinning()
@@ -574,7 +607,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseRoundTrip2()
   {
     cout << "Test testParseRoundTrip2" << endl;
-    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}} Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
+    CalibrationInfo result (Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}} Analysis(ptrel2, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01) sys(dude, 0.1%)}}"));
     
     CPPUNIT_ASSERT_EQUAL((size_t)2, result.Analyses.size());
 

@@ -69,6 +69,12 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testSplitAnalysis2 );
   CPPUNIT_TEST ( testSplitAnalysis3 );
 
+  CPPUNIT_TEST(testCombineSplitAnalysis);
+  CPPUNIT_TEST(testCombineNonSplitAnalysis);
+  CPPUNIT_TEST_EXCEPTION(testCombineSplitWithOverlap, std::runtime_error);
+  CPPUNIT_TEST_EXCEPTION(testCombineSplitWithPartialOverlap, std::runtime_error);
+  CPPUNIT_TEST(emptyAnalysisRemoved);
+
   CPPUNIT_TEST_SUITE_END();
 
   void testEmptyCommandLine()
@@ -713,6 +719,98 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL (true, b_seen);
   }
 
+  CalibrationAnalysis CreateOneBinAnalsis()
+  {
+	  CalibrationAnalysis result;
+	  result.flavor = "bottom";
+	  result.jetAlgorithm = "jet1";
+	  result.name = "calib_algo";
+	  result.operatingPoint = "0.5";
+	  result.tagger = "tagger1";
+
+	  CalibrationBinBoundary bb1;
+	  bb1.highvalue = 30;
+	  bb1.lowvalue = 20;
+	  bb1.variable = "pt";
+
+	  CalibrationBin b1;
+	  b1.binSpec.push_back(bb1);
+	  b1.centralValue = 1.0;
+	  b1.centralValueStatisticalError = 0.001;
+	  b1.isExtended = false;
+	  result.bins.push_back(b1);
+
+	  return result;
+  }
+
+  void testCombineSplitAnalysis()
+  {
+	  // Two analyses that should be correctly combined
+	  CalibrationAnalysis a1(CreateOneBinAnalsis());
+	  CalibrationAnalysis a2(CreateOneBinAnalsis());
+	  a2.bins[0].binSpec[0].lowvalue = 30;
+	  a2.bins[0].binSpec[0].highvalue = 40;
+	  vector<CalibrationAnalysis> list;
+	  list.push_back(a1);
+	  list.push_back(a2);
+
+	  vector<CalibrationAnalysis> r(CombineSameAnalyses(list));
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, r.size());
+	  CPPUNIT_ASSERT_EQUAL((size_t)2, r[0].bins.size());
+  }
+
+  void testCombineNonSplitAnalysis()
+  {
+	  // Two analyses that differ only in name that should not be combined.
+	  // Two analyses that should be correctly combined
+	  CalibrationAnalysis a1(CreateOneBinAnalsis());
+	  CalibrationAnalysis a2(CreateOneBinAnalsis());
+	  a2.name = "tag_alg_2";
+	  vector<CalibrationAnalysis> list;
+	  list.push_back(a1);
+	  list.push_back(a2);
+
+	  vector<CalibrationAnalysis> r(CombineSameAnalyses(list));
+	  CPPUNIT_ASSERT_EQUAL((size_t)2, r.size());
+  }
+
+  void testCombineSplitWithOverlap()
+  {
+	  // Combine two analyses with same binning. This means overlapping bins. Which means a boom.
+	  CalibrationAnalysis a1(CreateOneBinAnalsis());
+	  CalibrationAnalysis a2(CreateOneBinAnalsis());
+	  vector<CalibrationAnalysis> list;
+	  list.push_back(a1);
+	  list.push_back(a2);
+
+	  vector<CalibrationAnalysis> r(CombineSameAnalyses(list));
+  }
+
+  void testCombineSplitWithPartialOverlap()
+  {
+	  // Two analyses that should be correctly combined
+	  CalibrationAnalysis a1(CreateOneBinAnalsis());
+	  CalibrationAnalysis a2(CreateOneBinAnalsis());
+	  a2.bins[0].binSpec[0].lowvalue = 25;
+	  a2.bins[0].binSpec[0].highvalue = 35;
+	  vector<CalibrationAnalysis> list;
+	  list.push_back(a1);
+	  list.push_back(a2);
+
+	  vector<CalibrationAnalysis> r(CombineSameAnalyses(list));
+  }
+
+  void emptyAnalysisRemoved()
+  {
+	  // If an analysis has no bins, it shouldn't make it out of here.
+	  CalibrationAnalysis a1(CreateOneBinAnalsis());
+	  a1.bins.clear();
+	  vector<CalibrationAnalysis> list;
+	  list.push_back(a1);
+
+	  vector<CalibrationAnalysis> r(CombineSameAnalyses(list));
+	  CPPUNIT_ASSERT_EQUAL((size_t)0, r.size());
+  }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommonCommandLineUtilsTest);
