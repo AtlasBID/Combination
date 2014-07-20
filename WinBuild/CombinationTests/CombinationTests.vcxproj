@@ -10,66 +10,24 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Combination\AtlasLabels.h" />
-    <ClInclude Include="..\..\Combination\AtlasStyle.h" />
-    <ClInclude Include="..\..\Combination\BinBoundaryUtils.h" />
-    <ClInclude Include="..\..\Combination\BinNameUtils.h" />
-    <ClInclude Include="..\..\Combination\BinUtils.h" />
-    <ClInclude Include="..\..\Combination\CalibrationDataModel.h" />
-    <ClInclude Include="..\..\Combination\CalibrationDataModelStreams.h" />
-    <ClInclude Include="..\..\Combination\CDIConverter.h" />
-    <ClInclude Include="..\..\Combination\CombinationContext.h" />
-    <ClInclude Include="..\..\Combination\CombinationContextBase.h" />
-    <ClInclude Include="..\..\Combination\Combiner.h" />
-    <ClInclude Include="..\..\Combination\CommonCommandLineUtils.h" />
-    <ClInclude Include="..\..\Combination\ExtrapolationTools.h" />
-    <ClInclude Include="..\..\Combination\Measurement.h" />
-    <ClInclude Include="..\..\Combination\MeasurementUtils.h" />
-    <ClInclude Include="..\..\Combination\Parser.h" />
-    <ClInclude Include="..\..\Combination\Plots.h" />
-    <ClInclude Include="..\..\Combination\RooRealVarCache.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\AtlasLabels.cxx" />
-    <ClCompile Include="..\..\src\AtlasStyle.cxx" />
-    <ClCompile Include="..\..\src\BinBoundaryUtils.cxx" />
-    <ClCompile Include="..\..\src\BinNameUtils.cxx" />
-    <ClCompile Include="..\..\src\BinUtils.cxx" />
-    <ClCompile Include="..\..\src\CalibrationDataModel.cxx" />
-    <ClCompile Include="..\..\src\CalibrationDataModelStreams.cxx" />
-    <ClCompile Include="..\..\src\CombinationContext.cxx" />
-    <ClCompile Include="..\..\src\CombinationContextBase.cxx" />
-    <ClCompile Include="..\..\src\Combiner.cxx" />
-    <ClCompile Include="..\..\src\CommonCommandLineUtils.cxx" />
-    <ClCompile Include="..\..\src\ExtrapolationTools.cxx" />
-    <ClCompile Include="..\..\src\Measurement.cxx" />
-    <ClCompile Include="..\..\src\MeasurementUtils.cxx" />
-    <ClCompile Include="..\..\src\Parser.cxx" />
-    <ClCompile Include="..\..\src\Plots.cxx" />
-    <ClCompile Include="..\..\src\RooRealVarCache.cxx" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8995069D-235D-4E5F-B9F2-FD2F1634D74F}</ProjectGuid>
+    <ProjectGuid>{EF64CC36-15D8-4BA3-A4B1-D986939C4F5A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>CombinationLib</RootNamespace>
+    <RootNamespace>CombinationTests</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -82,9 +40,15 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\buildProps.props" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <NuGetPackageImportStamp>b326ec1f</NuGetPackageImportStamp>
+  <PropertyGroup Label="UserMacros">
+    <NuGetPackageImportStamp>3bdebc25</NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir)..\..;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -92,12 +56,10 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -109,25 +71,41 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\test\BinBoundaryUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\BinUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\CombinationContextTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\CombinerTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\CommonCommandLineUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ExtrapolationToolsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\MeasurementTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\MeasurementUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ParserTest_CppUnit.cxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\boost.1.55.0.16\build\native\boost.targets" Condition="Exists('..\packages\boost.1.55.0.16\build\native\boost.targets')" />
+    <Import Project="..\packages\boost.1.55.0.10\build\native\boost.targets" Condition="Exists('..\packages\boost.1.55.0.10\build\native\boost.targets')" />
     <Import Project="..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets" Condition="Exists('..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets')" />
+    <Import Project="..\packages\cppunit.1.12.1.1\build\native\cppunit.targets" Condition="Exists('..\packages\cppunit.1.12.1.1\build\native\cppunit.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\boost.1.55.0.16\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.55.0.16\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.55.0.10\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.55.0.10\build\native\boost.targets'))" />
     <Error Condition="!Exists('..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\cppunit.1.12.1.1\build\native\cppunit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cppunit.1.12.1.1\build\native\cppunit.targets'))" />
   </Target>
 </Project>
