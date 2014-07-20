@@ -3,6 +3,7 @@
 #include "Combination/CalibrationDataModel.h"
 
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
