@@ -40,7 +40,7 @@ namespace {
   t_bin_list extract_bins(const CalibrationAnalysis &ana, bool ignoreExtrapolation)
   {
 	  t_bin_list result;
-	  set<vector<CalibrationBinBoundary>> binsSeen;
+	  set<vector<CalibrationBinBoundary> > binsSeen;
 
 	  for (unsigned int ibin = 0; ibin < ana.bins.size(); ibin++) {
 		  const CalibrationBin &bin(ana.bins[ibin]);
