@@ -42,6 +42,9 @@
     <ClCompile Include="..\..\test\MeasurementUtilsTest_CppUnit.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\test\FitLinageTest_CppUnit.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

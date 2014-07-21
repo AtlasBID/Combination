@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EF64CC36-15D8-4BA3-A4B1-D986939C4F5A}</ProjectGuid>
+    <ProjectGuid>{5499DCDC-9D11-4536-9419-1AD42FF4FB70}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>CombinationTests</RootNamespace>
+    <RootNamespace>FTDump</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -26,7 +26,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -41,11 +41,10 @@
     <Import Project="..\buildProps.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <NuGetPackageImportStamp>3bdebc25</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>5653dc6d</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\..;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -81,16 +80,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\test\BinBoundaryUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\BinUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\CombinationContextTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\CombinerTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\CommonCommandLineUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\ExtrapolationToolsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\FitLinageTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\MeasurementTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\MeasurementUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\ParserTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\bin\FTDump.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -99,7 +89,6 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\boost.1.55.0.10\build\native\boost.targets" Condition="Exists('..\packages\boost.1.55.0.10\build\native\boost.targets')" />
     <Import Project="..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets" Condition="Exists('..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets')" />
-    <Import Project="..\packages\cppunit.1.12.1.1\build\native\cppunit.targets" Condition="Exists('..\packages\cppunit.1.12.1.1\build\native\cppunit.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -107,6 +96,5 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\boost.1.55.0.10\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.55.0.10\build\native\boost.targets'))" />
     <Error Condition="!Exists('..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc120.1.55.0.16\build\native\boost_regex-vc120.targets'))" />
-    <Error Condition="!Exists('..\packages\cppunit.1.12.1.1\build\native\cppunit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cppunit.1.12.1.1\build\native\cppunit.targets'))" />
   </Target>
 </Project>

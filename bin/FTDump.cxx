@@ -8,6 +8,7 @@
 #include "Combination/BinBoundaryUtils.h"
 #include "Combination/BinNameUtils.h"
 #include "Combination/CalibrationDataModelStreams.h"
+#include "Combination/FitLinage.h"
 
 #include <vector>
 #include <set>
@@ -28,6 +29,7 @@ void CheckEverythingBinByBin(const vector<CalibrationAnalysis> &info);
 void PrintNames(const CalibrationInfo &info, ostream &output);
 void PrintQNames(const CalibrationInfo &info, ostream &output);
 bool CompareNames(const CalibrationAnalysis &ana, ostream &output, string &inputfile);
+void PrintLinage(const vector<CalibrationAnalysis> &calibs, ostream &output);
 
 struct CaseInsensitiveCompare {
 	bool operator() (const string &a, const string &b) const {
@@ -131,6 +133,7 @@ int main(int argc, char **argv)
 		bool dumpMetaDataForCPU = false;
 		bool dumpMetaDataForBins = false;
 		bool dumpSysErrorUsage = false;
+		bool dumpLinage = false;
 
 		bool sawFlag = false;
 		for (unsigned int i = 0; i < otherFlags.size(); i++) {
@@ -144,6 +147,10 @@ int main(int argc, char **argv)
 			}
 			else if (otherFlags[i] == "qnames") {
 				doQNames = true;
+				sawFlag = true;
+			}
+			else if (otherFlags[i] == "linage") {
+				dumpLinage = true;
 				sawFlag = true;
 			}
 			else if (otherFlags[i] == "cnames") {
@@ -333,6 +340,9 @@ int main(int argc, char **argv)
 			return isGood ? 0 : 1;
 		}
 
+		if (dumpLinage)
+			PrintLinage(info.Analyses, *output);
+
 		// Check to see if the bin specifications are consistent.
 		return 0;
 
@@ -382,6 +392,32 @@ private:
 	CalibrationAnalysis _ana;
 	CalibrationBin _bin;
 };
+
+// Dump the linage in a nice easy-to-read way.
+void PrintLinage(const vector<CalibrationAnalysis> &calibs, ostream &output)
+{
+	// Order by flavor, tagger, jet algorithm, operating point
+	map<string, map<string, map<string, map<string, vector<CalibrationAnalysis> > > > > all;
+	for (vector<CalibrationAnalysis>::const_iterator itr = calibs.begin(); itr != calibs.end(); itr++) {
+		all[itr->flavor][itr->tagger][itr->jetAlgorithm][itr->operatingPoint].push_back(*itr);
+	}
+
+	for (map<string, map<string, map<string, map<string, vector<CalibrationAnalysis> > > > >::const_iterator i_flavor = all.begin(); i_flavor != all.end(); i_flavor++) {
+		output << i_flavor->first << ":" << endl;
+		for (map<string, map<string, map<string, vector<CalibrationAnalysis> > > >::const_iterator i_tagger = i_flavor->second.begin(); i_tagger != i_flavor->second.end(); i_tagger++) {
+			output << "  " << i_tagger->first << ":" << endl;
+			for (map<string, map<string, vector<CalibrationAnalysis> > >::const_iterator i_jet = i_tagger->second.begin(); i_jet != i_tagger->second.end(); i_jet++) {
+				output << "    " << i_jet->first << ":" << endl;
+				for (map<string, vector<CalibrationAnalysis> >::const_iterator i_op = i_jet->second.begin(); i_op != i_jet->second.end(); i_op++) {
+					output << "      " << i_op->first << ":" << endl;
+					for (vector<CalibrationAnalysis>::const_iterator i_ana = i_op->second.begin(); i_ana != i_op->second.end(); i_ana++) {
+						output << "        " << i_ana->name << ": " << Linage(*i_ana) << endl;
+					}
+				}
+			}
+		}
+	}
+}
 
 //
 // Generate a comma seperated list of csv values.
@@ -638,5 +674,6 @@ void Usage(void)
 	cout << "  --asInput - print out the inputs as a single file after applying all command line options" << endl;
 	cout << "  --corr - print out the correlation inputs in a CSV command format" << endl;
 	cout << "  --inputfile - to be used together with cnames flag (input files are located inside the directory inputdata)" << endl;
+	cout << "  --linage - print out the linage for all input analyses" << endl;
 	cout << "  output <fname> - all output is sent to fname" << endl;
 }

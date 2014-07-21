@@ -11,6 +11,7 @@
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/BinNameUtils.h"
 #include "Combination/CalibrationDataModelStreams.h"
+#include "Combination/FitLinage.h"
 
 #include <RooRealVar.h>
 
@@ -632,7 +633,14 @@ namespace BTagCombination
       r.metadata[string("Nuisance ") + i_p->first].push_back(i_p->second.second);
     }
 
+	// Update the meta-data from teh various analyses
+
     MergeMetadata (r.metadata, anas);
+
+	// And update the linage.
+
+	r.metadata_s["Linage"] = CombineLinage(anas, LinageCombinationOperator::LCFitCombine);
+
     return r;
   }
 

@@ -36,6 +36,9 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testOBTwoBinInWithSys );
   CPPUNIT_TEST ( testOBTwoBinInWithUnCorSys );
 
+  CPPUNIT_TEST(testCombineTwoAnaLinage);
+  CPPUNIT_TEST(combineBBBLinageCheck);
+
   CPPUNIT_TEST ( testAnaOne );
   CPPUNIT_TEST ( testAnaTwoDifBins );
   CPPUNIT_TEST ( testAnaTwoDifBinsDiffSys );
@@ -592,6 +595,40 @@ class CombinerTest : public CppUnit::TestFixture
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, e1.value, 0.05);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, e2.value, 0.05);
+  }
+
+  void testCombineTwoAnaLinage()
+  {
+	  // Single analysis - test simple case!
+	  CalibrationBin b1;
+	  b1.centralValue = 1.0;
+	  b1.centralValueStatisticalError = 0.1;
+	  CalibrationBinBoundary bound;
+	  bound.variable = "eta";
+	  bound.lowvalue = 0.0;
+	  bound.highvalue = 2.5;
+	  b1.binSpec.push_back(bound);
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+
+	  CalibrationAnalysis ana2(ana1);
+	  ana2.name = "ptrel";
+
+	  CalibrationInfo info;
+	  info.Analyses.push_back(ana1);
+	  info.Analyses.push_back(ana2);
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> result(CombineAnalyses(info));
+
+	  CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
+	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel"), result[0].metadata_s["Linage"]);
   }
 
   void testAnaTwoSameBinsStatCor()
@@ -1402,6 +1439,65 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.5, b_1.centralValue, 0.01);
 
     cout << "Finishing testAnaTwoBinsTwoCoords" << endl;
+  }
+
+  void combineBBBLinageCheck()
+  {
+	  // bin-by-bin combination, make sure the linage works as expected.
+
+	  cout << "Starting testAnaTwoBinsTwoCords" << endl;
+
+	  CalibrationBin b1;
+	  b1.centralValue = 0.5;
+	  b1.centralValueStatisticalError = 0.1;
+
+	  CalibrationBinBoundary bb1;
+	  bb1.variable = "eta";
+	  bb1.lowvalue = 0.0;
+	  bb1.highvalue = 2.5;
+	  b1.binSpec.push_back(bb1);
+
+	  CalibrationBinBoundary bb2;
+	  bb2.variable = "pt";
+	  bb2.lowvalue = 30;
+	  bb2.highvalue = 40;
+	  b1.binSpec.push_back(bb2);
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+
+	  // ana 2
+
+	  CalibrationBin b2;
+	  b2.centralValue = 0.5;
+	  b2.centralValueStatisticalError = 0.1;
+	  b2.binSpec.push_back(bb1);
+	  b2.binSpec.push_back(bb2);
+
+	  CalibrationAnalysis ana2;
+	  ana2.name = "ptrel";
+	  ana2.flavor = "bottom";
+	  ana2.tagger = "comb";
+	  ana2.operatingPoint = "0.50";
+	  ana2.jetAlgorithm = "AntiKt4Topo";
+	  ana2.bins.push_back(b2);
+
+
+	  CalibrationInfo inputs;
+	  inputs.Analyses.push_back(ana1);
+	  inputs.Analyses.push_back(ana2);
+
+	  inputs.CombinationAnalysisName = "combined";
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> results(CombineAnalyses(inputs, true, kCombineBySingleBin));
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel"), results[0].metadata_s["Linage"]);
   }
 
   void testAnaTwoBinsTwoCoordsReverseBBB()

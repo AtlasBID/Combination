@@ -23,6 +23,8 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST (testExtrapolate1binPtHighErrors);
   CPPUNIT_TEST (testExtrapolate1binPtHighErrors2);
 
+  CPPUNIT_TEST(testExtrapolateLinage);
+
   CPPUNIT_TEST (testExtrapolate1binPtHigh);
   CPPUNIT_TEST (testExtrapolate1binPtLow);
   CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBins);
@@ -473,6 +475,18 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     // The extrapolation figures out the total, but will add in quad with the other errors,
     // so a funny quad subtraction occurs.
     CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
+  }
+
+  // Do the pt extrapolation, on the high side.
+  void testExtrapolateLinage()
+  {
+	  CalibrationAnalysis ana(generate_1bin_ana());
+	  ana.name = "ana";
+	  CalibrationAnalysis extrap(generate_2bin_extrap_in_pthigh());
+	  extrap.name = "MCCalib";
+
+	  CalibrationAnalysis result(addExtrapolation(extrap, ana));
+	  CPPUNIT_ASSERT_EQUAL(string("extrap(MCCalib=>ana)"), result.metadata_s["Linage"]);
   }
 
   // Do the pt extrapolation, on the high side.

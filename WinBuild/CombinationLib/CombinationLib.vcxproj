@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\Combination\Combiner.h" />
     <ClInclude Include="..\..\Combination\CommonCommandLineUtils.h" />
     <ClInclude Include="..\..\Combination\ExtrapolationTools.h" />
+    <ClInclude Include="..\..\Combination\FitLinage.h" />
     <ClInclude Include="..\..\Combination\Measurement.h" />
     <ClInclude Include="..\..\Combination\MeasurementUtils.h" />
     <ClInclude Include="..\..\Combination\Parser.h" />
@@ -43,6 +44,7 @@
     <ClCompile Include="..\..\src\Combiner.cxx" />
     <ClCompile Include="..\..\src\CommonCommandLineUtils.cxx" />
     <ClCompile Include="..\..\src\ExtrapolationTools.cxx" />
+    <ClCompile Include="..\..\src\FitLinage.cxx" />
     <ClCompile Include="..\..\src\Measurement.cxx" />
     <ClCompile Include="..\..\src\MeasurementUtils.cxx" />
     <ClCompile Include="..\..\src\Parser.cxx" />

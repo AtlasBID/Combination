@@ -78,7 +78,7 @@ macro_append Combination_cppflags " -ftemplate-depth-200"
 
 use TestPolicy			TestPolicy-*
 #use TestTools			TestTools-*		AtlasTest
-apply_pattern CppUnit name=CombinationParserTests files="-s=../test CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx BinBoundaryUtilsTest_CppUnit.cxx CDIConverterTest_CppUnit.cxx MeasurementTest_CppUnit.cxx MeasurementUtilsTest_CppUnit.cxx BinUtilsTest_CppUnit.cxx ExtrapolationToolsTest_CppUnit.cxx"
+apply_pattern CppUnit name=CombinationParserTests files="-s=../test FitLinageTest_CppUnit.cxx CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx BinBoundaryUtilsTest_CppUnit.cxx CDIConverterTest_CppUnit.cxx MeasurementTest_CppUnit.cxx MeasurementUtilsTest_CppUnit.cxx BinUtilsTest_CppUnit.cxx ExtrapolationToolsTest_CppUnit.cxx"
 
 #
 # Turn on debugging if it is needed!!
