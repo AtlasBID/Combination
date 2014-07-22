@@ -639,7 +639,7 @@ namespace BTagCombination
 
 	// And update the linage.
 
-	r.metadata_s["Linage"] = CombineLinage(anas, LinageCombinationOperator::LCFitCombine);
+	r.metadata_s["Linage"] = CombineLinage(anas, LCFitCombine);
 
     return r;
   }

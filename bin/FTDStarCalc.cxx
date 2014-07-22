@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 
 				CalibrationAnalysis r(dstar);
 				r.name = stringReplace(outputAnaPattern, "<>", a.name);
-				r.metadata_s["Linage"] = BinaryLinageOp(dstar, a, )
+				r.metadata_s["Linage"] = BinaryLinageOp(dstar, a, LBDStar);
 
 				RescaleBins(r.bins, a.bins);
 

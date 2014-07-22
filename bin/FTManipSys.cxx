@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 					b.systematicErrors.push_back(err);
 				}
 
-				newAna["Linage"] = BinaryLinageOp(newAna, "newsys", LinageBinaryOperator::LBAddSys);
+				newAna.metadata_s["Linage"] = BinaryLinageOp(newAna, "newsys", LBAddSys);
 
 				results.push_back(newAna);
 			}

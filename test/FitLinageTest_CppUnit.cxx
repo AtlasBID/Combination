@@ -49,7 +49,7 @@ class FitLinageTest : public CppUnit::TestFixture
 	void combineEmptyList()
 	{
 		vector<CalibrationAnalysis> lst;
-		string r(CombineLinage(lst, LinageCombinationOperator::LCFitCombine));
+		string r(CombineLinage(lst, LCFitCombine));
 		CPPUNIT_ASSERT_EQUAL(string(""), r);
 	}
 
@@ -59,7 +59,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		CalibrationAnalysis a1;
 		a1.name = "a1";
 		lst.push_back(a1);
-		string r(CombineLinage(lst, LinageCombinationOperator::LCFitCombine));
+		string r(CombineLinage(lst, LCFitCombine));
 		CPPUNIT_ASSERT_EQUAL(string("a1"), r);
 	}
 
@@ -72,7 +72,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		CalibrationAnalysis a2;
 		a2.name = "a2";
 		lst.push_back(a2);
-		string r(CombineLinage(lst, LinageCombinationOperator::LCFitCombine));
+		string r(CombineLinage(lst, LCFitCombine));
 		CPPUNIT_ASSERT_EQUAL(string("a1+a2"), r);
 	}
 
@@ -83,7 +83,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		CalibrationAnalysis ttbar;
 		ttbar.name = "ttbar_pdf";
 
-		string r(BinaryLinageOp(dstemp, ttbar, LinageBinaryOperator::LBDStar));
+		string r(BinaryLinageOp(dstemp, ttbar, LBDStar));
 		CPPUNIT_ASSERT_EQUAL(string("D*(ttbar_pdf=>DStar)"), r);
 	}
 
@@ -92,7 +92,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		CalibrationAnalysis ttbar;
 		ttbar.name = "ttbar";
 
-		string r(BinaryLinageOp(ttbar, "newerror", LinageBinaryOperator::LBAddSys));
+		string r(BinaryLinageOp(ttbar, "newerror", LBAddSys));
 		CPPUNIT_ASSERT_EQUAL(string("addSys(newerror=>ttbar)"), r);
 	}
 	
@@ -103,7 +103,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		CalibrationAnalysis mc;
 		mc.name = "MCCalib";
 
-		string r(BinaryLinageOp(ttbar, mc, LinageBinaryOperator::LBExtrapolate));
+		string r(BinaryLinageOp(ttbar, mc, LBExtrapolate));
 		CPPUNIT_ASSERT_EQUAL(string("extrap(MCCalib=>ttbar)"), r);
 	}
 

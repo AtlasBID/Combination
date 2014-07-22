@@ -193,7 +193,7 @@ namespace BTagCombination {
 
 		// Update the linage.
 
-		r.metadata_s["Linage"] = BinaryLinageOp(r, extrapolated, LinageBinaryOperator::LBExtrapolate);
+		r.metadata_s["Linage"] = BinaryLinageOp(r, extrapolated, LBExtrapolate);
 
 		return r;
 	}
