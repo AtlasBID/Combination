@@ -87,6 +87,7 @@ class ParserTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testParseMetadata2);
   CPPUNIT_TEST(testParseMetadata3);
   CPPUNIT_TEST(testParseMetadata4);
+  CPPUNIT_TEST(testParseMetadata5);
 
   CPPUNIT_TEST(testParseCopy);
   CPPUNIT_TEST(testParseCopy2);
@@ -908,6 +909,19 @@ class ParserTest : public CppUnit::TestFixture
     pair<string, string> v = *(ana.metadata_s.begin());
     CPPUNIT_ASSERT_EQUAL(string("ISR FSR"), v.first);
     CPPUNIT_ASSERT_EQUAL(string("no way"), v.second);
+  }
+
+  void testParseMetadata5()
+  {
+	  cout << "Test testParseMetadata5" << endl;
+	  CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){ meta_data_s(Linage, D*[tbarpdf+dork=>DStar]) bin(20<pt<30){central_value(0.5,0.01)}}"));
+
+	  CPPUNIT_ASSERT(result.Analyses.size() == 1);
+	  CalibrationAnalysis ana = result.Analyses[0];
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, ana.metadata_s.size());
+	  pair<string, string> v = *(ana.metadata_s.begin());
+	  CPPUNIT_ASSERT_EQUAL(string("Linage"), v.first);
+	  CPPUNIT_ASSERT_EQUAL(string("D*[tbarpdf+dork=>DStar]"), v.second);
   }
 
   void testParseRoundTrip6()

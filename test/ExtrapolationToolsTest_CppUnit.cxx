@@ -486,7 +486,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 	  extrap.name = "MCCalib";
 
 	  CalibrationAnalysis result(addExtrapolation(extrap, ana));
-	  CPPUNIT_ASSERT_EQUAL(string("extrap(MCCalib=>ana)"), result.metadata_s["Linage"]);
+	  CPPUNIT_ASSERT_EQUAL(string("extrap[MCCalib=>ana]"), result.metadata_s["Linage"]);
   }
 
   // Do the pt extrapolation, on the high side.
