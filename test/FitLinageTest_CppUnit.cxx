@@ -84,7 +84,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		ttbar.name = "ttbar_pdf";
 
 		string r(BinaryLinageOp(dstemp, ttbar, LBDStar));
-		CPPUNIT_ASSERT_EQUAL(string("D*[ttbar_pdf=>DStar]"), r);
+		CPPUNIT_ASSERT_EQUAL(string("D*[DStar,ttbar_pdf]"), r);
 	}
 
 	void addSysLinage()
@@ -93,7 +93,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		ttbar.name = "ttbar";
 
 		string r(BinaryLinageOp(ttbar, "newerror", LBAddSys));
-		CPPUNIT_ASSERT_EQUAL(string("addSys[newerror=>ttbar]"), r);
+		CPPUNIT_ASSERT_EQUAL(string("ttbar+addSys[newerror]"), r);
 	}
 	
 	void extrapLinage()
@@ -104,7 +104,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		mc.name = "MCCalib";
 
 		string r(BinaryLinageOp(ttbar, mc, LBExtrapolate));
-		CPPUNIT_ASSERT_EQUAL(string("extrap[MCCalib=>ttbar]"), r);
+		CPPUNIT_ASSERT_EQUAL(string("ttbar+extrap[MCCalib]"), r);
 	}
 
 };

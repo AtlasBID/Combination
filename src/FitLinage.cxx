@@ -58,13 +58,13 @@ namespace BTagCombination {
 		switch (how)
 		{
 		case BTagCombination::LBDStar:
-			r << "D*[" << a2 << "=>" << Linage(a1) << "]";
+			r << "D*[" << Linage(a1) << "," << a2 << "]";
 			break;
 		case BTagCombination::LBAddSys:
-			r << "addSys[" << a2 << "=>" << Linage(a1) << "]";
+			r << Linage(a1) << "+addSys[" << a2 << "]";
 			break;
 		case BTagCombination::LBExtrapolate:
-			r << "extrap[" << a2 << "=>" << Linage(a1) << "]";
+			r << Linage(a1) << "+extrap[" << a2 << "]";
 			break;
 		default:
 			throw runtime_error("Unknown binary linage operator");
