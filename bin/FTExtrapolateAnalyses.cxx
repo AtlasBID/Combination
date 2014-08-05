@@ -120,8 +120,11 @@ int main(int argc, char **argv)
 		else {
 			// Do the extrapolation
 			if (e_itr->second.size() > 1) {
-				cout << "More than one extrapolated analysis to apply (" << e_itr->first << ")!" << endl;
-				usage();
+				cout << "More than one extrapolated analysis to apply (" << e_itr->first << "): ";
+				for (vector<CalibrationAnalysis>::const_iterator &bad_ana = e_itr->second.begin(); bad_ana != e_itr->second.end(); bad_ana++) {
+					cout << OPByCalibName(*bad_ana) << " ";
+				}
+				cout << endl;
 				return 1;
 			}
 			for (vector<CalibrationAnalysis>::const_iterator a_itr = itr->second.begin(); a_itr != itr->second.end(); a_itr++) {
