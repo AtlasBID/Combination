@@ -5,7 +5,8 @@
 
 #include "Combination/CDIConverter.h"
 #include "Combination/Parser.h"
-#include "CalibrationDataInterface/CalibrationDataContainer.h"
+#include "CalibrationDataInterface/CalibrationDataVariables.h"
+//#include "CalibrationDataInterface/CalibrationDataContainer.h"
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>
@@ -259,13 +260,13 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+    CalibrationStatus stat = c->getResult(v, r, obj);
 
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     stat = c->getStatUncertainty(v, r);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
   }
 
@@ -288,26 +289,26 @@ class CDIConverterTest : public CppUnit::TestFixture
     double r;
     cout << "Doing first lookup for 50 x 1.1" << endl;
 
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+    CalibrationStatus stat = c->getResult(v, r, obj);
 
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     stat = c->getStatUncertainty(v, r);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
 
     v.jetPt = 120.e3;
     v.jetEta = -0.3;
     obj = nullptr;
     stat = c->getResult(v, r, obj);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (5.0, r, 0.001);
 
     v.jetEta = 1.3;
     obj = nullptr;
     stat = c->getResult(v, r, obj);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (4.0, r, 0.001);
   }
 
@@ -330,7 +331,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     v.jetAuthor = "AntiKt4Topo";
 
     map<string, UncertaintyResult> all;
-    CalibrationDataContainer::CalibrationStatus stat;
+    CalibrationStatus stat;
     stat = c->getUncertainties(v, all);
     bool found = false;
     for (map<string, UncertaintyResult>::const_iterator itr = all.begin(); itr != all.end(); itr++) {
@@ -348,7 +349,7 @@ class CDIConverterTest : public CppUnit::TestFixture
 	CPPUNIT_ASSERT_DOUBLES_EQUAL (x, res.first, 0.001);
       }
     }
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_EQUAL (true, found);
 
     cout << "Done testing for systematics" << endl;
@@ -372,7 +373,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     v.jetAuthor = "AntiKt4Topo";
 
     map<string, UncertaintyResult> all;
-    CalibrationDataContainer::CalibrationStatus stat;
+    CalibrationStatus stat;
     stat = c->getUncertainties(v, all);
 
     for (map<string, UncertaintyResult>::const_iterator itr = all.begin(); itr != all.end(); itr++) {
@@ -429,18 +430,18 @@ class CDIConverterTest : public CppUnit::TestFixture
     v.jetEta = -1.1;
     v.jetAuthor = "AntiKt4Topo";
 
-    TObject *obj = nullptr;
-    double r;
-    //CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
-    //CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    //TObject *obj = nullptr;
+    //double r;
+    //CalibrationStatus stat = c->getResult(v, r, obj, true);
+    //CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     //CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     UncertaintyResult uncr;
-    CalibrationDataContainer::CalibrationStatus stat = c->getUncertainty("cerr", v, uncr);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kRange, stat);
+    CalibrationStatus stat = c->getUncertainty("cerr", v, uncr);
+    CPPUNIT_ASSERT_EQUAL (kRange, stat);
 
     stat = c->getUncertainty("extrapolation", v, uncr);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.3, uncr.first, 0.001);
 
     map<string, UncertaintyResult> allerrors;
@@ -467,18 +468,18 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj, true);
+    CalibrationStatus stat = c->getResult(v, r, obj, true);
 
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     UncertaintyResult uncr;
     stat = c->getUncertainty("cerr", v, uncr);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, uncr.first, 0.001);
 
     stat = c->getUncertainty("extrapolation", v, uncr);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.0, uncr.first, 0.001);
 
     map<string, UncertaintyResult> allerrors;
@@ -513,13 +514,13 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+    CalibrationStatus stat = c->getResult(v, r, obj);
 
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (1.1, r, 0.001);
 
     stat = c->getStatUncertainty(v, r);
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kSuccess, stat);
+    CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
 
     map<string, UncertaintyResult> allerrors;
@@ -564,9 +565,9 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+    CalibrationStatus stat = c->getResult(v, r, obj);
 
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kRange, stat);
+    CPPUNIT_ASSERT_EQUAL (kRange, stat);
   }
 
   // Make sure if we ask for someone outside the range we get back
@@ -585,9 +586,9 @@ class CDIConverterTest : public CppUnit::TestFixture
 
     TObject *obj = nullptr;
     double r;
-    CalibrationDataContainer::CalibrationStatus stat = c->getResult(v, r, obj);
+    CalibrationStatus stat = c->getResult(v, r, obj);
 
-    CPPUNIT_ASSERT_EQUAL (CalibrationDataContainer::kRange, stat);
+    CPPUNIT_ASSERT_EQUAL (kRange, stat);
   }
 };
 
