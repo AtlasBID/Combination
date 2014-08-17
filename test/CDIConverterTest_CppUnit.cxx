@@ -6,7 +6,6 @@
 #include "Combination/CDIConverter.h"
 #include "Combination/Parser.h"
 #include "CalibrationDataInterface/CalibrationDataVariables.h"
-//#include "CalibrationDataInterface/CalibrationDataContainer.h"
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Exception.h>
@@ -567,7 +566,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     double r;
     CalibrationStatus stat = c->getResult(v, r, obj);
 
-    CPPUNIT_ASSERT_EQUAL (kRange, stat);
+    CPPUNIT_ASSERT_EQUAL (kExtrapolatedRange, stat);
   }
 
   // Make sure if we ask for someone outside the range we get back
