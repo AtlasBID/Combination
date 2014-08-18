@@ -6,6 +6,7 @@
 #include "Combination/BinBoundaryUtils.h"
 #include "Combination/CommonCommandLineUtils.h"
 #include "Combination/CalibrationDataModelStreams.h"
+#include "Combination/FitLinage.h"
 
 #include "CalibrationDataInterface/CalibrationDataContainer.h"
 
@@ -254,7 +255,10 @@ namespace {
       hadronization = hadFind->second;
     }
     result->setHadronisation(hadronization);
-    result->setComment(eff.name);
+
+    // For the comment, set it to the complete history of how it was built.
+
+    result->setComment(Linage(eff));
 
     //
     // We need to have a total systematic uncertianty in the CDI. So we need to tally it up.

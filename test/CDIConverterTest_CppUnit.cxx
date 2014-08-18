@@ -27,6 +27,8 @@ class CDIConverterTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE( CDIConverterTest );
 
   CPPUNIT_TEST( testBasicGetSF );
+  CPPUNIT_TEST( testComment );
+  CPPUNIT_TEST( testCommentLinage );
   CPPUNIT_TEST( testBasicGetIrregularSF );
   CPPUNIT_TEST( testUncorrelatedErrors );
   CPPUNIT_TEST( testForSystematics );
@@ -267,6 +269,25 @@ class CDIConverterTest : public CppUnit::TestFixture
     stat = c->getStatUncertainty(v, r);
     CPPUNIT_ASSERT_EQUAL (kSuccess, stat);
     CPPUNIT_ASSERT_DOUBLES_EQUAL (0.2, r, 0.001);
+  }
+
+  void testComment()
+  {
+    CalibrationAnalysis ana(generate_1bin_sys());
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    string c (craw->getComment());
+
+    CPPUNIT_ASSERT_EQUAL(string("ana1"), c);
+  }
+
+  void testCommentLinage()
+  {
+    CalibrationAnalysis ana(generate_1bin_sys());
+    ana.metadata_s["Linage"] = "bogus";
+    CalibrationDataContainer *craw = ConvertToCDI (ana, "bogus");
+    string c (craw->getComment());
+
+    CPPUNIT_ASSERT_EQUAL(string("bogus"), c);
   }
 
   void testBasicGetIrregularSF()
