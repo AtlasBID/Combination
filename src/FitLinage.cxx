@@ -58,7 +58,7 @@ namespace BTagCombination {
 		switch (how)
 		{
 		case BTagCombination::LBDStar:
-			r << "D*[" << Linage(a1) << "," << a2 << "]";
+			r << "D*[" << Linage(a1) << ";" << a2 << "]";
 			break;
 		case BTagCombination::LBAddSys:
 			r << Linage(a1) << "+addSys[" << a2 << "]";

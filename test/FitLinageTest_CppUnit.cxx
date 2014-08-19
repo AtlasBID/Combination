@@ -84,7 +84,7 @@ class FitLinageTest : public CppUnit::TestFixture
 		ttbar.name = "ttbar_pdf";
 
 		string r(BinaryLinageOp(dstemp, ttbar, LBDStar));
-		CPPUNIT_ASSERT_EQUAL(string("D*[DStar,ttbar_pdf]"), r);
+		CPPUNIT_ASSERT_EQUAL(string("D*[DStar;ttbar_pdf]"), r);
 	}
 
 	void addSysLinage()
