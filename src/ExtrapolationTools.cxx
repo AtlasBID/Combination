@@ -112,7 +112,8 @@ namespace BTagCombination {
 				|| *(bin_edges_ana.end() - 1) < *(bin_edges_ext.end() - 1)) {
 				if (extrapolated_axis.size() > 0) {
 					ostringstream err;
-					err << "At least axis " << extrapolated_axis << " and " << *itr << " are extrapolated. Can only deal with extrapolations along a single axis.";
+					err << "At least axis " << extrapolated_axis << " and " << *itr << " are extrapolated. Can only deal with extrapolations along a single axis " 
+						<< "(analysis: " << ana.name << " extrap ana: " << extrapolated.name << ").";
 					throw runtime_error(err.str());
 				}
 				extrapolated_axis = *itr;
