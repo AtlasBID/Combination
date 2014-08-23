@@ -113,7 +113,7 @@ namespace BTagCombination {
 				if (extrapolated_axis.size() > 0) {
 					ostringstream err;
 					err << "At least axis " << extrapolated_axis << " and " << *itr << " are extrapolated. Can only deal with extrapolations along a single axis " 
-						<< "(analysis: " << ana.name << " extrap ana: " << extrapolated.name << ").";
+						<< "(analysis: " << OPFullName(ana) << " extrap ana: " << OPFullName(extrapolated) << ").";
 					throw runtime_error(err.str());
 				}
 				extrapolated_axis = *itr;
