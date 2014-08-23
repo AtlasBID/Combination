@@ -3,21 +3,13 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\..\boost_1_46_1\boost_1_46_1;$(ROOTSYS)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>c:\root\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>CombinationLib.lib;libCINT.lib;libCore.lib;libMatrix.lib;libRooFitCore.lib;libRooFit.lib;libRooStats.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CombinationLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <ClCompile>
-      <ForcedIncludeFiles>w32pragma.h</ForcedIncludeFiles>
-      <UndefinePreprocessorDefinitions>_DEBUG</UndefinePreprocessorDefinitions>
-      <ErrorReporting />
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>_WIN32;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

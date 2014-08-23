@@ -10,6 +10,13 @@
 
 using namespace std;
 
+// Older versions of VC don't have NaN quite the same way as the standard.
+#ifdef _MSC_VER
+#if (_MSC_VER <= 1800)
+#define isnan _isnan
+#endif
+#endif
+
 namespace {
 
   double relativeErrorCalc (double central, double err) {
