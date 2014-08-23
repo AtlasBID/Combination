@@ -53,6 +53,13 @@ namespace ascii = boost::spirit::ascii;
 using namespace BTagCombination;
 using namespace std;
 
+// Older versions of VC don't have NaN quite the same way as the standard.
+#ifdef _MSC_VER
+#if (_MSC_VER <= 1800)
+#define isnan _isnan
+#endif
+#endif
+
 //////////////////////////
 // Disable warnings caused by using the ">" operator in an
 // overloaded way. I know this is ugly.
