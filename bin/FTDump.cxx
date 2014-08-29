@@ -522,6 +522,8 @@ bool CompareNames(const CalibrationAnalysis &ana, ostream &output, string &input
 	inputdata.open(inputfile.c_str());
 	bool isGood = true;
 
+	output << " -> " << ana.name << "-" << ana.tagger << "-" << ana.operatingPoint << "-" << ana.jetAlgorithm << endl;
+
 	string name = "", jet = "", tagger = "", op = "";
 	vector<string> m_names, m_jets, m_taggers, m_wps, m_hadronizations;
 	map <string, string> m_ops;
