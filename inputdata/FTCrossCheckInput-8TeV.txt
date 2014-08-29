@@ -31,7 +31,7 @@ jet AntiKt4TopoLCJVF0_75
 
 tagger MV1
 tagger MV1c
-tagger JetFitterCharm
+tagger JFC
 tagger SV0
 
 op MV1 30 AntiKt4TopoEM 0.992670537
@@ -70,13 +70,13 @@ op MV1c 70 AntiKt4TopoLC 0.7068
 op MV1c 80 AntiKt4TopoLC 0.4051
 op MV1c 90 AntiKt4TopoLC 0.0836
 
-op JetFitterCharm 90 AntiKt4TopoEM -0.9_NONE
-op JetFitterCharm 20 AntiKt4TopoEM -0.9_0.95
-op JetFitterCharm 10 AntiKt4TopoEM -0.9_2.5
+op JFC 90 AntiKt4TopoEM -0.9_NONE
+op JFC 20 AntiKt4TopoEM -0.9_0.95
+op JFC 10 AntiKt4TopoEM -0.9_2.5
 
-op JetFitterCharm 90 AntiKt4TopoLC -0.9_NONE
-op JetFitterCharm 20 AntiKt4TopoLC -0.9_0.95
-op JetFitterCharm 10 AntiKt4TopoLC -0.9_2.5
+op JFC 90 AntiKt4TopoLC -0.9_NONE
+op JFC 20 AntiKt4TopoLC -0.9_0.95
+op JFC 10 AntiKt4TopoLC -0.9_2.5
 
 hadronization pTrel Pythia8EvtGen
 hadronization system8 Pythia8EvtGen
