@@ -37,6 +37,7 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testOBTwoBinInWithUnCorSys );
 
   CPPUNIT_TEST(testCombineTwoAnaLinage);
+  CPPUNIT_TEST(testCombineThreeAnaLinage);
   CPPUNIT_TEST(combineBBBLinageCheck);
 
   CPPUNIT_TEST ( testAnaOne );
@@ -629,6 +630,44 @@ class CombinerTest : public CppUnit::TestFixture
 
 	  CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
 	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel"), result[0].metadata_s["Linage"]);
+  }
+
+  void testCombineThreeAnaLinage()
+  {
+	  // Single analysis - test simple case!
+	  CalibrationBin b1;
+	  b1.centralValue = 1.0;
+	  b1.centralValueStatisticalError = 0.1;
+	  CalibrationBinBoundary bound;
+	  bound.variable = "eta";
+	  bound.lowvalue = 0.0;
+	  bound.highvalue = 2.5;
+	  b1.binSpec.push_back(bound);
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+
+	  CalibrationAnalysis ana2(ana1);
+	  ana2.name = "ptrel";
+
+	  CalibrationAnalysis ana3(ana1);
+	  ana3.name = "ttbar";
+
+	  CalibrationInfo info;
+	  info.Analyses.push_back(ana1);
+	  info.Analyses.push_back(ana2);
+	  info.Analyses.push_back(ana3);
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> result(CombineAnalyses(info));
+
+	  CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
+	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel+ttbar"), result[0].metadata_s["Linage"]);
   }
 
   void testAnaTwoSameBinsStatCor()
