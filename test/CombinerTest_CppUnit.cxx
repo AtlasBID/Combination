@@ -39,6 +39,9 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testCombineTwoAnaLinage);
   CPPUNIT_TEST(testCombineThreeAnaLinage);
   CPPUNIT_TEST(combineBBBLinageCheck);
+  CPPUNIT_TEST(combineBBBLinageCheckAnasNotEverywhere1);
+  CPPUNIT_TEST(combineBBBLinageCheckAnasNotEverywhere2);
+  CPPUNIT_TEST(combineBBBLinageCheckAnasNotEverywhere3);
 
   CPPUNIT_TEST ( testAnaOne );
   CPPUNIT_TEST ( testAnaTwoDifBins );
@@ -1484,7 +1487,7 @@ class CombinerTest : public CppUnit::TestFixture
   {
 	  // bin-by-bin combination, make sure the linage works as expected.
 
-	  cout << "Starting testAnaTwoBinsTwoCords" << endl;
+	  cout << "Starting combineBBBLinageCheck" << endl;
 
 	  CalibrationBin b1;
 	  b1.centralValue = 0.5;
@@ -1526,6 +1529,199 @@ class CombinerTest : public CppUnit::TestFixture
 	  ana2.jetAlgorithm = "AntiKt4Topo";
 	  ana2.bins.push_back(b2);
 
+
+	  CalibrationInfo inputs;
+	  inputs.Analyses.push_back(ana1);
+	  inputs.Analyses.push_back(ana2);
+
+	  inputs.CombinationAnalysisName = "combined";
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> results(CombineAnalyses(inputs, true, kCombineBySingleBin));
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel"), results[0].metadata_s["Linage"]);
+  }
+
+  void combineBBBLinageCheckAnasNotEverywhere1()
+  {
+	  // bin-by-bin combination, make sure the linage works as expected.
+	  // The second bin is missing one of the analyses.
+
+	  cout << "Starting combineBBBLinageCheck" << endl;
+
+	  CalibrationBin b1;
+	  b1.centralValue = 0.5;
+	  b1.centralValueStatisticalError = 0.1;
+
+	  CalibrationBinBoundary bb1;
+	  bb1.variable = "eta";
+	  bb1.lowvalue = 0.0;
+	  bb1.highvalue = 2.5;
+	  b1.binSpec.push_back(bb1);
+
+	  CalibrationBinBoundary bb2;
+	  bb2.variable = "pt";
+	  bb2.lowvalue = 30;
+	  bb2.highvalue = 40;
+	  b1.binSpec.push_back(bb2);
+
+	  CalibrationBin b1_2(b1);
+	  b1_2.binSpec[0].lowvalue = 2.5;
+	  b1_2.binSpec[0].highvalue = 5.0;
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+	  ana1.bins.push_back(b1_2);
+
+	  // ana 2
+
+	  CalibrationBin b2;
+	  b2.centralValue = 0.5;
+	  b2.centralValueStatisticalError = 0.1;
+	  b2.binSpec.push_back(bb1);
+	  b2.binSpec.push_back(bb2);
+
+	  CalibrationAnalysis ana2;
+	  ana2.name = "ptrel";
+	  ana2.flavor = "bottom";
+	  ana2.tagger = "comb";
+	  ana2.operatingPoint = "0.50";
+	  ana2.jetAlgorithm = "AntiKt4Topo";
+	  ana2.bins.push_back(b2);
+
+
+	  CalibrationInfo inputs;
+	  inputs.Analyses.push_back(ana1);
+	  inputs.Analyses.push_back(ana2);
+
+	  inputs.CombinationAnalysisName = "combined";
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> results(CombineAnalyses(inputs, true, kCombineBySingleBin));
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel"), results[0].metadata_s["Linage"]);
+  }
+
+  void combineBBBLinageCheckAnasNotEverywhere2()
+  {
+	  // bin-by-bin combination, make sure the linage works as expected.
+	  // The second bin is missing one of the analyses.
+
+	  cout << "Starting combineBBBLinageCheckAnasNotEverywhere2" << endl;
+
+	  CalibrationBin b1;
+	  b1.centralValue = 0.5;
+	  b1.centralValueStatisticalError = 0.1;
+
+	  CalibrationBinBoundary bb1;
+	  bb1.variable = "eta";
+	  bb1.lowvalue = 0.0;
+	  bb1.highvalue = 2.5;
+	  b1.binSpec.push_back(bb1);
+
+	  CalibrationBinBoundary bb2;
+	  bb2.variable = "pt";
+	  bb2.lowvalue = 30;
+	  bb2.highvalue = 40;
+	  b1.binSpec.push_back(bb2);
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+
+	  // ana 2
+
+	  CalibrationBin b2;
+	  b2.centralValue = 0.5;
+	  b2.centralValueStatisticalError = 0.1;
+	  b2.binSpec.push_back(bb1);
+	  b2.binSpec.push_back(bb2);
+
+	  CalibrationBin b2_2(b1);
+	  b2_2.binSpec[0].lowvalue = 2.5;
+	  b2_2.binSpec[0].highvalue = 5.0;
+
+	  CalibrationAnalysis ana2;
+	  ana2.name = "ptrel";
+	  ana2.flavor = "bottom";
+	  ana2.tagger = "comb";
+	  ana2.operatingPoint = "0.50";
+	  ana2.jetAlgorithm = "AntiKt4Topo";
+	  ana2.bins.push_back(b2);
+	  ana2.bins.push_back(b2_2);
+
+	  CalibrationInfo inputs;
+	  inputs.Analyses.push_back(ana1);
+	  inputs.Analyses.push_back(ana2);
+
+	  inputs.CombinationAnalysisName = "combined";
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> results(CombineAnalyses(inputs, true, kCombineBySingleBin));
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+	  CPPUNIT_ASSERT_EQUAL(string("s8+ptrel"), results[0].metadata_s["Linage"]);
+  }
+
+  void combineBBBLinageCheckAnasNotEverywhere3()
+  {
+	  // bin-by-bin combination, make sure the linage works as expected.
+	  // The second bin is missing one of the analyses.
+
+	  cout << "Starting combineBBBLinageCheckAnasNotEverywhere3" << endl;
+
+	  CalibrationBin b1;
+	  b1.centralValue = 0.5;
+	  b1.centralValueStatisticalError = 0.1;
+
+	  CalibrationBinBoundary bb1;
+	  bb1.variable = "eta";
+	  bb1.lowvalue = 2.5;
+	  bb1.highvalue = 5.0;
+	  b1.binSpec.push_back(bb1);
+
+	  CalibrationBinBoundary bb2;
+	  bb2.variable = "pt";
+	  bb2.lowvalue = 30;
+	  bb2.highvalue = 40;
+	  b1.binSpec.push_back(bb2);
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+
+	  // ana 2
+
+	  CalibrationBin b2;
+	  b2.centralValue = 0.5;
+	  b2.centralValueStatisticalError = 0.1;
+	  b2.binSpec.push_back(bb1);
+	  b2.binSpec.push_back(bb2);
+
+	  CalibrationBin b2_2(b1);
+	  b2_2.binSpec[0].lowvalue = 0.0;
+	  b2_2.binSpec[0].highvalue = 2.5;
+
+	  CalibrationAnalysis ana2;
+	  ana2.name = "ptrel";
+	  ana2.flavor = "bottom";
+	  ana2.tagger = "comb";
+	  ana2.operatingPoint = "0.50";
+	  ana2.jetAlgorithm = "AntiKt4Topo";
+	  ana2.bins.push_back(b2);
+	  ana2.bins.push_back(b2_2);
 
 	  CalibrationInfo inputs;
 	  inputs.Analyses.push_back(ana1);
