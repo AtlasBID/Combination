@@ -538,6 +538,20 @@ namespace BTagCombination
 		for (vector<CalibrationAnalysis>::const_iterator i_ana = anas.begin(); i_ana != anas.end(); i_ana++) {
 			for (map<string, vector<double> >::const_iterator i_m = i_ana->metadata.begin(); i_m != i_ana->metadata.end(); i_m++) {
 				string name(i_m->first);
+
+				// Do specials
+				if (name == "gndof") {
+					if (meta.find("gndof") == meta.end())
+						meta["gndof"].push_back(0.0);
+					meta["gndof"][0] += i_m->second[0];
+				}
+				else if (name == "gchi2") {
+					if (meta.find("gchi2") == meta.end())
+						meta["gchi2"].push_back(0.0);
+					meta["gchi2"][0] += i_m->second[0];
+				}
+
+				// Now, do everything else.
 				if (i_ana->name != "") {
 					name = name + " [from " + i_ana->name + "]";
 				}

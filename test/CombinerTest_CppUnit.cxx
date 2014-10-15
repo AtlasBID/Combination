@@ -89,6 +89,8 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( rebinTwoToOne );
   CPPUNIT_TEST ( rebinThreeToOne );
 
+  CPPUNIT_TEST (testNDOFInBinByBin);
+
   CPPUNIT_TEST_SUITE_END();
 
   void setupRoo()
@@ -1261,7 +1263,70 @@ class CombinerTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e1.value, 0.001);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1, e2.value, 0.001);
     cout << "Finishing testAnaTwoBinsByBin" << endl;
+  }
 
+  void testNDOFInBinByBin()
+  {
+	  // Two analyses, and 2 bins in each. Make sure the # dof gets updated.
+
+	  cout << "Starting testNDOFInBinByBin" << endl;
+
+	  CalibrationBin b1;
+	  b1.centralValue = 0.5;
+	  b1.centralValueStatisticalError = 0.1;
+
+	  CalibrationBinBoundary bound;
+	  bound.variable = "eta";
+	  bound.lowvalue = 0.0;
+	  bound.highvalue = 2.5;
+	  b1.binSpec.push_back(bound);
+
+	  CalibrationBin b2;
+	  b2.centralValue = 0.75;
+	  b2.centralValueStatisticalError = 0.1;
+
+	  CalibrationBinBoundary bound2;
+	  bound2.variable = "eta";
+	  bound2.lowvalue = 2.5;
+	  bound2.highvalue = 5.0;
+	  b2.binSpec.push_back(bound2);
+
+	  SystematicError s1;
+	  s1.name = "s1";
+	  s1.value = 0.1;
+	  b1.systematicErrors.push_back(s1);
+	  b2.systematicErrors.push_back(s1);
+
+	  CalibrationAnalysis ana1;
+	  ana1.name = "s8";
+	  ana1.flavor = "bottom";
+	  ana1.tagger = "comb";
+	  ana1.operatingPoint = "0.50";
+	  ana1.jetAlgorithm = "AntiKt4Topo";
+	  ana1.bins.push_back(b1);
+	  ana1.bins.push_back(b2);
+
+	  CalibrationAnalysis ana2(ana1);
+	  ana2.name = "ptrel";
+
+	  CalibrationInfo inputs;
+	  inputs.Analyses.push_back(ana1);
+	  inputs.Analyses.push_back(ana2);
+
+	  inputs.CombinationAnalysisName = "combined";
+
+	  setupRoo();
+	  vector<CalibrationAnalysis> results(CombineAnalyses(inputs, true, kCombineBySingleBin));
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
+	  CalibrationAnalysis &result(results[0]);
+
+	  map<string, vector<double>>::const_iterator idof = result.metadata.find("gndof");
+	  CPPUNIT_ASSERT(idof != result.metadata.end());
+
+	  CPPUNIT_ASSERT_DOUBLES_EQUAL(2.0, idof->second[0], 0.01);
+
+	  cout << result << endl;
+	  cout << "Finishing testNDOFInBinByBin" << endl;
   }
 
   void testAnaTwoBinsTwoCoords()
