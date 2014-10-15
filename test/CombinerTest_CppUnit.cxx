@@ -1320,7 +1320,7 @@ class CombinerTest : public CppUnit::TestFixture
 	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.size());
 	  CalibrationAnalysis &result(results[0]);
 
-	  map<string, vector<double>>::const_iterator idof = result.metadata.find("gndof");
+	  map<string, vector<double> >::const_iterator idof = result.metadata.find("gndof");
 	  CPPUNIT_ASSERT(idof != result.metadata.end());
 
 	  CPPUNIT_ASSERT_DOUBLES_EQUAL(2.0, idof->second[0], 0.01);
