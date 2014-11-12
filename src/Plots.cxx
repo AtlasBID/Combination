@@ -336,11 +336,11 @@ namespace {
     case gcByBin:
       return "EffInfo";
     case gcByCalib:
-      return "EffInfoCalib";
+      return "EffInfo-Calib";
     case gcByCalibEff:
-      return "EffInfoCalibEff";
+      return "EffInfo-CalibEff";
     case gcByCalibTaggerJet:
-      return "EffInfoTagger";
+      return "EffInfo-Tagger";
     default:
       cout << "ERROR - unknown type of grouping!! " << gp << endl;
       return "EffInfo";
