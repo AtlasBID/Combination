@@ -19,15 +19,19 @@
 #include <stdexcept>
 
 #include "Combination/CalibrationDataModel.h"
+#include "Combination/CalibrationFilter.h"
 
 namespace BTagCombination
 {
 
   // Returns a list of analyses given an input string.
-  CalibrationInfo Parse(const std::string &inputText);
+	CalibrationInfo Parse(const std::string &inputText, calibrationFilterInfo &fInfo);
+	inline CalibrationInfo Parse(const std::string &inputText) {
+		return Parse(inputText, calibrationFilterInfo());
+	}
 
   // Returns a list of analyses given an input text file (reads the complete text file)
-  CalibrationInfo Parse(std::istream &input);
+	CalibrationInfo Parse(std::istream &input, calibrationFilterInfo &fInfo);
 }
 
 #endif

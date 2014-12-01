@@ -959,7 +959,7 @@ namespace BTagCombination
   //
   // Parse the input text as a list of calibration inputs
   //
-  CalibrationInfo Parse(const string &inputText)
+  CalibrationInfo Parse(const string &inputText, calibrationFilterInfo &fInfo)
   {
     string::const_iterator iter = inputText.begin();
     string::const_iterator end = inputText.end();
@@ -978,6 +978,12 @@ namespace BTagCombination
       throw runtime_error ("Unable to parse!");
 
 	//
+	// Before doing the combine, do a quick filter.
+	//
+
+	FilterAnalyses(result, fInfo);
+
+	//
 	// If there are any common analyses in here, we need to combine them.
 	//
 
@@ -989,7 +995,7 @@ namespace BTagCombination
   //
   // Parse an input file
   //
-  CalibrationInfo Parse (istream &input)
+  CalibrationInfo Parse(istream &input, calibrationFilterInfo &fInfo)
   {
     ostringstream text;
     while (!input.eof()) {
@@ -999,6 +1005,6 @@ namespace BTagCombination
 	text << line << endl;
     }
 
-    return Parse(text.str());
+    return Parse(text.str(), fInfo);
   }
 }

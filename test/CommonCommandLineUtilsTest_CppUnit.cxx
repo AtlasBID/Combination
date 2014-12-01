@@ -40,6 +40,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testIgnoreFlag );
   CPPUNIT_TEST ( testIgnoreFlagWildcard );
   CPPUNIT_TEST ( testIgnoreFlagWildcard2 );
+  CPPUNIT_TEST(testIgnoreFlagWildcard3);
   CPPUNIT_TEST ( testIgnoreFlagFile );
   CPPUNIT_TEST ( testIgnoreAnalysis );
   CPPUNIT_TEST ( testIgnoreCorrelation );
@@ -230,6 +231,26 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
+  }
+
+  void testIgnoreFlagWildcard3()
+  {
+	  // Found in the wild. The problem is the input file contains
+	  // a number of OP's that are incompatible (binning-wise). In the
+	  // orignial code this was noted, and thrown, before the ignore
+	  // list could be applied.
+
+	  CalibrationInfo results;
+	  vector<string> unknown;
+	  const char *argv[] = { "../testdata/IP3DSV160_toGordon.txt",
+		  "--ignore",
+		  "pTrel-.*20-pt-200"
+	  };
+
+	  ParseOPInputArgs(argv, 3, results, unknown);
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, results.Analyses.size());
+	  CPPUNIT_ASSERT_EQUAL((size_t)9, results.Analyses[0].bins.size());
+	  CPPUNIT_ASSERT_EQUAL((size_t)0, unknown.size());
   }
 
   void testIgnoreFlagFile()
