@@ -27,7 +27,8 @@ namespace BTagCombination
   // Returns a list of analyses given an input string.
 	CalibrationInfo Parse(const std::string &inputText, calibrationFilterInfo &fInfo);
 	inline CalibrationInfo Parse(const std::string &inputText) {
-		return Parse(inputText, calibrationFilterInfo());
+		calibrationFilterInfo c;
+		return Parse(inputText, c);
 	}
 
   // Returns a list of analyses given an input text file (reads the complete text file)
