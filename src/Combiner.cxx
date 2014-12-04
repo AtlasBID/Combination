@@ -736,6 +736,12 @@ namespace BTagCombination
 				mergedResult.metadata_s["Linage"] = CombineLinage(i_ana->second, LCFitCombine);
 				result.push_back(mergedResult);
 			}
+			else {
+				// If there is only a single analysis, then just copy it over
+				CalibrationAnalysis copy(i_ana->second[0]);
+				copy.name = info.CombinationAnalysisName;
+				result.push_back(copy);
+			}
 		}
 		return result;
 	}

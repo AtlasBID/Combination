@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CombinationLib", "CombinationLib\CombinationLib.vcxproj", "{8995069D-235D-4E5F-B9F2-FD2F1634D74F}"
 EndProject
@@ -24,6 +24,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTExtrapolateAnalyses", "FTExtrapolateAnalyses\FTExtrapolateAnalyses.vcxproj", "{E46C9579-A2B6-4CB5-9D0B-8A6FCCECA21C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTDump", "FTDump\FTDump.vcxproj", "{5499DCDC-9D11-4536-9419-1AD42FF4FB70}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTCombine", "FTCombine\FTCombine.vcxproj", "{7BAEBFEB-E690-4D91-8DB0-ED61656B8F51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,10 @@ Global
 		{5499DCDC-9D11-4536-9419-1AD42FF4FB70}.Debug|Win32.Build.0 = Debug|Win32
 		{5499DCDC-9D11-4536-9419-1AD42FF4FB70}.Release|Win32.ActiveCfg = Release|Win32
 		{5499DCDC-9D11-4536-9419-1AD42FF4FB70}.Release|Win32.Build.0 = Release|Win32
+		{7BAEBFEB-E690-4D91-8DB0-ED61656B8F51}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7BAEBFEB-E690-4D91-8DB0-ED61656B8F51}.Debug|Win32.Build.0 = Debug|Win32
+		{7BAEBFEB-E690-4D91-8DB0-ED61656B8F51}.Release|Win32.ActiveCfg = Release|Win32
+		{7BAEBFEB-E690-4D91-8DB0-ED61656B8F51}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
