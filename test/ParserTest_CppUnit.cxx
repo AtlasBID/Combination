@@ -151,7 +151,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseEmptyAnalysisString()
   {
     cout << "Test testParseEmptyAnalysisString" << endl;
-    CalibrationInfo result (Parse("", calibrationFilterInfo()));
+    CalibrationInfo result (Parse(""));
     CPPUNIT_ASSERT(result.Analyses.size() == 0);
   }
 
@@ -159,20 +159,20 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSyntaxBasicErrorThrows()
   {
     cout << "Test testparseSyntaxBasicErrorThrows" << endl;
-	CalibrationInfo result(Parse("AAANNNnalysis(ptrel, bottom, SV050){}", calibrationFilterInfo()));
+	CalibrationInfo result(Parse("AAANNNnalysis(ptrel, bottom, SV050){}"));
   }
 
   void testParseEmptyAnalysis()
   {
 	  cout << "Test testParseEmptyAnalysis" << endl;
-	  CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){}", calibrationFilterInfo()));
+	  CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){}"));
 	  CPPUNIT_ASSERT_EQUAL((size_t)0, result.Analyses.size());
   }
 
   void testParseSimpleAnalysis()
   {
     cout << "Test testParseSimpleAnalysis" << endl;
-	CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}", calibrationFilterInfo()));
+	CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result:" << endl << result << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
@@ -188,7 +188,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSimpleAnalysisNotEqual()
   {
     cout << "Test testParseSimpleAnalysisNotEqual" << endl;
-	CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, !=0, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}", calibrationFilterInfo()));
+	CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, !=0, MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result:" << endl << result << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
@@ -203,7 +203,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseSimpleAnalysisFunnySpaces()
   {
     cout << "Test testParseSimpleAnalysisFunnySpaces" << endl;
-	CalibrationInfo result(Parse("Analysis(ptrel ,bottom ,SV0, 0.50 ,MyJets){bin(20<pt<30){central_value(0.5,0.01)}}", calibrationFilterInfo()));
+	CalibrationInfo result(Parse("Analysis(ptrel ,bottom ,SV0, 0.50 ,MyJets){bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result:" << endl << result << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 1);
@@ -221,7 +221,7 @@ class ParserTest : public CppUnit::TestFixture
   void testParseTwoAnalyses()
   {
     cout << "Test testParseTwoAnalyses" << endl;
-	CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}} Analysis(system8, bottom, SV0, 0.50, MyJets) {bin(20<pt<30){central_value(0.5,0.01)}}", calibrationFilterInfo()));
+	CalibrationInfo result(Parse("Analysis(ptrel, bottom, SV0, 0.50, MyJets){bin(20<pt<30){central_value(0.5,0.01)}} Analysis(system8, bottom, SV0, 0.50, MyJets) {bin(20<pt<30){central_value(0.5,0.01)}}"));
     stringstream str;
     str << "Result size is " << result.Analyses.size() << "!" << endl;
     CPPUNIT_ASSERT_MESSAGE(str.str(), result.Analyses.size() == 2);
