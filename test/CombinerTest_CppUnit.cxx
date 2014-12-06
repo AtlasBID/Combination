@@ -2288,7 +2288,7 @@ class CombinerTest : public CppUnit::TestFixture
 
     setupRoo();
     vector<CalibrationAnalysis> results (CombineAnalyses(info));
-    CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
+    CPPUNIT_ASSERT_EQUAL (size_t(1), results.size());
   }
 
   void testAnaDifOneByBin()
@@ -2331,7 +2331,7 @@ class CombinerTest : public CppUnit::TestFixture
   void testAnaTwoDifBinsNoFit()
   {
     // Two analyese, different flavors, so they shouldn't be fit together,
-    // and thus no fitting should occur (i.e. no results).
+    // and thus no fitting should occur, but the results should be copied out.
 
     // Single analysis - test simple case!
     CalibrationBin b1;
@@ -2365,7 +2365,7 @@ class CombinerTest : public CppUnit::TestFixture
 
     setupRoo();
     vector<CalibrationAnalysis> results (CombineAnalyses(info));
-    CPPUNIT_ASSERT_EQUAL (size_t(0), results.size());
+    CPPUNIT_ASSERT_EQUAL (size_t(2), results.size());
   }
 
   CalibrationAnalysis SimpleAna(bool addSys = true)

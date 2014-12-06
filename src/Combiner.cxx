@@ -680,6 +680,11 @@ namespace BTagCombination
 
 				result.push_back(r);
 			}
+			else {
+				CalibrationAnalysis r(i_ana->second[0]);
+				r.name = info.CombinationAnalysisName;
+				result.push_back(r);
+			}
 		}
 
 		return result;
