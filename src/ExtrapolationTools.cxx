@@ -183,8 +183,8 @@ namespace BTagCombination {
 					double ana_sys_base(ana_sys[bounds]);
 					double ext_sys_new = ext_sys_current / ext_sys_base * ana_sys_base;
 					// Do the quad calc to figure out what this component should be.
-					ext_sys_new = sqrt(ext_sys_new*ext_sys_new - ana_sys_base*ana_sys_base);
-					CalibrationBin newb(create_extrapolated_bin(ext_sys_new, *e_itr));
+					double ext_sys_new_delta = sqrt(ext_sys_new*ext_sys_new - ana_sys_base*ana_sys_base);
+					CalibrationBin newb(create_extrapolated_bin(ext_sys_new_delta, *e_itr));
 					newb.centralValue = ana_bin_cache[bounds].centralValue;
 					newb.centralValueStatisticalError = ana_bin_cache[bounds].centralValueStatisticalError;
 					r.bins.push_back(newb);

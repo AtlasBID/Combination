@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// Find the extrapolation analyses and seperate those out.
+	// Find the extrapolation analyses and separate those out.
 	vector<CalibrationAnalysis> extrapolationAnas;
 	vector<CalibrationAnalysis> anas;
 	for (vector<CalibrationAnalysis>::const_iterator itr = info.Analyses.begin(); itr != info.Analyses.end(); itr++) {
@@ -133,7 +133,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Write otu the results.
+	if (results.size() == 0) {
+		cout << " --> There was nothing to do!" << endl;
+	}
+
+	// Write out the results (even if empty, just in case that was on purpose).
 	ostream *output(&cout);
 	if (outputFile.size() > 0) {
 		output = new ofstream(outputFile.c_str());
