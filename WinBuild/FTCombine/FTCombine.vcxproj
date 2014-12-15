@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.props" Condition="Exists('..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.props')" />
+  <Import Project="..\packages\ROOT.534.24.8\build\native\ROOT.props" Condition="Exists('..\packages\ROOT.534.24.8\build\native\ROOT.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -42,7 +42,7 @@
     <Import Project="..\buildProps.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <NuGetPackageImportStamp>5942b1c3</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>7c898a34</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -88,11 +88,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\bin\FTCombine.cxx" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CombinationLib\CombinationLib.vcxproj">
+      <Project>{8995069d-235d-4e5f-b9f2-fd2f1634d74f}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\boost.1.56.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" />
     <Import Project="..\packages\boost_regex-vc110.1.56.0.0\build\native\boost_regex-vc110.targets" Condition="Exists('..\packages\boost_regex-vc110.1.56.0.0\build\native\boost_regex-vc110.targets')" />
-    <Import Project="..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.targets" Condition="Exists('..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.targets')" />
+    <Import Project="..\packages\ROOT.534.24.8\build\native\ROOT.targets" Condition="Exists('..\packages\ROOT.534.24.8\build\native\ROOT.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -100,7 +105,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.56.0.0\build\native\boost.targets'))" />
     <Error Condition="!Exists('..\packages\boost_regex-vc110.1.56.0.0\build\native\boost_regex-vc110.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc110.1.56.0.0\build\native\boost_regex-vc110.targets'))" />
-    <Error Condition="!Exists('..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.props'))" />
-    <Error Condition="!Exists('..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ROOT_5_34_19.01.00.01\build\native\ROOT_5_34_19.targets'))" />
+    <Error Condition="!Exists('..\packages\ROOT.534.24.8\build\native\ROOT.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ROOT.534.24.8\build\native\ROOT.props'))" />
+    <Error Condition="!Exists('..\packages\ROOT.534.24.8\build\native\ROOT.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ROOT.534.24.8\build\native\ROOT.targets'))" />
   </Target>
 </Project>
