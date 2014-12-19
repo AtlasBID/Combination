@@ -8,6 +8,7 @@
 #include "Combination/Combiner.h"
 #include "Combination/BinUtils.h"
 #include "Combination/CalibrationDataModelStreams.h"
+#include "Combination/CombinationContext.h"
 
 #include <RooMsgService.h>
 
@@ -91,6 +92,8 @@ class CombinerTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( rebinThreeToOne );
 
   CPPUNIT_TEST (testNDOFInBinByBin);
+
+  CPPUNIT_TEST(fillContextWithOneBinAnalysis);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -2645,6 +2648,18 @@ class CombinerTest : public CppUnit::TestFixture
     
     cout << "Finishing BBBChi2TwoUncorrelated()" << endl;
 
+  }
+
+  // Make sure filling with a simple analysis work.
+  void fillContextWithOneBinAnalysis()
+  {
+	  CalibrationAnalysis ana(SimpleAna(false));
+
+	  CombinationContext ctx;
+	  FillContext(ctx, ana);
+
+	  // There should be only one measurement.
+	  CPPUNIT_ASSERT_EQUAL((size_t)1, ctx.GetAllMeasurements().size());
   }
 };
 

@@ -79,8 +79,11 @@ namespace BTagCombination {
     // Get the extra info from a fit that was just run.
     virtual ExtraFitInfo GetExtraFitInformation (void) { return _extraInfo;}
 
+	// Get a list of all measurements
+	const std::vector<Measurement*> GetAllMeasurements(void) const { return _measurements; }
+
   protected:
-    // Helper method that scans the intenral list of measruements to get
+    // Helper method that scans the internal list of measurements to get
     // a list of the good ones (i.e. that are participating in the fit).
     std::vector<Measurement*> GoodMeasurements(void);
 
@@ -93,7 +96,7 @@ namespace BTagCombination {
     // Keep track of all the measurements.
     RooRealVarCache _whatMeasurements;
 
-    // Keep track fo all the systematic errors between the various measurements.
+    // Keep track of all the systematic errors between the various measurements.
     RooRealVarCache _systematicErrors;
 
     // Keep a list of the correlations we are dealing with so we can put them back

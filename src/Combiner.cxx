@@ -58,7 +58,7 @@ namespace {
 
 	//
 	// Add all the measurements for a particular bin into the context.
-	//  - Assume everythign in the bins vector is the same bin! (no x-checking).
+	//  - Assume everything in the bins vector is the same bin! (no x-checking).
 	//  - Variable name is based on the bin name - mapping should be "obvious".
 	//  - Sys errors are added as well.
 	//
@@ -95,7 +95,7 @@ namespace {
 	}
 
 	//
-	// Extract the complete result - with sys errors - from the calibratoin bin
+	// Extract the complete result - with sys errors - from the calibration bin
 	//  - Context has already had the fit run.
 	//
 	CalibrationBin ExtractBinResult(const CombinationContext::FitResult &binResult, const CalibrationBin &forThisBin)
@@ -267,7 +267,7 @@ namespace {
 	}
 
 	// Make sure that the bin area is totally covered by "bins". There are all sorts of crazy things
-	// that can be done when we are talking about 2D. :( As a result, since writing a general algorihtm
+	// that can be done when we are talking about 2D. :( As a result, since writing a general algorithm
 	// seems odd, we will be a little clever. First, we know when we get here that all bins are already
 	// within the area. So, we can then calculate the total area and see if they match. If they do, then
 	// we make sure that no bin is overlapping any other bin. Those two criteria together should assure
@@ -311,7 +311,7 @@ namespace {
 	}
 
 	//
-	// Calculate the weigthed sigma for statistical errors.
+	// Calculate the weighted sigma for statistical errors.
 	//
 	double CalcWTStatError(vector<double> weights)
 	{
@@ -408,7 +408,7 @@ namespace {
 		}
 
 		//
-		// We are going to treat everythign in this bin with equal "weight". So, in order to do that,
+		// We are going to treat everything in this bin with equal "weight". So, in order to do that,
 		// we are just going to remap onto a single bin and then use the normal fitting code to do the fit.
 		//
 
@@ -489,7 +489,7 @@ namespace BTagCombination
 	CalibrationAnalysis CombineSimilarAnalyses(vector<CalibrationAnalysis> &ana)
 	{
 		//
-		// Specal cases and input checks, and simple setup
+		// Special cases and input checks, and simple setup
 		//
 
 		if (ana.size() == 0)
@@ -571,7 +571,7 @@ namespace BTagCombination
 		}
 	}
 
-	// We plunk everythign we are given here into a single context, and return the new
+	// We plunk everything we are given here into a single context, and return the new
 	// fit.
 	CalibrationAnalysis CombineAnalysesInOneContext(const vector<CalibrationAnalysis> &anas,
 		const vector<AnalysisCorrelation> &correlations,
@@ -592,7 +592,7 @@ namespace BTagCombination
 			throw runtime_error("Partial overlap of analyses found!");
 		}
 
-		// We make an assumption about the fit name here, and the way the fit is being done (const over flavor, tag, OP).
+		// We make an assumption about the fit name here, and the way the fit is being done (constant over flavor, tag, OP).
 		string fitName = anas[0].flavor
 			+ ":" + anas[0].tagger
 			+ ":" + anas[0].operatingPoint;
@@ -649,7 +649,7 @@ namespace BTagCombination
 			r.metadata[string("Nuisance ") + i_p->first].push_back(i_p->second.second);
 		}
 
-		// Update the meta-data from teh various analyses
+		// Update the meta-data from the various analyses
 
 		MergeMetadata(r.metadata, anas);
 
@@ -660,7 +660,7 @@ namespace BTagCombination
 		return r;
 	}
 
-	// Do the combination, doing everythign accross bins.
+	// Do the combination, doing everything across bins.
 	vector<CalibrationAnalysis> CombineAnalysesAllBins(const CalibrationInfo &info, bool verbose)
 	{
 		t_anaMap binnedAnalyses(BinAnalysesByJetTagFlavOp(info.Analyses));
@@ -774,7 +774,7 @@ namespace BTagCombination
 	// Combine bins in a single analysis to generate a new analysis.
 	// - Can't split bins
 	// - All template bins must be fully covered by the analysis bins.
-	// - Fit is done seperately in each bin.
+	// - Fit is done separately in each bin.
 	//
 	CalibrationAnalysis RebinAnalysis(const set<set<CalibrationBinBoundary> > &templateBinning,
 		const CalibrationAnalysis &ana)
@@ -856,6 +856,14 @@ namespace BTagCombination
 		}
 
 		return result;
+	}
+
+	// Populate a combination context with everything from a single analysis
+	void FillContext(CombinationContext &ctx, CalibrationAnalysis &ana)
+	{
+		vector<CalibrationAnalysis> anas;
+		anas.push_back(ana);
+		FillContextWithCommonAnaInfo(ctx, anas);
 	}
 }
 
