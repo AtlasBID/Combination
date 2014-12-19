@@ -1,0 +1,14 @@
+# Config for dealing with editors that default on Linux
+#
+
+# Stop the editor config from looking for anything above this.
+# this is the truth file!
+root = true
+
+# Get indents right (default emacs)
+[*]
+indent_style = space
+indent_size = 2
+
+tab_width = 8
+
