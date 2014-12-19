@@ -17,7 +17,7 @@ namespace BTagCombination {
   {
   public:
     /// Create/Destroy a new context. This will contain the common
-    /// data to do a fit to mutliple measurements.
+    /// data to do a fit to multiple measurements.
     CombinationContext(void);
     ~CombinationContext(void) {};
 
@@ -38,9 +38,6 @@ namespace BTagCombination {
 
     // Any common measurements that are over correlated are "bad"
     void TurnOffOverCorrelations();
-
-    // Any gaussian errors too small, we fix here.
-    void AdjustTooSmallGaussians();
 
   };
 }

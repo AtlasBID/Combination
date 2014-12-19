@@ -101,18 +101,6 @@ namespace BTagCombination {
   }
 
   //
-  // If a Gaussian error is less than 1% then we must bump it up, unfortunately.
-  //
-  void CombinationContext::AdjustTooSmallGaussians()
-  {
-    vector<Measurement*> gmes (GoodMeasurements());
-    for (vector<Measurement*>::iterator itr = gmes.begin(); itr != gmes.end(); itr++) {
-      if ((*itr)->doNotUse())
-	continue;
-    }
-  }
-
-  //
   // Look through all the measurements to be combined and make sure they
   // aren't going to put us in a region that is "bad".
   //
@@ -172,12 +160,10 @@ namespace BTagCombination {
     //
     // First thing to do is x-check the measurements to eliminate any combinations
     // that will lead to bad points in phase space (i.e. the correlated/uncorrelated
-    // are nasty. Also look for Gaussian errors that are too small for our fitter
-    // to deal with.
+    // are nasty.
     //
 
     TurnOffOverCorrelations();
-    AdjustTooSmallGaussians();
 
     //
     // There are only a certain sub-set of the measurements that are "valid"
