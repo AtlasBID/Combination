@@ -1,5 +1,5 @@
 ///
-/// Implementation of the context for a combination of sevearl measurements.
+/// Implementation of the context for a combination of several measurements.
 ///
 
 #include "Combination/CombinationContext.h"
@@ -101,7 +101,7 @@ namespace BTagCombination {
   }
 
   //
-  // If a gaussian error is less than 1% then we must bump it up, unfortunately.
+  // If a Gaussian error is less than 1% then we must bump it up, unfortunately.
   //
   void CombinationContext::AdjustTooSmallGaussians()
   {
@@ -109,8 +109,6 @@ namespace BTagCombination {
     for (vector<Measurement*>::iterator itr = gmes.begin(); itr != gmes.end(); itr++) {
       if ((*itr)->doNotUse())
 	continue;
-
-      (*itr)->CheckAndAdjustStatisticalError(0.01);
     }
   }
 
@@ -121,7 +119,7 @@ namespace BTagCombination {
   void CombinationContext::TurnOffOverCorrelations()
   {
     //
-    // First we need to catalog all the data ponits by what they are measuring, as
+    // First we need to catalog all the data points by what they are measuring, as
     // that is where we have to do the testing.
     //
 
@@ -174,7 +172,7 @@ namespace BTagCombination {
     //
     // First thing to do is x-check the measurements to eliminate any combinations
     // that will lead to bad points in phase space (i.e. the correlated/uncorrelated
-    // are nasty. Also look for gaussian errors that are too small for our fitter
+    // are nasty. Also look for Gaussian errors that are too small for our fitter
     // to deal with.
     //
 
@@ -182,7 +180,7 @@ namespace BTagCombination {
     AdjustTooSmallGaussians();
 
     //
-    // There are only a certian sub-set of the measruements that are "valid"
+    // There are only a certain sub-set of the measurements that are "valid"
     // for use.
     //
 
@@ -203,7 +201,7 @@ namespace BTagCombination {
     }
 
     ///
-    /// Build the central value gaussian that we are going to fit.
+    /// Build the central value Gaussian that we are going to fit.
     ///
 
     vector<RooAbsPdf*> measurementGaussians;
@@ -212,7 +210,7 @@ namespace BTagCombination {
       Measurement *m(*imeas);
 
       ///
-      /// The variable we are measureing is also balenced by the various
+      /// The variable we are measuring is also balanced by the various
       /// systematic errors for this measurement. eff+m1*s1+m2*s2+m3*s3...
       ///
 
@@ -233,15 +231,15 @@ namespace BTagCombination {
       toDeleteAddition.push_back(varSumed);
 
       ///
-      /// The actual variable and th esystematic error are also inputs into this
-      /// guassian.
+      /// The actual variable and the systematic error are also inputs into this
+      /// Gaussian.
       ///
 
       RooRealVar *actualValue = (m->GetActualMeasurement());
       RooConstVar *statValue = (m->GetStatisticalError());
 
       ///
-      /// Finally, built the gaussian. Make sure that its name is not
+      /// Finally, built the Gaussian. Make sure that its name is not
       /// the same as anything else... or *very* odd errors (with/out error messages)
       /// show up later!
       ///
@@ -254,7 +252,7 @@ namespace BTagCombination {
     }
 
     ///
-    /// Get a list of all the measurement gaussians and all the systematic error constraints, and create the product PDF
+    /// Get a list of all the measurement Gaussian and all the systematic error constraints, and create the product PDF
     /// for the minimization.
     ///
 
@@ -278,9 +276,6 @@ namespace BTagCombination {
     }
 
     RooProdPdf finalPDF("ConstraintPDF", "Constraint PDF", products);
-
-    //cout << "Printing final PDF" << endl;
-    //finalPDF.Print();
 
     ///
     /// Next, we need to fit to a dataset. It will have a single data point - the
@@ -333,13 +328,13 @@ namespace BTagCombination {
 
     //
     // To actually calculate the chi2 we have a fair amount of work to do.
-    // Using the method from the BLUE paper, eqn 14 (loosely based on this, actually).
-    //  (published xxx)
+    // Using the method from the BLUE paper, equation 14 (loosely based on this, actually).
+    //  (published ???)
     //
 
     {
       // Get the matrix of the measurements, the fits, and the covariance.
-      TMatrixT<double> y (gMeas.size(), 1); // Actual measruements
+      TMatrixT<double> y (gMeas.size(), 1); // Actual measurement
       TMatrixT<double> Ux (gMeas.size(), 1); // The fit measurements for each guy
 
       int i_meas_row = 0;
@@ -376,7 +371,7 @@ namespace BTagCombination {
     }
 
     //
-    // Dump out the pulls that the fit settled on... so this crudely fornow.
+    // Dump out the pulls that the fit settled on... so this crudely for now.
     //
 
     for(vector<string>::const_iterator iVar = allVars.begin(); iVar != allVars.end(); iVar++) {
@@ -474,7 +469,7 @@ namespace BTagCombination {
 	  profilePlot->Write();
 
 	  ///
-	  /// Next, do an extra plot alloweing everything but one systematic error to
+	  /// Next, do an extra plot allowing everything but one systematic error to
 	  /// float.
 	  ///
 
@@ -518,7 +513,6 @@ namespace BTagCombination {
 	sysErr->setVal(0.0);
 	sysErr->setError(0.0);
 
-	//cout << "  Fitting to find systematic error contribute for " << sysErrorName << endl;
 	RooFitResult *r = finalPDF.fitTo(measuredPoints, RooFit::Strategy(cMINUITStrat));
 	delete r;
 
@@ -534,9 +528,6 @@ namespace BTagCombination {
 	    double centralError = totalError[item];
 	    double delta = centralError*centralError - m->getError()*m->getError();
 	    double errDiff = sqrt(fabs(delta));
-	    //cout << "  centralError = " << centralError << endl
-	    //<< "  fit result = " << m->getError() << endl
-	    //<< "  delta = " << delta << endl;
 
 	    // Propagate the sign
 	    if (delta < 0.0)
@@ -564,9 +555,9 @@ namespace BTagCombination {
       }
 
       //
-      // And the statistical error. For this we do a seperate calculation exactly. This avoids
-      // a common problem with the fit when the actual values are seperated by many orders of 10's
-      // of sigma. The fit just dosen't work well.
+      // And the statistical error. For this we do a separate calculation exactly. This avoids
+      // a common problem with the fit when the actual values are separated by many orders of 10's
+      // of sigma. The fit just doesn't work well.
       //
 
       map<string, double> stat_errors = CalculateStatisticalErrors();
@@ -649,7 +640,7 @@ namespace BTagCombination {
 	     << "   total error: " << totalError[itr->first]
 	     << "   Summed Error: " << terr << endl
 	     << "   Delta Error: " << delta << endl
-	     << "   somethign went wrong in how we calc errors" << endl;
+	     << "   something went wrong in how we calc errors" << endl;
       }
     }
 
@@ -673,11 +664,7 @@ namespace BTagCombination {
 	  string fr_name(i_fr->first);
 	  map<string,double>::iterator s_value = fr.sysErrors.find(ci._sharedSysName);
 	  if (s_value != fr.sysErrors.end()) {
-	    //cout << "Dealing with stat error: " << endl
-	    //<< " uncor = " << fr.statisticalError << endl
-	    //<< " cor = " << s_value->second << endl;
-	      
-	    fr.statisticalError = sqrt(fr.statisticalError*fr.statisticalError
+		  fr.statisticalError = sqrt(fr.statisticalError*fr.statisticalError
 				       + s_value->second*s_value->second);
 	    fr.sysErrors.erase(s_value);
 	    result[fr_name] = fr;

@@ -1,5 +1,5 @@
 ///
-/// The value for a sinle measurement
+/// The value for a single measurement
 ///
 #include "Combination/Measurement.h"
 
@@ -30,7 +30,7 @@ namespace {
 
 namespace BTagCombination {
 
-  // Clean up some of the roo stuff we are holding onto. Ugh in the extreeme.
+  // Clean up some of the RooFit stuff we are holding onto. Ugh in the extreme.
   Measurement::~Measurement(void)
   {
     for (map<string, RooProduct*>::const_iterator itr = _innerWidthCache.begin(); itr != _innerWidthCache.end(); itr++) {
@@ -59,24 +59,6 @@ namespace BTagCombination {
     _statError = new RooConstVar((_name + "StatError").c_str(),
 			     (_name + "StatError").c_str(),
 			     statErr);
-  }
-
-  //
-  // See if the stat error is too small, artifiically boost it if it is.
-  //
-  void Measurement::CheckAndAdjustStatisticalError(double minFraction)
-  {
-#ifdef notyet
-    double fract = _statError->getVal() / _actualValue.getVal();
-    if (fract < minFraction) {
-      double newStatError = _actualValue.getVal() * minFraction;
-      cout << "WARNING: Statistical error is too small for fitting to succeed." << endl
-	   << "  " << Name() << " (" << What() << ")" << endl
-	   << "  central value " << _actualValue.getVal() << " +- " << _statError->getVal() << " (stat) +- " << totalSysError() << " (sys)" << endl
-	   << "  Adjusting the stat error to " << newStatError << endl;
-      ResetStatisticalError(newStatError);
-    }
-#endif
   }
 
   //
@@ -179,7 +161,7 @@ namespace BTagCombination {
   }
 
   ///
-  /// Add a new systematic error to the list of systeematic errors.
+  /// Add a new systematic error to the list of systematic errors.
   ///
   void Measurement::addSystematicAbs (const std::string &errorName, const double oneSigmaSizeAbsoulte)
   {
@@ -195,8 +177,8 @@ namespace BTagCombination {
   }
 
   //
-  // Determine what errosr are correlated and not correlated between measurements.
-  // Include both systeamtic and statistical errors in the calculation.
+  // Determine what errors are correlated and not correlated between measurements.
+  // Include both systematic and statistical errors in the calculation.
   // Returns pair<uncorrelated, correlated>.
   //
   pair<double, double> Measurement::SharedError (const Measurement *other) const
@@ -227,13 +209,13 @@ namespace BTagCombination {
     double rho = RhoUnbounded(other);
 
     if (rho < -1.0) {
-      cout << "Error calculationg covariance between "
+      cout << "Error calculating covariance between "
 	   << this->Name() << " and "
 	   << other->Name() << " - rho found to be " << rho << endl;
       rho = -1.0;
     }
     if (rho > 1.0) {
-      cout << "Error calculationg covariance between "
+      cout << "Error calculating covariance between "
 	   << this->Name() << " and "
 	   << other->Name() << " - rho found to be " << rho << endl;
       rho = 1.0;
@@ -241,7 +223,7 @@ namespace BTagCombination {
     return rho;
   }
 
-  // Calc teh correlation coef for this measurement and a second one.
+  // Calc the correlation coeff for this measurement and a second one.
   // Let rho be whatever it wants.
   double Measurement::RhoUnbounded (const Measurement *other) const
   {
@@ -292,7 +274,7 @@ namespace BTagCombination {
     if (other == this)
       return s1*s2;
 
-    // Now, return the covarience
+    // Now, return the covariance
     double rho = Rho (other);
 
     return rho*s1*s2;

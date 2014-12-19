@@ -59,10 +59,6 @@ namespace BTagCombination {
     // Calculate rho, the covar coeff. Bounded by 1 if all goes well, otherwise... not.
     double RhoUnbounded (const Measurement *other) const;
 
-    // Check and adjust a systematic error. Default argument, if it is
-    // less than 0.5%, then adjust it till it is (and print out a warning).
-    void CheckAndAdjustStatisticalError (double minFraction = 0.005);
-
     // Returns the total systematic error
     double totalSysError() const;
 
