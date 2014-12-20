@@ -2650,16 +2650,16 @@ class CombinerTest : public CppUnit::TestFixture
 
   }
 
-  // Make sure filling with a simple analysis work.
+  // Try to fill a context with a set of simple measurements
   void fillContextWithOneBinAnalysis()
   {
-	  CalibrationAnalysis ana(SimpleAna(false));
+    CalibrationAnalysis ana(SimpleAna(false));
 
-	  CombinationContext ctx;
-	  FillContext(ctx, ana);
+    CombinationContext ctx;
+    FillContext(ctx, ana);
 
-	  // There should be only one measurement.
-	  CPPUNIT_ASSERT_EQUAL((size_t)1, ctx.GetAllMeasurements().size());
+    // There should be only one measurement.
+    CPPUNIT_ASSERT_EQUAL((size_t)1, ctx.GetAllMeasurements().size());
   }
 };
 

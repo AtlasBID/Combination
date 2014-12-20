@@ -1,5 +1,5 @@
 ///
-/// Implementation of the context for a combination of sevearl measurements.
+/// Implementation of the context for a combination of several measurements.
 ///
 
 #include "Combination/CombinationContextBase.h"
@@ -81,7 +81,7 @@ namespace BTagCombination {
 					       double correlation)
   {
     if (errorName != "statistical") {
-      throw runtime_error ("Can only deal with correlations for statsical errors!");
+      throw runtime_error ("Can only deal with correlations for statistical errors!");
     }
 
     if (correlation == 1.0) {
@@ -111,7 +111,7 @@ namespace BTagCombination {
 
     //
     // Now do some detailed checks about the sys error
-    //  - Only one stat error correlation per two measruements, for example.
+    //  - Only one stat error correlation per two measurements, for example.
     //
 
     if (m1->hasSysError(statSysErrorName)
@@ -124,16 +124,16 @@ namespace BTagCombination {
     }
 
     //
-    // We have to decide how to split the correlated and uncorelated errors between
+    // We have to decide how to split the correlated and uncorrelated errors between
     // the two measurements. There is no unique solution. The simplest thing - make
     // one of the uncorrelated errors zero - doesn't work with lots of measurements;
-    // roofit fails to converge sensibly when this happens.
+    // RooFit fails to converge sensibly when this happens.
     //
     // Instead, we choose it such that the uncorrelated errors are equal between the
     // two measurements.
     //
-    // The equns you solve for this a fairly trival - but the result below in code
-    // is unforutnately opaque.
+    // The equations you solve for this a fairly trivial - but the result below in code
+    // is unfortunately opaque.
     //
 
     // Stat errors of the two measurements
@@ -175,7 +175,7 @@ namespace BTagCombination {
     double radical = b*b - 4*a*c;
     if (radical < 0) {
       ostringstream err;
-      err << "Unable to solve for corelated error: s1 = " << s1
+      err << "Unable to solve for correlated error: s1 = " << s1
 	  << " s2 = " << s2 << " and rho = " << rho;
       throw runtime_error(err.str().c_str());
     }
@@ -191,7 +191,7 @@ namespace BTagCombination {
       s2c_2 = s2c_sol2;
     } else {
       ostringstream err;
-      err << "The Corelated error squared is less than zero: s1 = " << s1
+      err << "The correlated error squared is less than zero: s1 = " << s1
 	  << " s2 = " << s2 << " and rho = " << rho;
       throw runtime_error(err.str().c_str());
     }
@@ -231,16 +231,6 @@ namespace BTagCombination {
     m1->addSystematicAbs(statSysErrorName, s1c);
     m2->addSystematicAbs(statSysErrorName, s2c);
 
-    //cout << "Stat Correlation Calc: " << endl
-    //<< "  s1 = " << s1 << endl
-    //<< "  s2 = " << s2 << endl
-    //<< "  rho = " << rho << endl
-    //<< "  s1u = " << s1u << endl
-    //<< "  s2u = " << s2u << endl
-    //<< "  s1c = " << s1c << endl
-    //<< "  s2c = " << s2c << endl
-    //<< "  a=" << a << " b=" << b << " c=" << c << endl;
-
     CorrInfo cr;
     cr._m1 = m1;
     cr._m2 = m2;
@@ -250,7 +240,7 @@ namespace BTagCombination {
   }
 
   //
-  // What are the good measruements? Return them.
+  // What are the good measurements? Return them.
   //
   vector<Measurement*> CombinationContextBase::GoodMeasurements(void)
   {
@@ -370,7 +360,7 @@ namespace BTagCombination {
   // Dump a fit result out to an output stream (mostly for debugging)
   ostream &operator<< (ostream &out, const CombinationContextBase::FitResult &fr)
   {
-    out << "fit cv: " << fr.centralValue << " +- " << fr.statisticalError << endl;
+    out << "fit central value: " << fr.centralValue << " +- " << fr.statisticalError << endl;
     if (fr.sysErrors.size() == 0) {
       out << "  0 systematic errors" << endl;
     } else {

@@ -78,9 +78,9 @@ namespace BTagCombination {
 
     // Get the extra info from a fit that was just run.
     virtual ExtraFitInfo GetExtraFitInformation (void) { return _extraInfo;}
-
-	// Get a list of all measurements
-	const std::vector<Measurement*> GetAllMeasurements(void) const { return _measurements; }
+    
+    // Get a list of all measurements
+    const std::vector<Measurement*> GetAllMeasurements(void) const { return _measurements; }
 
   protected:
     // Helper method that scans the internal list of measurements to get
