@@ -5,7 +5,11 @@
 #include "Combination/MeasurementUtils.h"
 #include "Combination/Measurement.h"
 
+#include "TMatrixT.h"
+
 #include <iostream>
+#include <set>
+#include <sstream>
 
 using namespace std;
 
@@ -15,7 +19,7 @@ namespace BTagCombination {
   // Calculate the covariance matrix for a list of measurements by calculating the explicit "overlap"
   // between the errors of two measurements.
   //
-  TMatrixTSym<double> CalcCovarMatrixUsingRho (const vector<Measurement*> measurements)
+  TMatrixTSym<double> CalcCovarMatrixUsingRho (const vector<Measurement*> &measurements)
   {
     TMatrixTSym<double> W(measurements.size());
     int i_meas_row = 0;
@@ -32,10 +36,10 @@ namespace BTagCombination {
   }
 
   //
-  // Calc the covar matrix one systematic error at a time. Check each one to make sure it can
+  // Calc the covariance matrix one systematic error at a time. Check each one to make sure it can
   // be inverted.
   //
-  TMatrixTSym<double> CalcCovarMatrixUsingComposition (const vector<Measurement*> measurements)
+  TMatrixTSym<double> CalcCovarMatrixUsingComposition (const vector<Measurement*> &measurements)
   {
     //
     // Get a list of all the systematic errors. Create a symmetric matrix to hold the covariance for each
@@ -59,7 +63,7 @@ namespace BTagCombination {
     sysLookup.insert(make_pair(string("stat"), TMatrixTSym<double>(measurements.size())));
 
     //
-    // Go through all the measurements and build up each individual cov matrix.
+    // Go through all the measurements and build up each individual covariance matrix.
     //
 
     int i_meas_row = 0;
@@ -73,7 +77,7 @@ namespace BTagCombination {
       sysLookup["stat"](i_meas_row, i_meas_row) = m->statError() * m->statError();
 
       //
-      // For each systeamtic error that this measurement knows about, fill in the slots in all
+      // For each systematic error that this measurement knows about, fill in the slots in all
       // the sys matrices.
       //
 
@@ -116,5 +120,52 @@ namespace BTagCombination {
     }
 
     return result;
+  }
+
+  // Calculate the chi2 for a set of measurements
+  double CalcChi2(const std::vector<Measurement*> &measurements, const std::vector<Measurement*> &fitResults)
+  {
+    // This works only if everything is used.
+    set<string> measuredWhats, fitWhats;
+    map<string, Measurement*> fitLookup;
+    for (size_t i = 0; i < fitResults.size(); i++) {
+      if (fitWhats.find(fitResults[i]->What()) != fitWhats.end()) {
+        ostringstream err;
+        err << "Fit results contain the same measurement (" << fitResults[i]->What() << ") twice.";
+        throw runtime_error(err.str());
+      }
+      fitWhats.insert(fitResults[i]->What());
+      fitLookup[fitResults[i]->What()] = fitResults[i];
+    }
+    for (size_t i = 0; i < measurements.size(); i++) {
+      measuredWhats.insert(measurements[i]->What());
+    }
+
+    if (fitWhats != measuredWhats) {
+      throw runtime_error("The items measured and fit do not match - can't calculated a chi2");
+    }
+
+    // Idiot check.
+    if (measurements.size() == 0)
+      return 0.0;
+
+    // Next, we have to build a covariance matrix from the list of measurements, and invert it to be ready
+    // for use in calculating the actual chi2.
+    TMatrixTSym<double> r(CalcCovarMatrixUsingRho(measurements));
+    TMatrixTSym<double> rInv (r.Invert());
+
+    // Assemble the column and row vectors that will contain how much each measurement varies from its
+    // fit value.
+    TMatrixT<double> asRows(measurements.size(), 1);
+    for (size_t i = 0; i < measurements.size(); i++) {
+      const Measurement &m(*measurements[i]);
+      asRows(i, 0) = m.centralValue() - fitLookup[m.What()]->centralValue();
+    }
+    TMatrixT<double> asColumns;
+    asColumns.Transpose(asRows); // Very UGLY API, but this is how it works.
+
+    // And finally calculate the chi2.
+    TMatrixT<double> chi2 = asRows * rInv * asColumns;
+    return chi2(0, 0);
   }
 }

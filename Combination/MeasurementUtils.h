@@ -13,8 +13,11 @@ namespace BTagCombination {
 
   class Measurement;
 
-  TMatrixTSym<double> CalcCovarMatrixUsingRho (const std::vector<Measurement*> measurements);
-  TMatrixTSym<double> CalcCovarMatrixUsingComposition (const std::vector<Measurement*> measurements);
+  TMatrixTSym<double> CalcCovarMatrixUsingRho (const std::vector<Measurement*> &measurements);
+  TMatrixTSym<double> CalcCovarMatrixUsingComposition (const std::vector<Measurement*> &measurements);
+
+  // Calculate the fully correlated value of the chi2 for a sequence of measurements.
+  double CalcChi2(const std::vector<Measurement*> &measurements, const std::vector<Measurement*> &fitResults);
 }
 
 #endif
