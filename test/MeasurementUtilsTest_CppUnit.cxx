@@ -426,6 +426,7 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
 
   void calcChi2SameFitAndMeasurementSame()
   {
+    cout << "Starting calcChi2SameFitAndMeasurementSame" << endl;
     CombinationContext c;
     Measurement *m = c.AddMeasurement("v1", -10.0, 10.0, 5.0, 0.5);
 
