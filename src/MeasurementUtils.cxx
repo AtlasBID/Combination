@@ -10,6 +10,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 
 using namespace std;
 
