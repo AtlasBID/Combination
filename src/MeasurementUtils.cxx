@@ -158,12 +158,12 @@ namespace BTagCombination {
 
     // Assemble the column and row vectors that will contain how much each measurement varies from its
     // fit value.
-    TMatrixT<double> asRows(measurements.size(), 1);
-    TMatrixT<double> asColumns(1, measurements.size());
+    TMatrixT<double> asColumns(measurements.size(), 1);
+    TMatrixT<double> asRows(1, measurements.size());
     for (size_t i = 0; i < measurements.size(); i++) {
       const Measurement &m(*measurements[i]);
-      asRows(i, 0) = m.centralValue() - fitLookup[m.What()]->centralValue();
-      asColumns(0, 1) = asRows(i, 0);
+      asColumns(i, 0) = m.centralValue() - fitLookup[m.What()]->centralValue();
+      asRows(0, i) = asColumns(i, 0);
     }
     cout << "asRows: " << endl;
     asRows.Print();

@@ -440,6 +440,7 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
 
   void calcChi2TwoFitAndMeasurmentsOneOff()
   {
+    cout << "Starting calcChi2TwoFitAndMeasurmentsOneOff" << endl;
     CombinationContext cm;
     Measurement *m1 = cm.AddMeasurement("v1", -10.0, 10.0, 5.0, 0.5);
     Measurement *m2 = cm.AddMeasurement("v2", -10.0, 10.0, 7.0, 0.5);
@@ -474,6 +475,7 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
 
   void calcChi2TwoMeasurementsOffBySys()
   {
+    cout << "Starting calcChi2TwoMeasurementsOffBySys" << endl;
     CombinationContext cm;
     Measurement *m1 = cm.AddMeasurement("v1", -10.0, 10.0, 5.0, 0.5);
     m1->addSystematicAbs("sys1", 0.1);
@@ -489,7 +491,7 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
     vector<Measurement*> flist;
     flist.push_back(f1);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, CalcChi2(mlist, flist), 0.01);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.1*0.1/0.5/0.5, CalcChi2(mlist, flist), 0.01);
   }
 };
 
