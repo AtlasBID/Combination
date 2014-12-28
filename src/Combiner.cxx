@@ -754,12 +754,12 @@ namespace BTagCombination
         for (set<set<CalibrationBinBoundary> >::const_iterator i_bin = allBins.begin(); i_bin != allBins.end(); i_bin++) {
           vector<CalibrationAnalysis> anaForBin(removeAllBinsButBin(i_ana->second, *i_bin));
 
-          pair<CombinationContext*, map<string, vector<CalibrationBin> > > info(CreateContextInOneContext(anaForBin,
+          pair<CombinationContext*, map<string, vector<CalibrationBin> > > resultInfo(CreateContextInOneContext(anaForBin,
             info.Correlations, verbose));
-          CalibrationAnalysis r(CombineAnalysesInOneContext(info, anaForBin, OPBinName(*i_bin)));
+          CalibrationAnalysis r(CombineAnalysesInOneContext(resultInfo, anaForBin, OPBinName(*i_bin)));
 
           binByBinFits.push_back(r);
-          contexts.push_back(info.first);
+          contexts.push_back(resultInfo.first);
         }
 
         // Merge the various bins into a single bin, track the linage.
