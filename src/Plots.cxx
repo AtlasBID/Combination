@@ -73,7 +73,7 @@ namespace {
   /// utility was needed.
   ///
 
-  // Find the bin results for a partiuclar bin. Return an empty if we
+  // Find the bin results for a particular bin. Return an empty if we
   // can't find it.
   CalibrationBin FindBin (const CalibrationAnalysis &ana, t_BBSet &bininfo, bool &found)
   {
@@ -82,11 +82,6 @@ namespace {
       const CalibrationBin &cb (ana.bins[ib]);
       t_BBSet t (cb.binSpec.begin(), cb.binSpec.end());
       if (t == bininfo) {
-	//cout << "   found bin: " << ana.name << "(" << ana.flavor << "," << ana.tagger << "," << ana.operatingPoint << ") ";
-	//for (t_BBSet::const_iterator i = t.begin(); i != t.end(); i++) {
-	//cout << *i << " ";
-	//}
-	//cout << endl;
 	found = true;
 	return cb;
       }
@@ -125,7 +120,7 @@ namespace {
     return t;
   }
 
-  // Ordering for historams based on the size in their first bin.
+  // Ordering for histograms based on the size in their first bin.
   bool CompareHistoPairs (const pair<string, TH1F*> &left, const pair<string, TH1F*> &right)
   {
     for (int i = 1; i <= left.second->GetNbinsX(); i++) {
@@ -159,8 +154,8 @@ namespace {
     }
 
     //
-    // Build the stack. We have to build a postiive and negative stack. The ROOT code
-    // can't deal, correctly, with histograms that have both postivie and negative components
+    // Build the stack. We have to build a positive and negative stack. The ROOT code
+    // can't deal, correctly, with histograms that have both positive and negative components
     // in them.
     //
 
@@ -179,7 +174,7 @@ namespace {
       if (lmin < 0)
 	minV += lmin;
 
-      // Clone the histogram, and zero out everything that is postiive or negative
+      // Clone the histogram, and zero out everything that is positive or negative
       TH1F* hp = static_cast<TH1F*>(ip->second->Clone());
       TH1F* hn = static_cast<TH1F*>(ip->second->Clone());
       temp.push_back(hp);
@@ -312,7 +307,7 @@ namespace {
 
   }
 
-  // Return a naming for an analysis for english use
+  // Return a naming for an analysis for English use
   string NamingForAna (const CalibrationAnalysis &a, GroupCriteria gp)
   {
     switch (gp) {
@@ -403,7 +398,7 @@ namespace {
   {
     out -> cd();
 
-    // Some setup and defs that make life simpler below.
+    // Some setup and defines that make life simpler below.
     string binName (allAxisBins.begin()->variable);
 
     double legendYPos = c_legendYStart;
@@ -445,7 +440,7 @@ namespace {
 
     //
     // A little tricky here. The person providing input can split the analysis up into multiple
-    // partitiions. So the same analysis can appear twice in the list. No good talking about it that
+    // partitions. So the same analysis can appear twice in the list. No good talking about it that
     // way on the plots. So, sort that out. and maintain order.
     //
 
@@ -487,7 +482,7 @@ namespace {
       x_InitialCoordinate = 0.5 - x_DeltaCoordinate * anas.size() / 2.0;
     }
 
-    // For each analysis make a graf. We assume copy symantics for the values
+    // For each analysis make a graph. We assume copy systematic errors for the values
     // we pass to the TGraph.
 
     vector<TGraphErrors*> plots, plotsSys;
@@ -508,8 +503,8 @@ namespace {
     double yCentralTotMax = 0.0;
 
     //
-    // Our first job is to build the bin lables. We already have the set
-    // that is the bin lables. So all we now have to do is get a mapping
+    // Our first job is to build the bin labels. We already have the set
+    // that is the bin labels. So all we now have to do is get a mapping
     // between the labels.
     //
 
@@ -670,7 +665,7 @@ namespace {
     if (whatToPlot == pcAll) {
 
       //
-      // Build a set of stacked histograms of the systeamtic errors^2 contribution in each plot.
+      // Build a set of stacked histograms of the systematic errors^2 contribution in each plot.
       // Also, window out only those that contribute at least 5%.
       // This would be a lot simpler with C++011!!!
       //
@@ -701,7 +696,7 @@ namespace {
     }
 
     //
-    // Get rid fo the cv shift guy
+    // Get rid of the central value shift guy
     //
 
     for (map<string, TH1F*>::const_iterator i_p = cvShiftPlotsSingle.begin(); i_p != cvShiftPlotsSingle.end(); i_p++) {
@@ -711,7 +706,7 @@ namespace {
 
     //
     // Plot the systematic errors for each bin for all contributing analyses on one plot. This way
-    // one can easily compare the contributions of one systeamtic error to all different analyses, and
+    // one can easily compare the contributions of one systematic error to all different analyses, and
     // see how fitting controls them.
     //
 
@@ -946,7 +941,7 @@ namespace {
   {
     if (v.second.size() != inc.size()) {
       cout << "Internal error. Attempt to average vectors with size " << v.second.size() << " with " << inc.size() << endl;
-      throw runtime_error ("Averaging can't happen on things of different size, inconsitent pull or similar!");
+      throw runtime_error ("Averaging can't happen on things of different size, inconsistent pull or similar!");
     }
 
     vector<double> initial (v.second);
@@ -986,7 +981,7 @@ namespace {
       }
     }
 
-    // Now, build the histo
+    // Now, build the histogram
 
     if (pulls.size() > 0) {
 
@@ -1015,7 +1010,7 @@ namespace {
       TCanvas *c = new TCanvas(th1_name.c_str(), th1_title.c_str());
       c->SetBottomMargin(0.55);
 
-      h->Draw(); // We really want hbar here, but it doesn't quite work when filling in a histo
+      h->Draw();
 
       if (plotSigmaBands) {
 	// Draw the yellow bands now
@@ -1044,7 +1039,7 @@ namespace {
 
 
   //
-  // Extract all the from claues from the list of 
+  // Extract all the from clauses from the list of 
   set<string> ExtractAllFromClauses(const map<string,vector<double> > &meta)
   {
     set<string> result;
