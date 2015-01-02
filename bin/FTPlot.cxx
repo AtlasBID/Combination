@@ -9,6 +9,8 @@
 #include "Combination/Plots.h"
 #include "Combination/AtlasStyle.h"
 
+#include "TApplication.h"
+
 #include <TFile.h>
 
 #include <iostream>
@@ -21,6 +23,13 @@ void usage(void);
 int main (int argc, char **argv)
 {
   try {
+    // Init the application so that all plotting infrastructure is initialized.
+    // On Windows if this is missing it will cause a rather ugly crash.
+    int myArgc = 1;
+    char* myArgv[1];
+    myArgv[0] = argv[0];
+    TApplication *a = new TApplication("FTPlot", &myArgc, myArgv);
+
     // Parse the input arguments
     CalibrationInfo info;
     vector<string> otherFlags;

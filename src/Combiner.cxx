@@ -766,7 +766,12 @@ namespace BTagCombination
         CalibrationAnalysis mergedResult(MergeAnalyses(binByBinFits, info.CombinationAnalysisName));
         mergedResult.metadata_s["Linage"] = CombineLinage(i_ana->second, LCFitCombine);
 
-        // Calculate the chi2
+        // Calculate the chi2.
+        //  - The official chi2 is a fully correlated calculation.
+        //  - A crude method of doing the calc is to add up the bin-by-bin chi2's as a sum. That is still a chi2, just not as complete a one.
+        //  - The gchi2 is the fully correlated chi2, and what the rest of the infrastructure will use.
+        //  - Individual chi2 will be stored for each bin in the meta-data
+        //  - A summed chi2 will be calculated in MergeAnalysis above, and transferred to sum_gchi2 below.
         vector<CalibrationAnalysis> anasForResult;
         anasForResult.push_back(mergedResult);
         pair<CombinationContext*, map<string, vector<CalibrationBin> > > resultInfo(CreateContextInOneContext(anasForResult, vector<AnalysisCorrelation>(), false));
@@ -778,6 +783,7 @@ namespace BTagCombination
           copy(contexts[i]->GetAllMeasurements().begin(), contexts[i]->GetAllMeasurements().end(), back_inserter(initialMeasurements));
         }
 
+        mergedResult.metadata["sum_gchi2"] = mergedResult.metadata["gchi2"];
         mergedResult.metadata["gchi2"].clear();
         mergedResult.metadata["gchi2"].push_back(CalcChi2(initialMeasurements, finalMeasurements));
 

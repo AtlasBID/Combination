@@ -36,7 +36,7 @@ int main (int argc, char **argv)
       } else if (otherFlags[i].substr(0, 6) == "prefix") {
 	prefix = otherFlags[i].substr(6);
       } else {
-	cout << "Error: Unknnown flag: " << otherFlags[i] << endl;
+	cout << "Error: Unknown flag: " << otherFlags[i] << endl;
 	usage();
 	return 1;
       }

@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 
 		// Dump the meta data for the analysis that has run. We do this
 		// just one at a time. This is meant to be ready in by someone else
-		// and processed approprately.
+		// and processed appropriately.
 
 		if (dumpMetaDataForCPU) {
 			for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 
 		// Dump the meta data for the bins that have run. We do this
 		// just one at a time. This is meant to be ready in by someone else
-		// and processed approprately.
+		// and processed appropriately.
 
 		if (dumpMetaDataForBins) {
 			for (size_t i_a = 0; i_a < calibs.size(); i_a++) {
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 			return 0;
 		}
 
-		// Dump out a list of comma seperated values
+		// Dump out a list of comma separated values
 		if (doDump)
 			DumpEverything(calibs, *output);
 

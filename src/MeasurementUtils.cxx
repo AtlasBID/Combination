@@ -154,8 +154,6 @@ namespace BTagCombination {
     // for use in calculating the actual chi2.
     TMatrixTSym<double> r(CalcCovarMatrixUsingRho(measurements));
     TMatrixTSym<double> rInv (r.Invert());
-    cout << "rInv = " << endl;
-    rInv.Print();
 
     // Assemble the column and row vectors that will contain how much each measurement varies from its
     // fit value.
@@ -166,15 +164,9 @@ namespace BTagCombination {
       asColumns(i, 0) = m.centralValue() - fitLookup[m.What()]->centralValue();
       asRows(0, i) = asColumns(i, 0);
     }
-    cout << "asRows: " << endl;
-    asRows.Print();
-    cout << "asColumns:" << endl;
-    asColumns.Print();
 
     // And finally calculate the chi2.
     TMatrixT<double> chi2 = asRows * rInv * asColumns;
-    cout << "chi2:" << endl;
-    chi2.Print();
     return chi2(0, 0);
   }
 }
