@@ -174,7 +174,7 @@ int main(int argc, char **argv)
         // Remove the sys error if there.
         for (size_t ib = 0; ib < ana.bins.size(); ib++) {
           CalibrationBin &b(ana.bins[ib]);
-          for (vector<SystematicError>::const_iterator is = b.systematicErrors.begin(); is != b.systematicErrors.end(); is++) {
+          for (vector<SystematicError>::iterator is = b.systematicErrors.begin(); is != b.systematicErrors.end(); is++) {
             if (is->name == dropSysError) {
               b.systematicErrors.erase(is);
               break;
