@@ -268,7 +268,7 @@ namespace BTagCombination {
 
     if (measurementName.size() > cMaxParameterNameLength) {
       ostringstream err;
-      err << "Parameter names is too long and will cause a crash in RooFit::migrad - "
+      err << "Parameter names is too long (" << measurementName.size() << " characters - it can't be more than " << cMaxParameterNameLength << " characters) and will cause a crash in RooFit::migrad - "
 	  << "'" << measurementName << "'";
       throw runtime_error (err.str().c_str());
     }
