@@ -3,18 +3,19 @@
 
 #include "Combination/CalibrationDataModel.h"
 
-#include <vector>
+#include <set>
 #include <string>
+#include <boost/regex.hpp>
 
 namespace BTagCombination {
 
-	// What can be filtered out, and a method that filters everythign out.
-	// Note: operatingPoints is an in/out argument! :(
-	struct calibrationFilterInfo {
-		std::vector<std::string> OPsToIgnore;
-		std::vector<std::string> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm, spOnlyAnalysis;
-	};
-	void FilterAnalyses(CalibrationInfo &operatingPoints, const calibrationFilterInfo &fInfo);
+  // What can be filtered out, and a method that filters everythign out.
+  // Note: operatingPoints is an in/out argument! :(
+  struct calibrationFilterInfo {
+    std::set<const boost::regex> OPsToIgnore;
+    std::set<const boost::regex> spOnlyFlavor, spOnlyTagger, spOnlyOP, spOnlyJetAlgorithm, spOnlyAnalysis;
+  };
+  void FilterAnalyses(CalibrationInfo &operatingPoints, const calibrationFilterInfo &fInfo);
 }
 
 #endif

@@ -97,12 +97,12 @@ namespace {
   }
 
   // Return true if the list is empty or the match is in the list.
-  bool CheckInList(const vector<string> &l, const string &match)
+  bool CheckInList(const set<const boost::regex> &l, const string &match)
   {
     if (l.size() == 0)
       return true;
-    for (vector<string>::const_iterator itr = l.begin(); itr != l.end(); itr++) {
-      if (*itr == match)
+    for (set<boost::regex>::const_iterator itr = l.begin(); itr != l.end(); itr++) {
+      if (boost::regex_match(match, *itr))
         return true;
     }
     return false;
@@ -119,6 +119,19 @@ namespace {
   private:
     const string &_name;
   };
+
+  // Return a string with "'" stripped off.
+  string cleanup(const string &inp)
+  {
+    string result(inp);
+    if (result[0] == '\'') {
+      result = result.substr(1);
+    }
+    if (result[result.size() - 1] == '\'') {
+      result = result.substr(0, result.size() - 1);
+    }
+    return result;
+  }
 }
 
 //
@@ -143,12 +156,11 @@ namespace BTagCombination {
   // Clean out the incoming analysis according to spec.
   void FilterAnalyses(CalibrationInfo &operatingPoints, const calibrationFilterInfo &fInfo)
   {
-    for (unsigned int i = 0; i < fInfo.OPsToIgnore.size(); i++) {
-      const boost::regex rIgnore(fInfo.OPsToIgnore[i]);
+    for (set<boost::regex>::const_iterator itr = fInfo.OPsToIgnore.begin(); itr != fInfo.OPsToIgnore.end(); itr++) {
       vector<CalibrationAnalysis> &ops(operatingPoints.Analyses);
       for (unsigned int op = 0; op < ops.size(); op++) {
         for (unsigned int b = 0; b < ops[op].bins.size(); b++) {
-          if (regex_match(OPIgnoreFormat(ops[op], ops[op].bins[b]), rIgnore)) {
+          if (regex_match(OPIgnoreFormat(ops[op], ops[op].bins[b]), *itr)) {
             ops[op].bins.erase(ops[op].bins.begin() + b);
             b = b - 1;
           }
@@ -158,7 +170,7 @@ namespace BTagCombination {
       vector<AnalysisCorrelation> &cors(operatingPoints.Correlations);
       for (unsigned int ic = 0; ic < cors.size(); ic++) {
         for (unsigned int b = 0; b < cors[ic].bins.size(); b++) {
-          if (regex_match(OPIgnoreFormat(cors[ic], cors[ic].bins[b]), rIgnore)) {
+          if (regex_match(OPIgnoreFormat(cors[ic], cors[ic].bins[b]), *itr)) {
             cors[ic].bins.erase(cors[ic].bins.begin() + b);
             b = b - 1;
           }
@@ -240,11 +252,13 @@ namespace BTagCombination {
             }
             string ignore(args[++index]);
             if (ignore[0] != '@') {
-              fInfo.OPsToIgnore.push_back(ignore);
+              fInfo.OPsToIgnore.insert(boost::regex(ignore));
             }
             else {
               vector<string> alltoignore(loadIgnoreFile(ignore.substr(1)));
-              fInfo.OPsToIgnore.insert(fInfo.OPsToIgnore.end(), alltoignore.begin(), alltoignore.end());
+              for (size_t idx = 0; idx < alltoignore.size(); idx++) {
+                fInfo.OPsToIgnore.insert(boost::regex(alltoignore[idx]));
+              }
             }
           }
           else if (flag == "ignoreSysError") {
@@ -258,35 +272,35 @@ namespace BTagCombination {
               throw runtime_error("every --flavor must have an analysis name");
             }
             index++;
-            fInfo.spOnlyFlavor.push_back(args[index]);
+            fInfo.spOnlyFlavor.insert(boost::regex(cleanup(args[index])));
           }
           else if (flag == "tagger") {
             if (index + 1 == args.size()) {
               throw runtime_error("every --tagger must have an analysis name");
             }
             index++;
-            fInfo.spOnlyTagger.push_back(args[index]);
+            fInfo.spOnlyTagger.insert(boost::regex(cleanup(args[index])));
           }
           else if (flag == "operatingPoint") {
             if (index + 1 == args.size()) {
               throw runtime_error("every --operatingPoint must have an analysis name");
             }
             index++;
-            fInfo.spOnlyOP.push_back(args[index]);
+            fInfo.spOnlyOP.insert(boost::regex(cleanup(args[index])));
           }
           else if (flag == "jetAlgorithm") {
             if (index + 1 == args.size()) {
               throw runtime_error("every --jetAlgorithm must have an analysis name");
             }
             index++;
-            fInfo.spOnlyJetAlgorithm.push_back(args[index]);
+            fInfo.spOnlyJetAlgorithm.insert(boost::regex(cleanup(args[index])));
           }
           else if (flag == "analysis") {
             if (index + 1 == args.size()) {
               throw runtime_error("every --analysis must have an analysis name");
             }
             index++;
-            fInfo.spOnlyAnalysis.push_back(args[index]);
+            fInfo.spOnlyAnalysis.insert(boost::regex(cleanup(args[index])));
           }
           else if (flag == "combinedName") {
             if (index + 1 == args.size()) {
