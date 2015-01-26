@@ -19,6 +19,7 @@
     <ClInclude Include="..\..\Combination\BinUtils.h" />
     <ClInclude Include="..\..\Combination\CalibrationDataModel.h" />
     <ClInclude Include="..\..\Combination\CalibrationDataModelStreams.h" />
+    <ClInclude Include="..\..\Combination\CalibrationFilter.h" />
     <ClInclude Include="..\..\Combination\CDIConverter.h" />
     <ClInclude Include="..\..\Combination\CombinationContext.h" />
     <ClInclude Include="..\..\Combination\CombinationContextBase.h" />
