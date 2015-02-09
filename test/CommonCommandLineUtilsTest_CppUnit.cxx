@@ -63,6 +63,8 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST ( testUseOnlyFlags9 );
   CPPUNIT_TEST ( testUseOnlyFlags10 );
   CPPUNIT_TEST ( testUseOnlyFlags11 );
+  CPPUNIT_TEST ( testUseOnlyFlags12 );
+  CPPUNIT_TEST(testUseOnlyFlags13);
 
   CPPUNIT_TEST ( testCopyAnalysis);
 
@@ -656,6 +658,32 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
     ParseOPInputArgs(argv, 3, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Correlations.size());
     CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags12()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = { "../testdata/JetFitcnn_eff60.txt",
+      "--tagger",
+      "JetTaggerCOMB.*"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.Analyses.size());
+  }
+
+  void testUseOnlyFlags13()
+  {
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = { "../testdata/JetFitcnn_eff60.txt",
+      "--tagger",
+      ".*"
+    };
+
+    ParseOPInputArgs(argv, 3, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t)1, results.Analyses.size());
   }
 
   void testCombinationAnalysisName1()
