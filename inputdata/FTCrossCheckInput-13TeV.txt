@@ -1,0 +1,34 @@
+calibration PDF_6bins_emu_2jets
+calibration PDF_6bins_emu_3jets
+calibration PDF_6bins_ll_2jets
+calibration PDF_6bins_ll_3jets
+
+calibration DStar
+calibration negative_tags
+calibration MCcalib
+
+jet AntiKt4TopoEMJVF0_5
+
+tagger MV2c20
+   
+op MV2c20 60 AntiKt4TopoEMJVF0_5 0.8263
+op MV2c20 70 AntiKt4TopoEMJVF0_5 0.5470
+op MV2c20 77 AntiKt4TopoEMJVF0_5 0.1182
+op MV2c20 85 AntiKt4TopoEMJVF0_5 -0.5362
+
+hadronization PDF Pythia6
+hadronization PDF_emu_2jets Pythia6
+hadronization PDF_emu_3jets Pythia6
+hadronization PDF_ll_2jets Pythia6
+hadronization PDF_ll_3jets Pythia6
+
+hadronization PDF_6bins_emu_2jets Pythia6
+hadronization PDF_6bins_emu_3jets Pythia6
+hadronization PDF_6bins_ll_2jets Pythia6
+hadronization PDF_6bins_ll_3jets Pythia6
+
+hadronization negative_tags Pythia8
+
+hadronization MCcalib Pythia8EvtGen
+
+hadronization DStar Pythia8
