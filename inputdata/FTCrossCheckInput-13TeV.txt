@@ -12,12 +12,13 @@ jet AntiKt3PV0TrackJets
 
 tagger MV2c20
    
-op MV2c20 60 AntiKt4EMTopoJets 0.8263
-op MV2c20 70 AntiKt4EMTopoJets 0.5470
-op MV2c20 77 AntiKt4EMTopoJets 0.1182
-op MV2c20 85 AntiKt4EMTopoJets -0.5362
+op MV2c20 60 AntiKt4EMTopoJets 0.5102
+op MV2c20 70 AntiKt4EMTopoJets 0.0314
+op MV2c20 77 AntiKt4EMTopoJets -0.3867
+op MV2c20 85 AntiKt4EMTopoJets -0.7682
 
-op MV2c20 70 AntiKt3PV0TrackJets 0.5470
+op MV2c20 70 AntiKt3PV0TrackJets -0.2134
+op MV2c20 77 AntiKt3PV0TrackJets -0.5828
 
 hadronization PDF Pythia6
 hadronization PDF_emu_2jets Pythia6
