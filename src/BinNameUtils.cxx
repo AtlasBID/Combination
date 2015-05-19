@@ -170,7 +170,7 @@ namespace BTagCombination {
 	return "MV1c_unknown";
       }
 
-	} else if (ana.tagger == "IP3DSV1") {
+    } else if (ana.tagger == "IP3DSV1") {
       if (ana.operatingPoint == "4.55") {
 	return "60";
       } else if (ana.operatingPoint == "1.70") {
@@ -219,6 +219,19 @@ namespace BTagCombination {
 	return "50";
       } else {
 	return "SV0_unknown";
+      }
+
+    } else if (ana.tagger == "MV2c20") {
+      if (ana.operatingPoint == "0.5102") {
+	return "60";
+      } else if (ana.operatingPoint == "0.0314"
+		 || ana.operatingPoint == "-0.2134") {
+	return "70";
+      } else if (ana.operatingPoint == "-0.3867"
+		 || ana.operatingPoint == "-0.5828") {
+	return "77";
+      } else if (ana.operatingPoint == "-0.7682") {
+	return "85";
       }
     } else {
       return "tagger_unknown";
