@@ -9,6 +9,7 @@ calibration PDF_6bins_ll_2jets
 calibration PDF_6bins_ll_3jets
 
 calibration ttbar_topo_emu
+calibration ttbar_topo_dijet
 calibration KinSel_dilep_3j
 calibration KinSel_dilep_2j
 
@@ -28,6 +29,9 @@ jet AntiKt4TopoLCnoJVF
 jet AntiKt4TopoLCJVF0_25
 jet AntiKt4TopoLCJVF0_5
 jet AntiKt4TopoLCJVF0_75
+
+jet AntiKt2Track
+jet AntiKt3Track
 
 tagger MV1
 tagger MV1c
@@ -51,6 +55,9 @@ op MV1 70 AntiKt4TopoLC 0.7892
 op MV1 80 AntiKt4TopoLC 0.3511
 op MV1 85 AntiKt4TopoLC 0.1340
 op MV1 90 AntiKt4TopoLC 0.0617
+
+op MV1 70 AntiKt2Track 0.8780
+op MV1 74 AntiKt3Track 0.7
    
 op MV1c 30 AntiKt4TopoEM 0.9848
 op MV1c 40 AntiKt4TopoEM 0.9662
@@ -94,6 +101,7 @@ hadronization PDF_6bins_ll_2jets Pythia6
 hadronization PDF_6bins_ll_3jets Pythia6
 
 hadronization ttbar_topo_emu Pythia6
+hadronization ttbar_topo_dijet Pythia8
 hadronization KinSel_dilep_3j Pythia6
 hadronization KinSel_dilep_2j Pythia6
 
