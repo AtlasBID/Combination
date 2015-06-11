@@ -233,6 +233,9 @@ namespace BTagCombination {
       } else if (ana.operatingPoint == "-0.7682") {
 	return "85";
       }
+      else {
+        return "tagger_unknown";
+      }
     } else {
       return "tagger_unknown";
     }
