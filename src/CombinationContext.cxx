@@ -582,8 +582,8 @@ namespace BTagCombination {
         sysErr->setConstant(false);
       }
 
-#endif
-#ifdef false
+      //#endif
+      //#ifdef false
       /// Put them in a nice plot so we can read them out.
       TH1F *errorSummary = new TH1F((string(m->GetName()) + "_error_summary_absolute").c_str(),
         (string(m->GetTitle()) + " Absolute Error Summary").c_str(),
