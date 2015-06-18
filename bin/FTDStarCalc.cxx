@@ -106,7 +106,7 @@ namespace {
 		// And from the D* bin
 		double cSF = dstar.centralValue;
 		double errstat_cSF = dstar.centralValueStatisticalError;
-		//sys(FT_EFF_b SF,-5.88235%)
+		// The b SF systematic is found if its name contains "b SF" 
 		string sysName = FindSysErrorName(dstar, "b SF");
 		double syst_bSF = GetSysError(dstar, sysName);
 
