@@ -26,9 +26,12 @@
 #include <sstream>
 #include <cmath>
 
+
 using Analysis::CalibrationDataHistogramContainer;
 using Analysis::CalibrationDataMappedHistogramContainer;
 using Analysis::CalibrationDataContainer;
+
+namespace ph = std::placeholders;
 
 namespace {
   using namespace BTagCombination;
@@ -196,7 +199,7 @@ namespace {
 
       transform (bin.systematicErrors.begin(), bin.systematicErrors.end(),
 		 inserter(result, result.begin()),
-		 bind<const string&>(&SystematicError::name, _1));
+		 bind<const string&>(&SystematicError::name, ph::_1));
     }
     return result;
   }
