@@ -2,51 +2,48 @@ package Combination
 
 use AtlasPolicy                 AtlasPolicy-*
 
+#
 # We are using the combinator parser, spirit, in boost
 # to parse our text files.
+#
 use CalibrationDataInterface	CalibrationDataInterface-*	PhysicsAnalysis/JetTagging/JetTagPerformanceCalibration
+
+#
+# We need the boost library
+#
+use AtlasBoost                  AtlasBoost-*             External
 
 #
 # Library and app build instructions.
 #
 
 library Combination *.cxx
-
+ 
 application FTCopyDefaults ../bin/FTCopyDefaults.cxx
-apply_pattern application_alias FTCopyDefaults
-
 application FTManipSys ../bin/FTManipSys.cxx
-apply_pattern application_alias FTManipSys
-
 application FTDStarCalc ../bin/FTDStarCalc.cxx
-apply_pattern application_alias FTDStarCalc
-
 application FTCombineBins ../bin/FTCombineBins.cxx
-apply_pattern application_alias FTCombineBins
-
 application FTGenerateSummary ../bin/FTGenerateSummary.cxx
-apply_pattern application_alias FTGenerateSummary
-
 application FTConvertToCDI ../bin/FTConvertToCDI.cxx
-apply_pattern application_alias FTConvertToCDI
-
 application FTDump ../bin/FTDump.cxx
-apply_pattern application_alias FTDump
-
 application FTCombine ../bin/FTCombine.cxx
-apply_pattern application_alias FTCombine
-
 application FTPlot ../bin/FTPlot.cxx
-apply_pattern application_alias FTPlot
-
 application FTCheckOutput ../bin/FTCheckOutput.cxx
-apply_pattern application_alias FTCheckOutput
-
 application FTExploreFit ../bin/FTExploreFit.cxx
-apply_pattern application_alias FTExploreFit
-
 application FTExtrapolateAnalyses ../bin/FTExtrapolateAnalyses.cxx
-apply_pattern application_alias FTExtrapolateAnalyses
+
+apply_pattern application_alias application=FTCopyDefaults
+apply_pattern application_alias application=FTManipSys
+apply_pattern application_alias application=FTDStarCalc
+apply_pattern application_alias application=FTCombineBins
+apply_pattern application_alias application=FTGenerateSummary
+apply_pattern application_alias application=FTConvertToCDI
+apply_pattern application_alias application=FTDump
+apply_pattern application_alias application=FTCombine
+apply_pattern application_alias application=FTPlot
+apply_pattern application_alias application=FTCheckOutput
+apply_pattern application_alias application=FTExploreFit
+apply_pattern application_alias application=FTExtrapolateAnalyses
 
 apply_pattern installed_library
 
@@ -59,18 +56,37 @@ apply_tag ROOTMathLibs
 private
 
 #
-# We need the boost library
-#
-use AtlasBoost                  AtlasBoost-*             External
-use AtlasExpat                  AtlasExpat-*             External
-use JetTagInfo                  JetTagInfo-*             PhysicsAnalysis/JetTagging
-use JetEvent                    JetEvent-*               Reconstruction/Jet
-
-#
 # The boost templates get a little deep! :-)
 #
 
 macro_append Combination_cppflags " -ftemplate-depth-200"
+
+macro_append FTCopyDefaultslinkopts " -lCombination"
+macro_append FTManipSyslinkopts " -lCombination"
+macro_append FTDStarCalclinkopts " -lCombination"
+macro_append FTCombineBinslinkopts " -lCombination"
+macro_append FTGenerateSummarylinkopts " -lCombination"
+macro_append FTConvertToCDIlinkopts " -lCombination"
+macro_append FTDumplinkopts " -lCombination"
+macro_append FTCombinelinkopts " -lCombination"
+macro_append FTPlotlinkopts " -lCombination"
+macro_append FTCheckOutputlinkopts " -lCombination"
+macro_append FTExploreFitlinkopts " -lCombination"
+macro_append FTExtrapolateAnalyseslinkopts " -lCombination"
+
+macro_append FTCopyDefaults_dependencies " Combination"
+macro_append FTManipSys_dependencies " Combination"
+macro_append FTDStarCalc_dependencies " Combination"
+macro_append FTCombineBins_dependencies " Combination"
+macro_append FTGenerateSummary_dependencies " Combination"
+macro_append FTConvertToCDI_dependencies " Combination"
+macro_append FTDump_dependencies " Combination"
+macro_append FTCombine_dependencies " Combination"
+macro_append FTPlot_dependencies " Combination"
+macro_append FTCheckOutput_dependencies " Combination"
+macro_append FTExploreFit_dependencies " Combination"
+macro_append FTExtrapolateAnalyses_dependencies " Combination"
+
 #
 # Use "make CppUnit" to run the unit tests for this
 # package
