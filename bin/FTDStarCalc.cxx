@@ -48,14 +48,25 @@ namespace {
 		return found;
 	}
 
+	string FindSysErrorName(CalibrationBin &b, const string &name)
+	{
+		for (size_t e = 0; e < b.systematicErrors.size(); e++) {
+		  string sys = b.systematicErrors[e].name;
+		  if (sys.find(name)!=std::string::npos)
+		    return b.systematicErrors[e].name;
+		}
+		cerr << "Unable to find systematic error from substring " << name << " in bin " << OPBinName(b) << endl;
+		throw runtime_error("Unable to find systematic error from substring");
+	}
+
 	double GetSysError(CalibrationBin &b, const string &name)
 	{
 		for (size_t e = 0; e < b.systematicErrors.size(); e++) {
 			if (b.systematicErrors[e].name == name)
 				return b.systematicErrors[e].value;
 		}
-		cerr << "Unable to find systematic error " << name << " in bin " << OPBinName(b) << endl;
-		throw runtime_error("Unable to find systematic error");
+		cerr << "Unable to get systematic error " << name << " in bin " << OPBinName(b) << endl;
+		throw runtime_error("Unable to get systematic error");
 	}
 
 	void UpdateSysError(CalibrationBin &b, const string &name, double newValue)
@@ -95,7 +106,9 @@ namespace {
 		// And from the D* bin
 		double cSF = dstar.centralValue;
 		double errstat_cSF = dstar.centralValueStatisticalError;
-		double syst_bSF = GetSysError(dstar, "b SF");
+		//sys(FT_EFF_b SF,-5.88235%)
+		string sysName = FindSysErrorName(dstar, "b SF");
+		double syst_bSF = GetSysError(dstar, sysName);
 
 		// Do the calculation
 		double deltaSF = (bSF - 1.0) / 0.05*syst_bSF;
@@ -105,7 +118,7 @@ namespace {
 		// And update the d* bin. Note that the statistical error does not
 		// change.
 		dstar.centralValue = cSF_new;
-		UpdateSysError(dstar, "b SF", syst_bSF_new);
+		UpdateSysError(dstar, sysName, syst_bSF_new);
 	}
 
 	// Rescale each D* bin, one at a time.
