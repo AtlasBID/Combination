@@ -68,7 +68,7 @@ namespace BTagCombination {
   }
 
   ostream &operator<< (ostream &out, const CalibrationBin &b) {
-    if (std::isnan(b.centralValue) || std::isnan(b.centralValueStatisticalError)) {
+    if (isnan(b.centralValue) || isnan(b.centralValueStatisticalError)) {
       ostringstream err;
       err << "Central value or stat error is NaN - can not write out bin" << endl
 	  << "  Bin: " << OPBinName(b) << endl;
@@ -97,7 +97,7 @@ namespace BTagCombination {
       }
       
       for (size_t i = 0; i < b.systematicErrors.size(); i++) {
-	if (std::isnan(b.systematicErrors[i].value)) {
+	if (isnan(b.systematicErrors[i].value)) {
 	  ostringstream err;
 	  err << "Systematic Error is NaN - can not write out bin";
 	  throw runtime_error(err.str());
