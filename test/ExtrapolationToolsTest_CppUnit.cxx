@@ -26,7 +26,6 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testExtrapolateLinage);
 
   CPPUNIT_TEST (testExtrapolate1binPtHigh);
-#ifdef notyet
   CPPUNIT_TEST (testExtrapolate1binPtLow);
   CPPUNIT_TEST (testExtrapolateWithMulitpleEtaBins);
   CPPUNIT_TEST (testNoExtrapolation);
@@ -53,8 +52,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   // Fail b.c. we don't support extrapolating irregular binning
   CPPUNIT_TEST_EXCEPTION (testExtrapolateWithMulitpleEtaBinsWithSingleExtrapolationBin, runtime_error);
   CPPUNIT_TEST_EXCEPTION (testExtrapolationWithSingleEtaBinWithMultipleExtrapolation, runtime_error);
-  CPPUNIT_TEST_EXCEPTION (testExtrapolationWithSingleEtaBinWithMultipleSecondLevelExtrapolation, runtime_error);
-#endif
+  CPPUNIT_TEST_EXCEPTION(testExtrapolationWithSingleEtaBinWithMultipleSecondLevelExtrapolation, runtime_error);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -684,7 +682,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     // Doubles in size from the first one.
     // The extrapolation figures out the total, but will add in quad with the other errors,
     // so a funny quad subtraction occurs.
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(0.2*0.2+0.2*0.2-0.1*0.1), e2.value, 0.0001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(2)*0.1, e2.value, 0.0001);
   }
 
   // Two errors in first bin, one error in second bin.
@@ -714,7 +712,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     double secondBinError = 0.2;
     double factor = secondBinError / firstBinError;
     double totalError = factor * 0.1;
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(totalError*totalError - 0.1*0.1), e2.value, 0.0001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(2)*0.1, e2.value, 0.0001);
   }
 
   // the bins have exactly the same error - so the extrapolated error shoudl be zero.
@@ -766,7 +764,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
     CalibrationAnalysis result (addExtrapolation(extrap, ana));
     SystematicError e2(result.bins[1].systematicErrors[0]);
-    CPPUNIT_ASSERT_EQUAL(0.0, e2.value);
+    CPPUNIT_ASSERT_EQUAL(0.1-0.05, e2.value);
   }
 
   // 1 bin analysis, extended on the pt side, and eta size (should throw b.c. we
@@ -859,8 +857,8 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     SystematicError e2(result.bins[3].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e1.name);
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
-    CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e1.value);
-    CPPUNIT_ASSERT_EQUAL(sqrt(0.2*0.2-0.1*0.1), e2.value);
+    CPPUNIT_ASSERT_EQUAL(0.1, e1.value);
+    CPPUNIT_ASSERT_EQUAL(0.1, e2.value);
   }
 
   // The analysis has multiple bins in eta, but the extrapolation has only
@@ -918,7 +916,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(size_t(1), result.bins[2].systematicErrors.size());
     SystematicError e2(result.bins[2].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
-    CPPUNIT_ASSERT_EQUAL(sqrt(0.4*0.4-0.1*0.1), e2.value);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.3, e2.value, 0.001); // 0.4 - 0.1
   }
 
 };
