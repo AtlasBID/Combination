@@ -120,6 +120,79 @@ namespace BTagCombination {
 			}
 		}
 
+#define ERROR_PROPAGATION
+#ifdef ERROR_PROPAGATION
+                // The error propagation method, which is used in Run 2.
+                // The size of the error is just the difference in error between the reference bin and the
+                // extrapolated bin. This has to be done on a sys-error by sys-error basis.
+
+                double lowedge = *(bin_edges_ana.end() - 2); // Low edge of last bin in data
+                auto ana_bins_ledge(find_bins_with_low_edge(extrapolated_axis, lowedge, ana.bins));
+                auto ext_bins_ledge(find_bins_with_low_edge(extrapolated_axis, lowedge, extrapolated.bins));
+
+                // Cache the systematic errors for the reference extrapolation bin.
+                map<set<CalibrationBinBoundary>, CalibrationBin> ana_bin_info(bin_dict(extrapolated_axis, ana_bins_ledge));
+                map<set<CalibrationBinBoundary>, CalibrationBin> ext_bin_info(bin_dict(extrapolated_axis, ext_bins_ledge));
+                map<set<CalibrationBinBoundary>, vector<SystematicError>> ext_sys;
+                map<set<CalibrationBinBoundary>, CalibrationBin> ana_bin_cache;
+                for (auto a_itr = ana_bin_info.begin(); a_itr != ana_bin_info.end(); a_itr++) {
+                  auto e_itr = ext_bin_info.find(a_itr->first);
+                  if (e_itr == ext_bin_info.end()) {
+                    ostringstream err;
+                    err << "Unable to find a bin that matches " << OPBinName(a_itr->first) << " in the extrapolation.";
+                    throw runtime_error(err.str());
+                  }
+
+                  CalibrationBin ana_bin(a_itr->second);
+                  CalibrationBin ext_bin(e_itr->second);
+
+                  ext_sys[a_itr->first] = ext_bin.systematicErrors;
+                  ana_bin_cache[a_itr->first] = ana_bin;
+                }
+
+                // Go through each of the extrapolated bins, and add a bin into the analysis.
+                // Skip extrapolated bins that are already inside the analysis.
+
+                CalibrationAnalysis r(ana);
+
+                set<set<CalibrationBinBoundary> > all_analysis_bin_boundaries(listAnalysisBins(ana));
+                for (auto e_itr = extrapolated.bins.begin(); e_itr != extrapolated.bins.end(); e_itr++) {
+                  set<CalibrationBinBoundary> all_bounds(boundary_set(e_itr->binSpec));
+                  if (all_analysis_bin_boundaries.find(all_bounds) == all_analysis_bin_boundaries.end()) {
+                    set<CalibrationBinBoundary> bounds(boundary_set_without(extrapolated_axis, e_itr->binSpec));
+                    if (ext_sys.find(bounds) != ext_sys.end()) {
+
+                      // Make sure that extrapolated bin is reasonable (this is a dataquality test
+                      // that is in here because we've seen this not to be the case due to poor checking
+                      // of inputs.
+
+                      double ext_sys_current = bin_sys(*e_itr);
+                      if (ext_sys_current == 0.0) {
+                        ostringstream err;
+                        err << "Extrapolated bin's is error zero " << endl
+                          << "  Analysis: " << OPFullName(r) << endl
+                          << "  Extrapolation: " << OPFullName(extrapolated) << " (" << OPBinName(e_itr->binSpec) << ")";
+                        cerr << err.str() << endl;
+                        throw runtime_error(err.str());
+                      }
+
+                      // Calculate the difference in systematic errors
+
+                      auto deltaSys = subtractSysErrors(*e_itr, ext_sys[bounds]);
+                      auto ext_sys_new = bin_sys(deltaSys);
+
+                      CalibrationBin newb(create_extrapolated_bin(ext_sys_new, *e_itr));
+                      newb.centralValue = ana_bin_cache[bounds].centralValue;
+                      newb.centralValueStatisticalError = ana_bin_cache[bounds].centralValueStatisticalError;
+                      r.bins.push_back(newb);
+                    }
+                  }
+                }
+#endif
+
+#ifdef SCALING_METHOD
+                // This is the scaling method, which was used in Run 1.
+
 		// Get the last extrapolated bin, and normalize the size of the error there, and then
 		// start looping through the extrapolated bins adding them in as extrapolated bins. These
 		// bins must match exactly or we are in a bad way!
@@ -191,7 +264,7 @@ namespace BTagCombination {
 				}
 			}
 		}
-
+#endif
 		// Update the linage.
 
 		r.metadata_s["Linage"] = BinaryLinageOp(r, extrapolated, LBExtrapolate);
