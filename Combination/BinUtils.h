@@ -40,6 +40,7 @@ namespace BTagCombination {
 
   // Return the total systematic error (added in quad) that this bin has.
   double bin_sys (const CalibrationBin &bin);
+  double bin_sys(const std::vector<SystematicError> &errors);
 }
 
 #endif

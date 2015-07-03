@@ -153,16 +153,21 @@ namespace BTagCombination {
     return results;
   }
 
-  // Calc the total bin systematic error
-  double bin_sys (const CalibrationBin &b)
+  double bin_sys(const vector<SystematicError> &errors)
   {
     double total = 0.0;
-    for (vector<SystematicError>::const_iterator itr = b.systematicErrors.begin(); itr != b.systematicErrors.end(); itr++) {
-      double v = itr->value;
+    for (auto err : errors) {
+      double v = err.value;
       total += v*v;
     }
 
     return sqrt(total);
+  }
+
+  // Calc the total bin systematic error
+  double bin_sys (const CalibrationBin &b)
+  {
+    return bin_sys(b.systematicErrors);
   }
 
   // Find all bins with a common low edge for a partiuclar axis.

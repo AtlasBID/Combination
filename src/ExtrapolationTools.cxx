@@ -54,6 +54,59 @@ namespace {
 		}
 		return r;
 	}
+
+        // Helper class for a pair of numbers that are zero'd automatically.
+        class zero_pair {
+        public:
+          double _p1;
+          double _p2;
+
+          zero_pair()
+            : _p1(0), _p2(0)
+          {}
+        };
+
+        // What is the sign of a number?
+        int sign(double n)
+        {
+          return n < 0 ? -1 : 1;
+        }
+
+        // Subtract two systematic errors (e1 - e2). Special Cases:
+        //   - e1 or e2 is missing the sytematic error
+        //   - e1 is anti-correlated to e2.
+        //   - e2 > e1 (after anti-correlation accounted for), sign flip is ignored.
+        vector<SystematicError> subtract_sys_errors(const vector<SystematicError> &e1, const vector<SystematicError> &e2)
+        {
+          map<string, zero_pair> sys_pairs;
+          for_each(e1.begin(), e1.end(), [&](const SystematicError &e) { sys_pairs[e.name]._p1 = e.value; });
+          for_each(e2.begin(), e2.end(), [&](const SystematicError &e) { sys_pairs[e.name]._p2 = e.value; });
+
+          vector<SystematicError> result;
+          for (auto ep : sys_pairs)
+          {
+            SystematicError new_e;
+            new_e.name = ep.first;
+            new_e.uncorrelated = true;
+
+            bool bothNeg = sign(ep.second._p1) == -1 && sign(ep.second._p2) == -1;
+            bool opSigned = false;
+            if (sign(ep.second._p1) != +1) {
+              opSigned = !opSigned;
+              ep.second._p1 = -ep.second._p1;
+            }
+            if (sign(ep.second._p2) != +1) {
+              opSigned = !opSigned;
+              ep.second._p2 = -ep.second._p2;
+            }
+            new_e.value = fabs(ep.second._p1 - ep.second._p2);
+            if (opSigned || bothNeg) {
+              new_e.value = -new_e.value;
+            }
+            result.push_back(new_e);
+          }
+          return result;
+        }
 }
 
 namespace BTagCombination {
@@ -178,7 +231,7 @@ namespace BTagCombination {
 
                       // Calculate the difference in systematic errors
 
-                      auto deltaSys = subtractSysErrors(*e_itr, ext_sys[bounds]);
+                      auto deltaSys = subtract_sys_errors(e_itr->systematicErrors, ext_sys[bounds]);
                       auto ext_sys_new = bin_sys(deltaSys);
 
                       CalibrationBin newb(create_extrapolated_bin(ext_sys_new, *e_itr));
