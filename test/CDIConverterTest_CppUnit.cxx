@@ -393,8 +393,7 @@ class CDIConverterTest : public CppUnit::TestFixture
     v.jetAuthor = "AntiKt4Topo";
 
     map<string, UncertaintyResult> all;
-    CalibrationStatus stat;
-    stat = c->getUncertainties(v, all);
+    c->getUncertainties(v, all);
 
     for (map<string, UncertaintyResult>::const_iterator itr = all.begin(); itr != all.end(); itr++) {
       cout << "Found Sys: " << itr->first << endl;

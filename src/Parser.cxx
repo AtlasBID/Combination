@@ -56,7 +56,11 @@ using namespace std;
 // Older versions of VC don't have NaN quite the same way as the standard.
 #ifdef _MSC_VER
 #if (_MSC_VER <= 1800)
-#define isnan _isnan
+namespace std {
+  double isnan(double a) {
+    return _isnan(a);
+  }
+}
 #endif
 #endif
 
@@ -145,7 +149,7 @@ struct ErrorValue
   ErrorValue(double err = 0.0)
   {
     error = err;
-    if (isnan(err)) {
+    if (std::isnan((double)err)) {
       throw runtime_error("error value is NaN during input - not legal!");
     }
     relative = false;
@@ -324,7 +328,7 @@ struct centralvalue
   }
   void SetValue (const double v)
   {
-    if (isnan(v)) {
+    if (std::isnan(v)) {
       throw runtime_error ("Unable to parse a central value for a bin that is NaN");
     }
     value = v;

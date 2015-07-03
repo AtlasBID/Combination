@@ -293,10 +293,10 @@ class CombinationContextTest : public CppUnit::TestFixture
     cout << "Starting testFitOneDataTwoMeasurementSmallStat" << endl;
     // The fitter has a lot of trouble with tiny stat errors.
     CombinationContext c;
-    Measurement *m1 = c.AddMeasurement ("a", -10.0, 10.0, 0.7, 0.01);
+#if 0
+    Measurement *m1 = c.AddMeasurement("a", -10.0, 10.0, 0.7, 0.01);
     Measurement *m2 = c.AddMeasurement ("a", -10.0, 10.0, 0.3, 0.01);
 
-#if 0
     m1->addSystematicAbs("s1", 20.0);
     m2->addSystematicAbs("s1", 20.0);
 
