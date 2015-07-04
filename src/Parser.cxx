@@ -57,7 +57,7 @@ using namespace std;
 #ifdef _MSC_VER
 #if (_MSC_VER <= 1800)
 namespace std {
-  double isnan(double a) {
+  inline double isnan(double a) {
     return _isnan(a);
   }
 }
