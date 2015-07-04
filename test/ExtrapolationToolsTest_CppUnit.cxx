@@ -711,7 +711,6 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     double firstBinError = sqrt(0.1*0.1*2);
     double secondBinError = 0.2;
     double factor = secondBinError / firstBinError;
-    double totalError = factor * 0.1;
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(2)*0.1, e2.value, 0.0001);
   }
 

@@ -286,10 +286,8 @@ namespace {
 
       vector<pair<string,TH1F*> > plots_filtered_by_size;
       for(vector<pair<string,TH1F*> >::const_iterator ip = plots.begin(); ip != plots.end(); ip++) {
-	bool above_threshold = false;
 	for (int i = 1; i <= ip->second->GetNbinsX(); i++) {
 	  if (fabs(ip->second->GetBinContent(i)) > 0.05*total_error2[i]) {
-	    above_threshold = true;
 	    plots_filtered_by_size.push_back(*ip);
 	    break;
 	  }

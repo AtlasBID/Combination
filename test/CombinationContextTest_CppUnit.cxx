@@ -816,17 +816,17 @@ class CombinationContextTest : public CppUnit::TestFixture
     for (int i = 0; i < 3; i++) {
       count++;
       CombinationContext c;
-      Measurement *m1, *m2, *m3;
+      Measurement *m1, *m2;
       if (i == 0) {
 	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
 	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
-	m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
       } else if (i == 1) {
 	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
-	m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
 	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
       } else if (i == 2) {
-	m3 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+	c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
 	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
 	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
       } else {
