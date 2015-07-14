@@ -6,6 +6,7 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -115,6 +116,7 @@ namespace BTagCombination {
   // Return an eff string given an analysis for theOP
   string OPEff(const CalibrationAnalysis &ana)
   {
+
     if (ana.tagger == "MV1") {
       if (ana.operatingPoint == "0.992515446"
 	  || ana.operatingPoint == "0.993981"
@@ -222,19 +224,19 @@ namespace BTagCombination {
       }
 
     } else if (ana.tagger == "MV2c20") {
-      if (ana.operatingPoint == "0.5102") {
+      if (ana.operatingPoint == "0.4496") {
 	return "60";
-      } else if (ana.operatingPoint == "0.0314"
-		 || ana.operatingPoint == "-0.2134") {
+      } else if (ana.operatingPoint == "-0.0436"
+		 || ana.operatingPoint == "-0.3098"
+		 || ana.operatingPoint == "-0.2343") {
 	return "70";
-      } else if (ana.operatingPoint == "-0.3867"
-		 || ana.operatingPoint == "-0.5828") {
+      } else if (ana.operatingPoint == "-0.4434") {
 	return "77";
-      } else if (ana.operatingPoint == "-0.7682") {
+      } else if (ana.operatingPoint == "-0.7887") {
 	return "85";
       }
       else {
-        return "tagger_unknown";
+        return "MV2c20_unknown";
       }
     } else {
       return "tagger_unknown";
