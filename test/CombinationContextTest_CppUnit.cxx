@@ -383,7 +383,7 @@ class CombinationContextTest : public CppUnit::TestFixture
   void DumpFitResult (const CombinationContext::FitResult &f)
   {
     cout << "Central value " << f.centralValue
-	 << " +- " << f.statisticalError << endl;
+         << " +- " << f.statisticalError << endl;
     for (map<string, double>::const_iterator itr = f.sysErrors.begin(); itr != f.sysErrors.end(); itr++) {
       cout << "  Sys " << itr->first << " +- " << itr->second << endl;
     }
@@ -816,21 +816,22 @@ class CombinationContextTest : public CppUnit::TestFixture
     for (int i = 0; i < 3; i++) {
       count++;
       CombinationContext c;
-      Measurement *m1, *m2;
+      Measurement *m1(0), *m2(0);
       if (i == 0) {
-	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
-	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
-	c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+        m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+        m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+        c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
       } else if (i == 1) {
-	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
-	c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
-	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+        m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+        c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+        m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
       } else if (i == 2) {
-	c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
-	m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
-	m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
+        c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+        m1 = c.AddMeasurement ("average", -10.0, 10.0, 0.8789, 0.0243);
+        m2 = c.AddMeasurement ("average", -10.0, 10.0, 0.9334, 0.1322);
       } else {
-	CPPUNIT_FAIL ("Invalid ordering for adding measurements");
+        CPPUNIT_FAIL ("Invalid ordering for adding measurements");
+        return; // Prevent compiler warnings
       }
       c.AddCorrelation ("statistical", m1, m2, 0.717724);
 

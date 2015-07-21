@@ -710,7 +710,6 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     // The extrapolation is tricky since the first bin has two errors in it.
     double firstBinError = sqrt(0.1*0.1*2);
     double secondBinError = 0.2;
-    double factor = secondBinError / firstBinError;
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(2)*0.1, e2.value, 0.0001);
   }
 
