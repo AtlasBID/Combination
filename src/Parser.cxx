@@ -68,7 +68,9 @@ namespace std {
 // Disable warnings caused by using the ">" operator in an
 // overloaded way. I know this is ugly.
 //
+#ifndef _MSC_VER
 #pragma GCC diagnostic ignored "-Wparentheses"
+#endif
 
 ///////////////
 // The parser code itself

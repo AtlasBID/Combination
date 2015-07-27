@@ -28,7 +28,7 @@ int main (int argc, char **argv)
     int myArgc = 1;
     char* myArgv[1];
     myArgv[0] = argv[0];
-    TApplication *a = new TApplication("FTPlot", &myArgc, myArgv);
+    TApplication *a __attribute__((unused)) = new TApplication("FTPlot", &myArgc, myArgv);
 
     // Parse the input arguments
     CalibrationInfo info;
