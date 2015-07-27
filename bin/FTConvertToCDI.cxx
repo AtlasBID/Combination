@@ -78,8 +78,8 @@ namespace {
   // to make sure they are linked in.
   //
 
-  Analysis::CalibrationDataFunctionContainer *__c1;
-  Analysis::CalibrationDataContainer *__c2;
+  Analysis::CalibrationDataFunctionContainer *__c1 __attribute ((unused));
+  Analysis::CalibrationDataContainer *__c2 __attribute ((unused));
 
   // Do a deep copy of the in directory into the out directory
   void copy_directory_structure (TDirectory *out, TDirectory *in, bool create = true)
