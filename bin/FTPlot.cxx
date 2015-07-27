@@ -20,6 +20,12 @@ using namespace BTagCombination;
 
 void usage(void);
 
+#ifdef _MSC_VER
+#define UNUSED
+#else
+#define UNUSED __attribute__((unused))
+#endif
+
 int main (int argc, char **argv)
 {
   try {
@@ -28,7 +34,7 @@ int main (int argc, char **argv)
     int myArgc = 1;
     char* myArgv[1];
     myArgv[0] = argv[0];
-    TApplication *a __attribute__((unused)) = new TApplication("FTPlot", &myArgc, myArgv);
+    TApplication *a UNUSED = new TApplication("FTPlot", &myArgc, myArgv);
 
     // Parse the input arguments
     CalibrationInfo info;
