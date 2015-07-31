@@ -47,15 +47,17 @@ namespace {
 		}
 		return found;
 	}
-
-	string FindSysErrorName(CalibrationBin &b, const string &name)
+  
+        string FindSysErrorName(CalibrationBin &b, const vector<string> &names)
 	{
 		for (size_t e = 0; e < b.systematicErrors.size(); e++) {
 		  string sys = b.systematicErrors[e].name;
-		  if (sys.find(name)!=std::string::npos)
-		    return b.systematicErrors[e].name;
+                  for (size_t i = 0; i < names.size(); i++) { 
+		    if (sys.find(names.at(i))!=std::string::npos)
+		      return b.systematicErrors[e].name;
+		  }
 		}
-		cerr << "Unable to find systematic error from substring " << name << " in bin " << OPBinName(b) << endl;
+		cerr << "Unable to find systematic error from substring in bin " << OPBinName(b) << endl;
 		throw runtime_error("Unable to find systematic error from substring");
 	}
 
@@ -106,7 +108,10 @@ namespace {
 		// And from the D* bin
 		double cSF = dstar.centralValue;
 		// The b SF systematic is found if its name contains "b SF" 
-		string sysName = FindSysErrorName(dstar, "b SF");
+		vector<string> sysNames;
+		sysNames.push_back("b SF");
+		sysNames.push_back("b_SF");
+		string sysName = FindSysErrorName(dstar, sysNames);
 		double syst_bSF = GetSysError(dstar, sysName);
 
 		// Do the calculation
