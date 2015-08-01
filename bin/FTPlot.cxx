@@ -9,6 +9,8 @@
 #include "Combination/Plots.h"
 #include "Combination/AtlasStyle.h"
 
+#include "TROOT.h"
+
 #include "TApplication.h"
 
 #include <TFile.h>
@@ -69,6 +71,7 @@ int main (int argc, char **argv)
 
     TFile *f = new TFile ("plots.root", "RECREATE");
 
+    gROOT->SetBatch(kTRUE);
     SetAtlasStyle();
     DumpPlots (f, calibs, grouping, whatToPlot);
 
