@@ -224,7 +224,12 @@ int main(int argc, char **argv)
 
   for (unsigned int i = 0; i < other_mcfiles.size(); i++) {
     TFile *in = TFile::Open(other_mcfiles[i].c_str(), "READ");
-    copy_directory_structure(output, in, !restricted_mc_add);
+    stringstream ss; ss << in->GetName();
+    string s; ss >> s; 
+    if(s.find("cutprofiles") != string::npos) 
+      copy_directory_structure(output, in); 
+    else 
+      copy_directory_structure(output, in, !restricted_mc_add);
     in->Close();
     delete in;
   }
