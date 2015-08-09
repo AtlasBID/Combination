@@ -17,20 +17,20 @@ use AtlasBoost                  AtlasBoost-*             External
 # Library and app build instructions.
 #
 
-library Combination *.cxx
+library Combination "../Root/*.cxx"
  
-application FTCopyDefaults ../bin/FTCopyDefaults.cxx
-application FTManipSys ../bin/FTManipSys.cxx
-application FTDStarCalc ../bin/FTDStarCalc.cxx
-application FTCombineBins ../bin/FTCombineBins.cxx
-application FTGenerateSummary ../bin/FTGenerateSummary.cxx
-application FTConvertToCDI ../bin/FTConvertToCDI.cxx
-application FTDump ../bin/FTDump.cxx
-application FTCombine ../bin/FTCombine.cxx
-application FTPlot ../bin/FTPlot.cxx
-application FTCheckOutput ../bin/FTCheckOutput.cxx
-application FTExploreFit ../bin/FTExploreFit.cxx
-application FTExtrapolateAnalyses ../bin/FTExtrapolateAnalyses.cxx
+application FTCopyDefaults ../util/FTCopyDefaults.cxx
+application FTManipSys ../util/FTManipSys.cxx
+application FTDStarCalc ../util/FTDStarCalc.cxx
+application FTCombineBins ../util/FTCombineBins.cxx
+application FTGenerateSummary ../util/FTGenerateSummary.cxx
+application FTConvertToCDI ../util/FTConvertToCDI.cxx
+application FTDump ../util/FTDump.cxx
+application FTCombine ../util/FTCombine.cxx
+application FTPlot ../util/FTPlot.cxx
+application FTCheckOutput ../util/FTCheckOutput.cxx
+application FTExploreFit ../util/FTExploreFit.cxx
+application FTExtrapolateAnalyses ../util/FTExtrapolateAnalyses.cxx
 
 apply_pattern application_alias application=FTCopyDefaults
 apply_pattern application_alias application=FTManipSys
