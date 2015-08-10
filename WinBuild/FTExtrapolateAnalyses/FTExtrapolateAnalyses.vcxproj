@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTExtrapolateAnalyses.cxx" />
+    <ClCompile Include="..\..\util\FTExtrapolateAnalyses.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

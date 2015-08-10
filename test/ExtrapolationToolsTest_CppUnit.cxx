@@ -707,9 +707,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     SystematicError e2(result.bins[1].systematicErrors[0]);
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
 
-    // The extrapolation is tricky since the first bin has two errors in it.
-    double firstBinError = sqrt(0.1*0.1*2);
-    double secondBinError = 0.2;
+    // The extrapolation is easy in the new scheme. :-)
     CPPUNIT_ASSERT_DOUBLES_EQUAL(sqrt(2)*0.1, e2.value, 0.0001);
   }
 

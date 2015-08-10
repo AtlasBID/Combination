@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTManipSys.cxx" />
+    <ClCompile Include="..\..\util\FTManipSys.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

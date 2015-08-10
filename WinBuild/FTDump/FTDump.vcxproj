@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTDump.cxx" />
+    <ClCompile Include="..\..\util\FTDump.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

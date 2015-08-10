@@ -86,7 +86,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTCombine.cxx" />
+    <ClCompile Include="..\..\util\FTCombine.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CombinationLib\CombinationLib.vcxproj">

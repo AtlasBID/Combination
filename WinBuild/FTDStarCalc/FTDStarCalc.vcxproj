@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTDStarCalc.cxx" />
+    <ClCompile Include="..\..\util\FTDStarCalc.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

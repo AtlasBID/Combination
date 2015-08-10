@@ -1,0 +1,18 @@
+
+# Things to ignore on the windows platform
+
+WinBuild/*/Release
+WinBuild/*/Debug
+WinBuild/Debug
+WinBuild/Release
+
+WinBuild/*/*.filters
+WinBuild/packages/*/*
+
+# Results of running some of the tests...
+*.dot
+WinBuild/packages/boost.1.56.0.0/lib/native/include/boost/accumulators/accumulators.hpp
+WinBuild/*.sdf
+WinBuild/*.opensdf
+*.suo
+*.user

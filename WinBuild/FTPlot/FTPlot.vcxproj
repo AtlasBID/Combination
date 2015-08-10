@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTPlot.cxx" />
+    <ClCompile Include="..\..\util\FTPlot.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

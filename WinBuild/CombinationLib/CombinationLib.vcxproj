@@ -34,24 +34,24 @@
     <ClInclude Include="..\..\Combination\RooRealVarCache.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\AtlasLabels.cxx" />
-    <ClCompile Include="..\..\src\AtlasStyle.cxx" />
-    <ClCompile Include="..\..\src\BinBoundaryUtils.cxx" />
-    <ClCompile Include="..\..\src\BinNameUtils.cxx" />
-    <ClCompile Include="..\..\src\BinUtils.cxx" />
-    <ClCompile Include="..\..\src\CalibrationDataModel.cxx" />
-    <ClCompile Include="..\..\src\CalibrationDataModelStreams.cxx" />
-    <ClCompile Include="..\..\src\CombinationContext.cxx" />
-    <ClCompile Include="..\..\src\CombinationContextBase.cxx" />
-    <ClCompile Include="..\..\src\Combiner.cxx" />
-    <ClCompile Include="..\..\src\CommonCommandLineUtils.cxx" />
-    <ClCompile Include="..\..\src\ExtrapolationTools.cxx" />
-    <ClCompile Include="..\..\src\FitLinage.cxx" />
-    <ClCompile Include="..\..\src\Measurement.cxx" />
-    <ClCompile Include="..\..\src\MeasurementUtils.cxx" />
-    <ClCompile Include="..\..\src\Parser.cxx" />
-    <ClCompile Include="..\..\src\Plots.cxx" />
-    <ClCompile Include="..\..\src\RooRealVarCache.cxx" />
+    <ClCompile Include="..\..\Root\AtlasLabels.cxx" />
+    <ClCompile Include="..\..\Root\AtlasStyle.cxx" />
+    <ClCompile Include="..\..\Root\BinBoundaryUtils.cxx" />
+    <ClCompile Include="..\..\Root\BinNameUtils.cxx" />
+    <ClCompile Include="..\..\Root\BinUtils.cxx" />
+    <ClCompile Include="..\..\Root\CalibrationDataModel.cxx" />
+    <ClCompile Include="..\..\Root\CalibrationDataModelStreams.cxx" />
+    <ClCompile Include="..\..\Root\CombinationContext.cxx" />
+    <ClCompile Include="..\..\Root\CombinationContextBase.cxx" />
+    <ClCompile Include="..\..\Root\Combiner.cxx" />
+    <ClCompile Include="..\..\Root\CommonCommandLineUtils.cxx" />
+    <ClCompile Include="..\..\Root\ExtrapolationTools.cxx" />
+    <ClCompile Include="..\..\Root\FitLinage.cxx" />
+    <ClCompile Include="..\..\Root\Measurement.cxx" />
+    <ClCompile Include="..\..\Root\MeasurementUtils.cxx" />
+    <ClCompile Include="..\..\Root\Parser.cxx" />
+    <ClCompile Include="..\..\Root\Plots.cxx" />
+    <ClCompile Include="..\..\Root\RooRealVarCache.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
