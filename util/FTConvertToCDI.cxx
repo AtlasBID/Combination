@@ -141,18 +141,18 @@ int main(int argc, char **argv)
 
   CalibrationInfo info;
   bool updateROOTFile = false;
-  bool restricted_mc_add = false;
-  vector<string> other_mcfiles;
+  vector<string> other_mcfiles_flat;
+  vector<string> other_mcfiles_slim;
   try {
     vector<string> otherFlags;
     ParseOPInputArgs (otherArgs, info, otherFlags);
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "update") {
 	updateROOTFile = true;
+      } else if (otherFlags[i].find("copySlim") == 0) {
+	other_mcfiles_slim.push_back(otherFlags[i].substr(8));
       } else if (otherFlags[i].find("copy") == 0) {
-	other_mcfiles.push_back(otherFlags[i].substr(4));
-      } else if (otherFlags[i] == "restrictedMC") {
-	restricted_mc_add = true;
+	other_mcfiles_flat.push_back(otherFlags[i].substr(4));
       } else {
 	cerr << "Unknown command line flag '" << otherFlags[i] << "'." << endl;
 	Usage();
@@ -222,14 +222,16 @@ int main(int argc, char **argv)
   // The other mc files may need copying in...
   //
 
-  for (unsigned int i = 0; i < other_mcfiles.size(); i++) {
-    TFile *in = TFile::Open(other_mcfiles[i].c_str(), "READ");
-    stringstream ss; ss << in->GetName();
-    string s; ss >> s; 
-    if(s.find("cutprofiles") != string::npos) 
-      copy_directory_structure(output, in); 
-    else 
-      copy_directory_structure(output, in, !restricted_mc_add);
+  for (unsigned int i = 0; i < other_mcfiles_slim.size(); i++) {
+    TFile *in = TFile::Open(other_mcfiles_slim[i].c_str(), "READ");
+    copy_directory_structure(output, in, false); 
+    in->Close();
+    delete in;
+  }
+
+  for (unsigned int i = 0; i < other_mcfiles_flat.size(); i++) {
+    TFile *in = TFile::Open(other_mcfiles_flat[i].c_str(), "READ");
+    copy_directory_structure(output, in, true); 
     in->Close();
     delete in;
   }
@@ -246,7 +248,8 @@ void Usage (void)
   cout << "FTConvertToCDI <input-filenames> <options>" << endl;
   cout << "  --ignore <item> - use to ignore a particular bin in the input" << endl;
   cout << "  --update <rootfname> - use to update the root file" << endl;
-  cout << "  --restrictedMC - only emit MC Eff plots for directories there is a actual SF in" << endl;
+  cout << "  --copy <filename> - to include the file content" << endl;
+  cout << "  --copySlim <filename> - to include and slim the file content" << endl;
 }
 
 //
