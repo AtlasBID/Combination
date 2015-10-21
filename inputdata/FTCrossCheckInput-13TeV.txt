@@ -1,7 +1,7 @@
-calibration PDF_6bins_emu_2jets
-calibration PDF_6bins_emu_3jets
-calibration PDF_6bins_ll_2jets
-calibration PDF_6bins_ll_3jets
+calibration PDF_6bins_emu_2j
+calibration PDF_6bins_emu_3j
+calibration PDF_6bins_ll_2j
+calibration PDF_6bins_ll_3j
 calibration ttbar_topo_dijet
 calibration DStar
 calibration negative_tags
@@ -21,16 +21,10 @@ op MV2c20 85 AntiKt4EMTopoJets FixedCutBEff_85
 op MV2c20 70 AntiKt2PV0TrackJets -0.3098
 op MV2c20 70 AntiKt3PV0TrackJets -0.2343
 
-hadronization PDF Pythia6
-hadronization PDF_emu_2jets Pythia6
-hadronization PDF_emu_3jets Pythia6
-hadronization PDF_ll_2jets Pythia6
-hadronization PDF_ll_3jets Pythia6
-
-hadronization PDF_6bins_emu_2jets Pythia6
-hadronization PDF_6bins_emu_3jets Pythia6
-hadronization PDF_6bins_ll_2jets Pythia6
-hadronization PDF_6bins_ll_3jets Pythia6
+hadronization PDF_6bins_emu_2j Pythia6
+hadronization PDF_6bins_emu_3j Pythia6
+hadronization PDF_6bins_ll_2j Pythia6
+hadronization PDF_6bins_ll_3j Pythia6
 
 hadronization ttbar_topo_dijet Pythia8
 
