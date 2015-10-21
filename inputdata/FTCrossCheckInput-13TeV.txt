@@ -13,10 +13,10 @@ jet AntiKt3PV0TrackJets
 
 tagger MV2c20
    
-op MV2c20 60 AntiKt4EMTopoJets FixedCutBEff_60
-op MV2c20 70 AntiKt4EMTopoJets FixedCutBEff_70
-op MV2c20 77 AntiKt4EMTopoJets FixedCutBEff_77
-op MV2c20 85 AntiKt4EMTopoJets FixedCutBEff_85
+op MV2c20 60 AntiKt4EMTopoJets FixCutBEff_60
+op MV2c20 70 AntiKt4EMTopoJets FixCutBEff_70
+op MV2c20 77 AntiKt4EMTopoJets FixCutBEff_77
+op MV2c20 85 AntiKt4EMTopoJets FixCutBEff_85
 
 op MV2c20 70 AntiKt2PV0TrackJets -0.3098
 op MV2c20 70 AntiKt3PV0TrackJets -0.2343
