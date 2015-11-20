@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTExtrapolateAnalyses.cxx">
+    <ClCompile Include="..\..\util\FTExtrapolateAnalyses.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

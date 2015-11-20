@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTDStarCalc.cxx">
+    <ClCompile Include="..\..\util\FTDStarCalc.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

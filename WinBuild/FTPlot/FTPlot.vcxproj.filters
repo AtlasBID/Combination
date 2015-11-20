@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bin\FTPlot.cxx">
+    <ClCompile Include="..\..\util\FTPlot.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

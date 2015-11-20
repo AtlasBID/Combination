@@ -21,7 +21,7 @@ using namespace BTagCombination;
 
 // VS2012 (which ROOT is built against) doesn't have NAN).
 #ifdef _MSC_VER
-#if (_MSC_VER <= 1800)
+#if (_MSC_VER <= 1700)
 unsigned long nan[2] = { 0xffffffff, 0x7fffffff };
 double gNAN = *(double*)nan;
 #define NAN gNAN
