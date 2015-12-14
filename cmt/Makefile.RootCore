@@ -1,0 +1,10 @@
+PACKAGE          = Combination
+PACKAGE_DEP = CalibrationDataInterface Asg_Boost
+
+PACKAGE_CXXFLAGS =
+PACKAGE_LDFLAGS  =
+PACKAGE_PRELOAD  =
+
+PACKAGE_PEDANTIC = 1
+
+include $(ROOTCOREDIR)/Makefile-common
