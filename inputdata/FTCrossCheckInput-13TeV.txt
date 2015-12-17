@@ -28,6 +28,11 @@ op MV2c20 70 AntiKt4EMTopoJets FixedCutBEff_70
 op MV2c20 77 AntiKt4EMTopoJets FixedCutBEff_77
 op MV2c20 85 AntiKt4EMTopoJets FixedCutBEff_85
 
+op MV2c20 60 AntiKt4EMTopoJets FlatBEff_60
+op MV2c20 70 AntiKt4EMTopoJets FlatBEff_70
+op MV2c20 77 AntiKt4EMTopoJets FlatBEff_77
+op MV2c20 85 AntiKt4EMTopoJets FlatBEff_85
+
 op MV2c20 70 AntiKt2PV0TrackJets FixedCutBEff_70
 op MV2c20 70 AntiKt3PV0TrackJets FixedCutBEff_70
 
