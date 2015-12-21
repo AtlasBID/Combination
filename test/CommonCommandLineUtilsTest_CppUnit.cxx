@@ -864,5 +864,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommonCommandLineUtilsTest);
 
+#ifdef ROOTCORE
 // The common atlas test driver
-//#include <TestPolicy/CppUnit_testdriver.cxx>
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif

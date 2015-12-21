@@ -110,3 +110,8 @@ class FitLinageTest : public CppUnit::TestFixture
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(FitLinageTest);
+
+#ifdef ROOTCORE
+// The common atlas test driver
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif

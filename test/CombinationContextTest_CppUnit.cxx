@@ -969,4 +969,8 @@ class CombinationContextTest : public CppUnit::TestFixture
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CombinationContextTest);
-//#include <TestPolicy/CppUnit_testdriver.cxx>
+
+#ifdef ROOTCORE
+// The common atlas test driver
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif

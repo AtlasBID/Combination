@@ -496,3 +496,8 @@ class MeasurementUtilsTest : public CppUnit::TestFixture
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(MeasurementUtilsTest);
+
+#ifdef ROOTCORE
+// The common atlas test driver
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif

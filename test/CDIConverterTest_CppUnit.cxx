@@ -612,3 +612,8 @@ class CDIConverterTest : public CppUnit::TestFixture
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CDIConverterTest);
+
+#ifdef ROOTCORE
+// The common atlas test driver
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif

@@ -826,5 +826,7 @@ class BinBoundaryUtilsTest : public CppUnit::TestFixture
 
 CPPUNIT_TEST_SUITE_REGISTRATION(BinBoundaryUtilsTest);
 
+#ifdef ROOTCORE
 // The common atlas test driver
-//#include <TestPolicy/CppUnit_testdriver.cxx>
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif

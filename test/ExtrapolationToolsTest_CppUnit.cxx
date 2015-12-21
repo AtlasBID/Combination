@@ -918,3 +918,8 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ExtrapolationToolsTest);
+
+#ifdef ROOTCORE
+// The common atlas test driver
+#include <TestPolicy/CppUnit_testdriver.cxx>
+#endif
