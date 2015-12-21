@@ -16,3 +16,4 @@ WinBuild/*.sdf
 WinBuild/*.opensdf
 *.suo
 *.user
+*.opendb
