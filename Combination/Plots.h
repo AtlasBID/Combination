@@ -18,7 +18,8 @@ namespace BTagCombination
     gcByBin,
     gcByCalib,
     gcByCalibEff,
-    gcByCalibTaggerJet
+    gcByCalibTaggerJet,
+    gcByCalibTaggerJetOld
   };
 
   enum PlotCollection {

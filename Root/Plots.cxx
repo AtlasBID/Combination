@@ -316,6 +316,8 @@ namespace {
     case gcByCalibEff:
       return a.name + " - " + a.jetAlgorithm;
     case gcByCalibTaggerJet:
+      return "OP " + a.operatingPoint;
+    case gcByCalibTaggerJetOld:
       return "OP " + a.operatingPoint +  " (" + OPEff(a) + "%)";
     default:
       cout << "ERROR - unknown type of grouping!! " << gp << endl;
