@@ -3,7 +3,7 @@ PACKAGE_DEP 	 = CalibrationDataInterface Asg_Boost cppunit Asg_root
 
 PACKAGE_CXXFLAGS =
 PACKAGE_LDFLAGS  = 
-PACKAGE_PRELOAD  = RooFit
+PACKAGE_PRELOAD  = RooFit boost_regex
 
 PACKAGE_PEDANTIC = 1
 
