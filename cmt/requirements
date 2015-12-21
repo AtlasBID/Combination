@@ -94,7 +94,7 @@ macro_append FTExtrapolateAnalyses_dependencies " Combination"
 
 use TestPolicy			TestPolicy-*
 #use TestTools			TestTools-*		AtlasTest
-apply_pattern CppUnit name=CombinationParserTests files="-s=../test FitLinageTest_CppUnit.cxx CombinerTest_CppUnit.cxx ParserTest_CppUnit.cxx CombinationContextTest_CppUnit.cxx CommonCommandLineUtilsTest_CppUnit.cxx BinBoundaryUtilsTest_CppUnit.cxx CDIConverterTest_CppUnit.cxx MeasurementTest_CppUnit.cxx MeasurementUtilsTest_CppUnit.cxx BinUtilsTest_CppUnit.cxx ExtrapolationToolsTest_CppUnit.cxx"
+apply_pattern CppUnit name=CombinationParserTests files="-s=../test ut_FitLinageTest_CppUnit.cxx ut_CombinerTest_CppUnit.cxx ut_ParserTest_CppUnit.cxx ut_CombinationContextTest_CppUnit.cxx ut_CommonCommandLineUtilsTest_CppUnit.cxx ut_BinBoundaryUtilsTest_CppUnit.cxx ut_CDIConverterTest_CppUnit.cxx ut_MeasurementTest_CppUnit.cxx ut_MeasurementUtilsTest_CppUnit.cxx ut_BinUtilsTest_CppUnit.cxx ut_ExtrapolationToolsTest_CppUnit.cxx"
 
 #
 # Turn on debugging if it is needed!!
