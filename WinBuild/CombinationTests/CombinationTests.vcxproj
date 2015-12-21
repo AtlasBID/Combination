@@ -81,24 +81,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\test\BinBoundaryUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\BinUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\CombinationContextTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\CombinerTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\CommonCommandLineUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\ExtrapolationToolsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\FitLinageTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\MeasurementTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\MeasurementUtilsTest_CppUnit.cxx" />
-    <ClCompile Include="..\..\test\ParserTest_CppUnit.cxx" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CombinationLib\CombinationLib.vcxproj">
       <Project>{8995069d-235d-4e5f-b9f2-fd2f1634d74f}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\test\ut_BinBoundaryUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_BinUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_CombinationContextTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_CombinerTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_CommonCommandLineUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_ExtrapolationToolsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_FitLinageTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_MeasurementTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_MeasurementUtilsTest_CppUnit.cxx" />
+    <ClCompile Include="..\..\test\ut_ParserTest_CppUnit.cxx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
