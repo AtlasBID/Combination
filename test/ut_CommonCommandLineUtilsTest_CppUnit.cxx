@@ -15,6 +15,14 @@
 using namespace std;
 using namespace BTagCombination;
 
+// Where test data is lcoated depends on how we are building
+#ifdef ROOTCORE
+#define TESTDATA "../../../../../../Combination/testdata"
+#else
+#define TESTDATA "../testdata"
+#endif
+
+
 //
 // Test harness/fixture for the parser
 //
@@ -109,7 +117,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"};
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
@@ -124,7 +132,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60Split.txt"};
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60Split.txt"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
@@ -139,7 +147,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/cor.txt"};
+    const char *argv[] = {TESTDATA "/cor.txt"};
 
     ParseOPInputArgs(argv, 1, results, unknown);
     CPPUNIT_ASSERT_EQUAL((size_t) 0, results.Analyses.size());
@@ -166,7 +174,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--ignore",
 			  "ttbar_kin_ljets-bottom-JetTaggerCOMBNN-0.60-AntiKt4Topo:0-eta-4.5:25-pt-40"
     };
@@ -184,7 +192,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--ignoreSysError",
 			  "QCD"
     };
@@ -207,7 +215,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--ignore",
 			  "ttbar_kin_ljets-.*-JetTaggerCOMBNN-0.60-AntiKt4Topo:0-eta-4.5:25-pt-40"
     };
@@ -225,7 +233,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--ignore",
 			  "ttbar_kin_ljets-.*-JetTaggerCOMBNN-0.60-AntiKt4Topo:.*"
     };
@@ -244,7 +252,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 
 	  CalibrationInfo results;
 	  vector<string> unknown;
-	  const char *argv[] = { "../testdata/IP3DSV160_toGordon.txt",
+	  const char *argv[] = { TESTDATA "/IP3DSV160_toGordon.txt",
 		  "--ignore",
 		  "pTrel-.*20-pt-200"
 	  };
@@ -259,9 +267,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--ignore",
-			  "@../testdata/ignorefile.txt"
+			  "@" TESTDATA "/ignorefile.txt"
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
@@ -277,9 +285,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--ignore",
-			  "@../testdata/ignoreallfile.txt"
+			  "@" TESTDATA "/ignoreallfile.txt"
     };
 
     ParseOPInputArgs(argv, 3, results, unknown);
@@ -291,7 +299,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/cor.txt",
+    const char *argv[] = {TESTDATA "/cor.txt",
 			  "--ignore",
 			  "pTrel-system8-bottom-MV1-0.905363-AntiKt4Topo:0-abseta-2.5:110-pt-140"
     };
@@ -505,7 +513,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--flavor",
 			  "top"
     };
@@ -518,7 +526,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--flavor",
 			  "bottom"
     };
@@ -532,7 +540,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--tagger",
 			  "FORK"
     };
@@ -545,7 +553,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--tagger",
 			  "JetTaggerCOMBNN"
     };
@@ -558,7 +566,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--operatingPoint",
 			  "Dude"
     };
@@ -571,7 +579,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--operatingPoint",
 			  "0.60"
     };
@@ -584,7 +592,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--jetAlgorithm",
 			  "Dude"
     };
@@ -597,7 +605,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--jetAlgorithm",
 			  "AntiKt4Topo"
     };
@@ -610,7 +618,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/cor.txt",
+    const char *argv[] = {TESTDATA "/cor.txt",
 			  "--jetAlgorithm",
 			  "AntiKt4Topo"
     };
@@ -623,7 +631,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/cor.txt",
+    const char *argv[] = {TESTDATA "/cor.txt",
 			  "--jetAlgorithm",
 			  "freak"
     };
@@ -636,7 +644,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--analysis",
 			  "freak"
     };
@@ -650,7 +658,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--analysis",
 			  "ttbar_kin_ljets"
     };
@@ -664,7 +672,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = { "../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = { TESTDATA "/JetFitcnn_eff60.txt",
       "--tagger",
       "JetTaggerCOMB.*"
     };
@@ -677,7 +685,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = { "../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = { TESTDATA "/JetFitcnn_eff60.txt",
       "--tagger",
       ".*"
     };
@@ -690,7 +698,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--combinedName",
 			  "freak"
     };
@@ -703,7 +711,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt"
     };
 
     ParseOPInputArgs(argv, 1, results, unknown);
@@ -714,7 +722,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
 			  "--binbybin"
     };
 
@@ -727,7 +735,7 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt"
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt"
     };
 
     ParseOPInputArgs(argv, 1, results, unknown);
@@ -738,8 +746,8 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   {
     CalibrationInfo results;
     vector<string> unknown;
-    const char *argv[] = {"../testdata/JetFitcnn_eff60.txt",
-			  "../testdata/JetFitCopy.txt"
+    const char *argv[] = {TESTDATA "/JetFitcnn_eff60.txt",
+			  TESTDATA "/JetFitCopy.txt"
     };
 
     ParseOPInputArgs(argv, 2, results, unknown);
