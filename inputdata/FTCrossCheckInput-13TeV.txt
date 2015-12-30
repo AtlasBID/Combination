@@ -35,6 +35,7 @@ op MV2c20 85 AntiKt4EMTopoJets FlatBEff_85
 
 op MV2c20 70 AntiKt2PV0TrackJets FixedCutBEff_70
 op MV2c20 70 AntiKt3PV0TrackJets FixedCutBEff_70
+op MV2c20 70 AntiKt4PV0TrackJets FixedCutBEff_70
 
 hadronization PDF_6bins_emu_2j Pythia6
 hadronization PDF_6bins_emu_3j Pythia6
