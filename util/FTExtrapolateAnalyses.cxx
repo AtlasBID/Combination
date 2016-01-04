@@ -39,7 +39,7 @@ namespace {
 	{
 		map<string, vector<CalibrationAnalysis> > results;
 		for (vector<CalibrationAnalysis>::const_iterator itr = anas.begin(); itr != anas.end(); itr++) {
-			string name(OPByFlavorTaggerOp(*itr));
+                        string name(OPIndependentName(*itr));
 			results[name].push_back(*itr);
 		}
 		return results;
