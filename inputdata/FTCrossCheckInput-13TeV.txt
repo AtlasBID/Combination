@@ -14,6 +14,7 @@ calibration pre_PDF_6bins_ll_3j
 calibration pre_ttbar_topo_dijet
 
 calibration TandP_6bins_emu_2j
+calibration TandP_6bins_emu_2jmva
 calibration TandP_6bins_emu_3j
 
 jet AntiKt4EMTopoJets
@@ -48,6 +49,7 @@ hadronization PDF_6bins_emu_3j PythiaEvtGen
 hadronization PDF_6bins_ll_2j PythiaEvtGen
 hadronization PDF_6bins_ll_3j PythiaEvtGen
 hadronization TandP_6bins_emu_2j PythiaEvtGen
+hadronization TandP_6bins_emu_2jmva PythiaEvtGen
 hadronization TandP_6bins_emu_3j PythiaEvtGen
 
 hadronization negative_tags Pythia8
