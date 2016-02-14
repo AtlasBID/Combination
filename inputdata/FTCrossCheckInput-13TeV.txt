@@ -45,13 +45,13 @@ hadronization pre_PDF_6bins_ll_2j Pythia6
 hadronization pre_PDF_6bins_ll_3j Pythia6
 hadronization pre_ttbar_topo_dijet Pythia8
 
-hadronization PDF_6bins_emu_2j Pythia8EvtGen
-hadronization PDF_6bins_emu_3j Pythia8EvtGen
-hadronization PDF_6bins_ll_2j Pythia8EvtGen
-hadronization PDF_6bins_ll_3j Pythia8EvtGen
-hadronization TandP_6bins_emu_2j Pythia8EvtGen
-hadronization TandP_6bins_emu_2jmva Pythia8EvtGen
-hadronization TandP_6bins_emu_3j Pythia8EvtGen
+hadronization PDF_6bins_emu_2j Pythia6EvtGen
+hadronization PDF_6bins_emu_3j Pythia6EvtGen
+hadronization PDF_6bins_ll_2j Pythia6EvtGen
+hadronization PDF_6bins_ll_3j Pythia6EvtGen
+hadronization TandP_6bins_emu_2j Pythia6EvtGen
+hadronization TandP_6bins_emu_2jmva Pythia6EvtGen
+hadronization TandP_6bins_emu_3j Pythia6EvtGen
 
 hadronization negative_tags Pythia8
 
