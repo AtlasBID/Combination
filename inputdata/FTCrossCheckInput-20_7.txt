@@ -1,0 +1,47 @@
+calibration PDF_6bins_emu_2j
+calibration PDF_6bins_emu_3j
+calibration PDF_6bins_ll_2j
+calibration PDF_6bins_ll_3j
+calibration ttbar_topo_dijet
+calibration DStar
+calibration negative_tags
+calibration MCcalib
+
+calibration TandP_6bins_emu_2j
+calibration TandP_6bins_emu_2jmva
+calibration TandP_6bins_emu_3j
+
+jet AntiKt4EMTopoJets
+jet AntiKt2PV0TrackJets
+jet AntiKt4PV0TrackJets
+
+tagger MV2c10
+   
+op MV2c10 60 AntiKt4EMTopoJets FixedCutBEff_60
+op MV2c10 70 AntiKt4EMTopoJets FixedCutBEff_70
+op MV2c10 77 AntiKt4EMTopoJets FixedCutBEff_77
+op MV2c10 85 AntiKt4EMTopoJets FixedCutBEff_85
+
+op MV2c10 60 AntiKt4EMTopoJets FlatBEff_60
+op MV2c10 70 AntiKt4EMTopoJets FlatBEff_70
+op MV2c10 77 AntiKt4EMTopoJets FlatBEff_77
+op MV2c10 85 AntiKt4EMTopoJets FlatBEff_85
+
+op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_70
+op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_77
+op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_70
+op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_77
+
+hadronization PDF_6bins_emu_2j PythiaEvtGen
+hadronization PDF_6bins_emu_3j Pythia6EvtGen
+hadronization PDF_6bins_ll_2j Pythia6EvtGen
+hadronization PDF_6bins_ll_3j Pythia6EvtGen
+hadronization TandP_6bins_emu_2j Pythia6EvtGen
+hadronization TandP_6bins_emu_2jmva Pythia6EvtGen
+hadronization TandP_6bins_emu_3j Pythia6EvtGen
+
+hadronization negative_tags Pythia8
+
+hadronization MCcalib Pythia8EvtGen
+
+hadronization DStar Pythia8
