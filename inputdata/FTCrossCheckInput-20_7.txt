@@ -12,6 +12,10 @@ calibration TandP_6bins_emu_2jmva
 calibration TandP_6bins_emu_3j
 
 calibration pre_PDF_6bins_emu_2j
+calibration pre_PDF_6bins_emu_3j
+calibration pre_PDF_6bins_ll_2j
+calibration pre_PDF_6bins_ll_3j
+calibration pre_ttbar_topo_dijet
 
 jet AntiKt4EMTopoJets
 jet AntiKt2PV0TrackJets
@@ -35,6 +39,10 @@ op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_70
 op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_77
 
 hadronization pre_PDF_6bins_emu_2j Pythia6
+hadronization pre_PDF_6bins_emu_3j Pythia6
+hadronization pre_PDF_6bins_ll_2j Pythia6
+hadronization pre_PDF_6bins_ll_3j Pythia6
+hadronization pre_ttbar_topo_dijet Pythia8
 
 hadronization PDF_6bins_emu_2j Pythia6EvtGen
 hadronization PDF_6bins_emu_3j Pythia6EvtGen
