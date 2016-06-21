@@ -22,6 +22,7 @@ jet AntiKt2PV0TrackJets
 jet AntiKt4PV0TrackJets
 
 tagger MV2c10
+tagger MV2c00_MV2c100
    
 op MV2c10 60 AntiKt4EMTopoJets FixedCutBEff_60
 op MV2c10 70 AntiKt4EMTopoJets FixedCutBEff_70
@@ -34,9 +35,12 @@ op MV2c10 77 AntiKt4EMTopoJets FlatBEff_77
 op MV2c10 85 AntiKt4EMTopoJets FlatBEff_85
 
 op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_70
-op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_77
+op MV2c10 77 AntiKt2PV0TrackJets FixedCutBEff_77
 op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_70
-op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_77
+op MV2c10 77 AntiKt4PV0TrackJets FixedCutBEff_77
+
+op MV2c00_MV2c100 70 AntiKt2PV0TrackJets 2DFixedCutBEff_70
+op MV2c00_MV2c100 77 AntiKt2PV0TrackJets 2DFixedCutBEff_77
 
 hadronization pre_PDF_6bins_emu_2j Pythia6
 hadronization pre_PDF_6bins_emu_3j Pythia6
