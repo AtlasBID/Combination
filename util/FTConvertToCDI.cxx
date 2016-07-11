@@ -94,6 +94,12 @@ namespace {
     while ((k = (TKey*)next())) {
       if (TClass::GetClass(k->GetClassName())->InheritsFrom(directory)) {
 	string outname(TranslateDirectoryName(k->GetName()));
+
+	if (outname.find("100") != string::npos) {
+	  cout << "not creating " << outname << endl;
+	  create=false;
+	}
+
 	TDirectory *out_subdir = get_sub_dir(out, outname, create);
 	if (out_subdir != 0) {
 	  TDirectory *in_subdir = (TDirectory*) get_sub_dir(in, k->GetName());
@@ -143,26 +149,65 @@ int main(int argc, char **argv)
   bool updateROOTFile = false;
   vector<string> other_mcfiles_flat;
   vector<string> other_mcfiles_slim;
+
+  string inputfile = "";
+
   try {
+
     vector<string> otherFlags;
     ParseOPInputArgs (otherArgs, info, otherFlags);
+
+    bool useInputFile = false;
+
     for (unsigned int i = 0; i < otherFlags.size(); i++) {
       if (otherFlags[i] == "update") {
 	updateROOTFile = true;
       } else if (otherFlags[i].find("copySlim") == 0) {
+	useInputFile = true;
 	other_mcfiles_slim.push_back(otherFlags[i].substr(8));
       } else if (otherFlags[i].find("copy") == 0) {
 	other_mcfiles_flat.push_back(otherFlags[i].substr(4));
       } else {
-	cerr << "Unknown command line flag '" << otherFlags[i] << "'." << endl;
-	Usage();
-	return 1;
+        if (otherFlags[i].find("inputSlim") == string::npos) {
+	  cerr << "ERROR: Unknown command line flag '" << otherFlags[i] << "'." << endl;
+	  Usage();
+	  return 1;
+	}
       }
     }
+
+    bool found=false;
+
+    if (useInputFile) {
+      for (unsigned int i = 0; i < otherFlags.size(); i++) {
+	if (otherFlags[i].substr(0, 10) == "inputSlim=") {
+	  found=true;
+	  istringstream is(otherFlags[i].substr(10, otherFlags[i].length() - 10));
+	  is >> inputfile;
+	  ifstream inputdata;
+	  inputdata.open(inputfile.c_str());
+	  if (!inputdata.is_open()) {
+	    cerr << "ERROR: couldn't open input file to steer the slimming" << endl;
+	    Usage();
+	    return 1;
+	  }
+	}
+      }
+    }
+
+    if (useInputFile && !found) {
+      cerr << "ERROR: input file to steering the slimming of the file content is missing" << endl;
+      Usage();
+      return 1;
+    }
+
   } catch (exception &e) {
     cerr << "Error parsing input files: " << e.what() << endl;
     return 1;
   }
+
+
+
 
   //
   // Convert it to an output root file. The directory structure is pretty
@@ -218,11 +263,37 @@ int main(int argc, char **argv)
     }
   }
 
+
+  //
+  // Save what info from the other mc files we may want to exclude
+  //
+
+  ifstream inputdata;
+  inputdata.open(inputfile.c_str());
+
+  string token;
+  string name = "";
+  vector<string> m_names;
+
+  while (inputdata) {
+    inputdata >> token;
+    if (token == "slim")  {
+      inputdata >> name;
+      m_names.push_back(name);
+    }
+  }
+
+  std::cout << "fanculo " << m_names.size() << endl;
+  for (unsigned int i = 0; i < m_names.size(); i++) 
+    cout << "  " << m_names.at(i) << endl;
+
+
   //
   // The other mc files may need copying in...
   //
 
   for (unsigned int i = 0; i < other_mcfiles_slim.size(); i++) {
+    cout << "!!!!!!!!!!!!!!!!!!!!! SLIM" << endl;
     TFile *in = TFile::Open(other_mcfiles_slim[i].c_str(), "READ");
     copy_directory_structure(output, in, false); 
     in->Close();
@@ -230,6 +301,7 @@ int main(int argc, char **argv)
   }
 
   for (unsigned int i = 0; i < other_mcfiles_flat.size(); i++) {
+    cout << "!!!!!!!!!!!!!!!!!!!!! FLAT" << endl;
     TFile *in = TFile::Open(other_mcfiles_flat[i].c_str(), "READ");
     copy_directory_structure(output, in, true); 
     in->Close();
@@ -250,6 +322,7 @@ void Usage (void)
   cout << "  --update <rootfname> - use to update the root file" << endl;
   cout << "  --copy <filename> - to include the file content" << endl;
   cout << "  --copySlim <filename> - to include and slim the file content" << endl;
+  cout << "  --inputSlim - to steer the slimming of the file content" << endl;
 }
 
 //
@@ -296,12 +369,15 @@ TDirectory *get_sub_dir (TDirectory *parent, const string &name, bool create)
   // if we are not meant to do the creation...
   //
 
+
   if (!create)
     return 0;
+
 
   //
   // Create it.
   //
+
 
   return parent->mkdir(sname.c_str());
 }
