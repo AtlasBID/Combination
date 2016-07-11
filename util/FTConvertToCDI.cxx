@@ -23,6 +23,8 @@ using namespace std;
 using namespace BTagCombination;
 using namespace Analysis;
 
+vector<string> m_slimVector;
+
 void Usage (void);
 
 TDirectory *get_sub_dir (TDirectory *parent, const string &name, bool create = true);
@@ -95,8 +97,8 @@ namespace {
       if (TClass::GetClass(k->GetClassName())->InheritsFrom(directory)) {
 	string outname(TranslateDirectoryName(k->GetName()));
 
-	if (outname.find("100") != string::npos) {
-	  cout << "not creating " << outname << endl;
+	for (unsigned int i = 0; i < m_slimVector.size(); i++) {
+	  cout << " slimming out " << m_slimVector.at(i) << endl;
 	  create=false;
 	}
 
@@ -180,14 +182,14 @@ int main(int argc, char **argv)
 
     if (useInputFile) {
       for (unsigned int i = 0; i < otherFlags.size(); i++) {
-	if (otherFlags[i].substr(0, 10) == "inputSlim=") {
+	if (otherFlags[i].find("inputSlim") != string::npos) {
 	  found=true;
-	  istringstream is(otherFlags[i].substr(10, otherFlags[i].length() - 10));
+	  istringstream is(otherFlags[i].substr(9, otherFlags[i].length() - 9));
 	  is >> inputfile;
 	  ifstream inputdata;
 	  inputdata.open(inputfile.c_str());
 	  if (!inputdata.is_open()) {
-	    cerr << "ERROR: couldn't open input file to steer the slimming" << endl;
+	    cerr << "ERROR: couldn't open input file " << inputfile.c_str() << " to steer the slimming" << endl;
 	    Usage();
 	    return 1;
 	  }
@@ -205,7 +207,6 @@ int main(int argc, char **argv)
     cerr << "Error parsing input files: " << e.what() << endl;
     return 1;
   }
-
 
 
 
@@ -268,32 +269,32 @@ int main(int argc, char **argv)
   // Save what info from the other mc files we may want to exclude
   //
 
-  ifstream inputdata;
-  inputdata.open(inputfile.c_str());
+  if (inputfile.c_str()) {
 
-  string token;
-  string name = "";
-  vector<string> m_names;
+    ifstream inputdata;
+    inputdata.open(inputfile.c_str());
 
-  while (inputdata) {
-    inputdata >> token;
-    if (token == "slim")  {
-      inputdata >> name;
-      m_names.push_back(name);
+    string token;
+    string name = "";
+
+    while (inputdata) {
+      inputdata >> token;
+      if (token == "slim")  {
+	inputdata >> name;
+	m_slimVector.push_back(name);
+      }
     }
+
+    cout << "Reading information to slim from file " << inputfile.c_str() << endl;
+    for (unsigned int i = 0; i < m_slimVector.size(); i++) 
+      cout << "  " << i << " " << m_slimVector.at(i) << endl;
   }
-
-  std::cout << "fanculo " << m_names.size() << endl;
-  for (unsigned int i = 0; i < m_names.size(); i++) 
-    cout << "  " << m_names.at(i) << endl;
-
 
   //
   // The other mc files may need copying in...
   //
 
   for (unsigned int i = 0; i < other_mcfiles_slim.size(); i++) {
-    cout << "!!!!!!!!!!!!!!!!!!!!! SLIM" << endl;
     TFile *in = TFile::Open(other_mcfiles_slim[i].c_str(), "READ");
     copy_directory_structure(output, in, false); 
     in->Close();
@@ -301,7 +302,6 @@ int main(int argc, char **argv)
   }
 
   for (unsigned int i = 0; i < other_mcfiles_flat.size(); i++) {
-    cout << "!!!!!!!!!!!!!!!!!!!!! FLAT" << endl;
     TFile *in = TFile::Open(other_mcfiles_flat[i].c_str(), "READ");
     copy_directory_structure(output, in, true); 
     in->Close();
