@@ -98,11 +98,14 @@ namespace {
 	string outname(TranslateDirectoryName(k->GetName()));
 
 	for (unsigned int i = 0; i < m_slimVector.size(); i++) {
-	  cout << " slimming out " << m_slimVector.at(i) << endl;
-	  create=false;
+	  if (outname == m_slimVector.at(i)) {
+	    cout << "not creating directory " << outname << endl;
+	    create=false;
+	  }
 	}
 
 	TDirectory *out_subdir = get_sub_dir(out, outname, create);
+
 	if (out_subdir != 0) {
 	  TDirectory *in_subdir = (TDirectory*) get_sub_dir(in, k->GetName());
 	  copy_directory_structure(out_subdir, in_subdir, create);
@@ -296,7 +299,7 @@ int main(int argc, char **argv)
 
   for (unsigned int i = 0; i < other_mcfiles_slim.size(); i++) {
     TFile *in = TFile::Open(other_mcfiles_slim[i].c_str(), "READ");
-    copy_directory_structure(output, in, false); 
+    copy_directory_structure(output, in, true); 
     in->Close();
     delete in;
   }
