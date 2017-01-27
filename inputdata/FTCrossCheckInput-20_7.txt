@@ -5,6 +5,7 @@ calibration PDF_6bins_ll_3j
 calibration ttbar_topo_dijet
 calibration DStar
 calibration DStar_extrap
+calibration Wc
 calibration negative_tags
 calibration negative_tags_extrap
 calibration MCcalib
@@ -62,6 +63,8 @@ hadronization TandP_6bins_emu_3j Pythia6EvtGen
 
 hadronization DStar Pythia8
 hadronization DStar_extrap Pythia8
+
+hadronization Wc Pythia8EvtGen
 
 hadronization negative_tags Pythia8
 hadronization negative_tags_extrap Pythia8
