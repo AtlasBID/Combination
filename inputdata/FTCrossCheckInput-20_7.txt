@@ -3,11 +3,17 @@ calibration PDF_6bins_emu_3j
 calibration PDF_6bins_ll_2j
 calibration PDF_6bins_ll_3j
 calibration ttbar_topo_dijet
+
 calibration DStar
 calibration DStar_extrap
 calibration Wc
+
 calibration negative_tags
-calibration negative_tags_extrap
+calibration negative_tags_prerecomm
+calibration negative_tags_prerecomm_extrap
+calibration MCbased_light
+
+calibration Run2MCcalib
 calibration MCcalib
 calibration MCcalib_extrap
 
@@ -24,6 +30,7 @@ calibration pre_ttbar_topo_dijet
 jet AntiKt4EMTopoJets
 jet AntiKt2PV0TrackJets
 jet AntiKt4PV0TrackJets
+jet AntiKtVR30Rmax4Rmin0TrackJets
 
 tagger MV2c10
    
@@ -37,15 +44,20 @@ op MV2c10 70 AntiKt4EMTopoJets FlatBEff_70
 op MV2c10 77 AntiKt4EMTopoJets FlatBEff_77
 op MV2c10 85 AntiKt4EMTopoJets FlatBEff_85
 
-op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_60
+op MV2c10 60 AntiKt2PV0TrackJets FixedCutBEff_60
 op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_70
 op MV2c10 77 AntiKt2PV0TrackJets FixedCutBEff_77
-op MV2c10 70 AntiKt2PV0TrackJets FixedCutBEff_85
+op MV2c10 85 AntiKt2PV0TrackJets FixedCutBEff_85
 
-op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_60
+op MV2c10 60 AntiKt4PV0TrackJets FixedCutBEff_60
 op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_70
 op MV2c10 77 AntiKt4PV0TrackJets FixedCutBEff_77
-op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_85
+op MV2c10 85 AntiKt4PV0TrackJets FixedCutBEff_85
+
+op MV2c10 60 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_60
+op MV2c10 70 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_70
+op MV2c10 77 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_77
+op MV2c10 85 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_85
 
 hadronization pre_PDF_6bins_emu_2j Pythia6
 hadronization pre_PDF_6bins_emu_3j Pythia6
@@ -66,8 +78,11 @@ hadronization DStar_extrap Pythia8
 
 hadronization Wc Pythia8EvtGen
 
-hadronization negative_tags Pythia8
-hadronization negative_tags_extrap Pythia8
+hadronization negative_tags Pythia8EvtGen
+hadronization negative_tags_prerecomm Pythia8
+hadronization negative_tags_prerecomm_extrap Pythia8
+hadronization MCbased_light Pythia8EvtGen
 
+hadronization Run2MCcalib Pythia8EvtGen
 hadronization MCcalib Pythia8EvtGen
 hadronization MCcalib_extrap Pythia8EvtGen
