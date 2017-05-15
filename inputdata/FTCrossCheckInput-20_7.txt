@@ -30,7 +30,7 @@ calibration pre_ttbar_topo_dijet
 jet AntiKt4EMTopoJets
 jet AntiKt2PV0TrackJets
 jet AntiKt4PV0TrackJets
-jet AntiKtVR30Rmax4Rmin0TrackJets
+jet AntiKtVR30Rmax4Rmin02TrackJets
 
 tagger MV2c10
    
@@ -54,10 +54,10 @@ op MV2c10 70 AntiKt4PV0TrackJets FixedCutBEff_70
 op MV2c10 77 AntiKt4PV0TrackJets FixedCutBEff_77
 op MV2c10 85 AntiKt4PV0TrackJets FixedCutBEff_85
 
-op MV2c10 60 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_60
-op MV2c10 70 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_70
-op MV2c10 77 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_77
-op MV2c10 85 AntiKtVR30Rmax4Rmin0TrackJets FixedCutBEff_85
+op MV2c10 60 AntiKtVR30Rmax4Rmin02TrackJets FixedCutBEff_60
+op MV2c10 70 AntiKtVR30Rmax4Rmin02TrackJets FixedCutBEff_70
+op MV2c10 77 AntiKtVR30Rmax4Rmin02TrackJets FixedCutBEff_77
+op MV2c10 85 AntiKtVR30Rmax4Rmin02TrackJets FixedCutBEff_85
 
 hadronization pre_PDF_6bins_emu_2j Pythia6
 hadronization pre_PDF_6bins_emu_3j Pythia6
