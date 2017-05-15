@@ -33,7 +33,7 @@ namespace {
 
   // Max length of a parameter we allow into RooFit to prevent a crash.
   // It does change with RooFit version number...
-  const size_t cMaxParameterNameLength = 100;
+  const size_t cMaxParameterNameLength = 110;
 
   /// When we don't have a measurement name, generate it!
   static string NewMeasurementName(const string &name) {
