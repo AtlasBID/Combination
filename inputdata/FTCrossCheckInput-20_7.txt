@@ -7,11 +7,13 @@ calibration ttbar_topo_dijet
 calibration DStar
 calibration DStar_extrap
 calibration Wc
+calibration ttbar
 
 calibration negative_tags
 calibration negative_tags_prerecomm
 calibration negative_tags_prerecomm_extrap
 calibration MCbased_light
+calibration AdjustedMC
 
 calibration Run2MCcalib
 calibration MCcalib
@@ -75,13 +77,14 @@ hadronization TandP_6bins_emu_3j Pythia6EvtGen
 
 hadronization DStar Pythia8
 hadronization DStar_extrap Pythia8
-
 hadronization Wc Pythia8EvtGen
+hadronization ttbar Pythia8EvtGen
 
 hadronization negative_tags Pythia8EvtGen
 hadronization negative_tags_prerecomm Pythia8
 hadronization negative_tags_prerecomm_extrap Pythia8
 hadronization MCbased_light Pythia8EvtGen
+hadronization AdjustedMC Pythia8EvtGen
 
 hadronization Run2MCcalib Pythia8EvtGen
 hadronization MCcalib Pythia8EvtGen
