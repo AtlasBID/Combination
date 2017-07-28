@@ -1,0 +1,81 @@
+calibration PDF_6bins_emu_2j
+calibration PDF_6bins_emu_3j
+calibration PDF_6bins_ll_2j
+calibration PDF_6bins_ll_3j
+calibration ttbarC
+calibration negative_tags
+calibration Run2MCcalib
+calibration Run2MCcalib_ttC
+
+jet AntiKt4EMTopoJets
+
+tagger MV2c10
+tagger MV2c10mu
+tagger MV2c10rnn
+tagger DL1
+tagger DL1mu
+tagger DL1rnn
+   
+op MV2c10 60 AntiKt4EMTopoJets FixedCutBEff_60
+op MV2c10 70 AntiKt4EMTopoJets FixedCutBEff_70
+op MV2c10 77 AntiKt4EMTopoJets FixedCutBEff_77
+op MV2c10 85 AntiKt4EMTopoJets FixedCutBEff_85
+op MV2c10 60 AntiKt4EMTopoJets HybBEff_60
+op MV2c10 70 AntiKt4EMTopoJets HybBEff_70
+op MV2c10 77 AntiKt4EMTopoJets HybBEff_77
+op MV2c10 85 AntiKt4EMTopoJets HybBEff_85
+
+op MV2c10mu 60 AntiKt4EMTopoJets FixedCutBEff_60
+op MV2c10mu 70 AntiKt4EMTopoJets FixedCutBEff_70
+op MV2c10mu 77 AntiKt4EMTopoJets FixedCutBEff_77
+op MV2c10mu 85 AntiKt4EMTopoJets FixedCutBEff_85
+op MV2c10mu 60 AntiKt4EMTopoJets HybBEff_60
+op MV2c10mu 70 AntiKt4EMTopoJets HybBEff_70
+op MV2c10mu 77 AntiKt4EMTopoJets HybBEff_77
+op MV2c10mu 85 AntiKt4EMTopoJets HybBEff_85
+
+op MV2c10rnn 60 AntiKt4EMTopoJets FixedCutBEff_60
+op MV2c10rnn 70 AntiKt4EMTopoJets FixedCutBEff_70
+op MV2c10rnn 77 AntiKt4EMTopoJets FixedCutBEff_77
+op MV2c10rnn 85 AntiKt4EMTopoJets FixedCutBEff_85
+op MV2c10rnn 60 AntiKt4EMTopoJets HybBEff_60
+op MV2c10rnn 70 AntiKt4EMTopoJets HybBEff_70
+op MV2c10rnn 77 AntiKt4EMTopoJets HybBEff_77
+op MV2c10rnn 85 AntiKt4EMTopoJets HybBEff_85
+
+op DL1 60 AntiKt4EMTopoJets FixedCutBEff_60
+op DL1 70 AntiKt4EMTopoJets FixedCutBEff_70
+op DL1 77 AntiKt4EMTopoJets FixedCutBEff_77
+op DL1 85 AntiKt4EMTopoJets FixedCutBEff_85
+op DL1 60 AntiKt4EMTopoJets HybBEff_60
+op DL1 70 AntiKt4EMTopoJets HybBEff_70
+op DL1 77 AntiKt4EMTopoJets HybBEff_77
+op DL1 85 AntiKt4EMTopoJets HybBEff_85
+
+op DL1mu 60 AntiKt4EMTopoJets FixedCutBEff_60
+op DL1mu 70 AntiKt4EMTopoJets FixedCutBEff_70
+op DL1mu 77 AntiKt4EMTopoJets FixedCutBEff_77
+op DL1mu 85 AntiKt4EMTopoJets FixedCutBEff_85
+op DL1mu 60 AntiKt4EMTopoJets HybBEff_60
+op DL1mu 70 AntiKt4EMTopoJets HybBEff_70
+op DL1mu 77 AntiKt4EMTopoJets HybBEff_77
+op DL1mu 85 AntiKt4EMTopoJets HybBEff_85
+
+op DL1rnn 60 AntiKt4EMTopoJets FixedCutBEff_60
+op DL1rnn 70 AntiKt4EMTopoJets FixedCutBEff_70
+op DL1rnn 77 AntiKt4EMTopoJets FixedCutBEff_77
+op DL1rnn 85 AntiKt4EMTopoJets FixedCutBEff_85
+op DL1rnn 60 AntiKt4EMTopoJets HybBEff_60
+op DL1rnn 70 AntiKt4EMTopoJets HybBEff_70
+op DL1rnn 77 AntiKt4EMTopoJets HybBEff_77
+op DL1rnn 85 AntiKt4EMTopoJets HybBEff_85
+
+hadronization PDF_6bins_emu_2j Pythia6EvtGen
+hadronization PDF_6bins_emu_3j Pythia6EvtGen
+hadronization PDF_6bins_ll_2j Pythia6EvtGen
+hadronization PDF_6bins_ll_3j Pythia6EvtGen
+hadronization ttbarC Pythia8EvtGen
+hadronization negative_tags Pythia8EvtGen
+hadronization Run2MCcalib Pythia8EvtGen
+hadronization Run2MCcalib_ttC Pythia8EvtGen
+
