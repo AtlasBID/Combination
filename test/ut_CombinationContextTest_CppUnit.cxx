@@ -902,7 +902,7 @@ class CombinationContextTest : public CppUnit::TestFixture
 
     CombinationContext c;
     string longname;
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < 110; i++){
       longname += "h";
     }
 
