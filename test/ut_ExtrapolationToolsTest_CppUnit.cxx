@@ -54,6 +54,10 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION (testExtrapolationWithSingleEtaBinWithMultipleExtrapolation, runtime_error);
   CPPUNIT_TEST_EXCEPTION(testExtrapolationWithSingleEtaBinWithMultipleSecondLevelExtrapolation, runtime_error);
 
+  // Check if systematic uncertainties of reference bin and extrapolated bin are propagated correctly AFT-161
+
+  CPPUNIT_TEST (testExtrapolate1binPtHighSystematicUncertainties);
+
   CPPUNIT_TEST_SUITE_END();
 
   CalibrationAnalysis generate_1bin_ana()
@@ -192,7 +196,7 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
     SystematicError e;
     e.name = "extr";
-    e.value = 0.1;
+    e.value = 0.1; 
     e.uncorrelated = false;
     b1.systematicErrors.push_back(e);
     ana.bins.push_back(b1);
@@ -914,6 +918,48 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
     CPPUNIT_ASSERT_EQUAL(string("extrapolated"), e2.name);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.3, e2.value, 0.001); // 0.4 - 0.1
   }
+  // Do the pt extrapolation, on the high side.
+  void testExtrapolate1binPtHighSystematicUncertainties()
+  {
+    cout << "Starting testExtrapolate1binPtHighSystematicUncertainties()" << endl;
+    CalibrationAnalysis ana (generate_1bin_ana());
+    CalibrationAnalysis extrap (generate_2bin_extrap_in_pthigh());
+    extrap.bins[0].systematicErrors[0].value = 0.15; // Impose a extrapolated bin syst unc. smaller than reference bin (such as in plots AFT-161)
+
+    CalibrationAnalysis result (addExtrapolation(extrap, ana));
+    cout << "Testing reference bin and extrapolated bins" << endl;
+    cout << "Bin 0, central value" << result.bins[0].centralValue << " centralValue Stat unc." << result.bins[0].centralValueStatisticalError << endl;
+    cout << "Bin 1, central value" << result.bins[1].centralValue << " centralValue Stat unc." << result.bins[1].centralValueStatisticalError << endl;
+
+    cout << "Bin 0, is extrapolated " << result.bins[0].isExtended << " size of syst " << result.bins[0].systematicErrors.size() << " value of error " << result.bins[0].systematicErrors[0].value << endl;
+    cout << "Bin 1, is extrapolated " << result.bins[1].isExtended << " size of syst " << result.bins[1].referenceBinSystematicErrors.size() << " value of error " << result.bins[1].referenceBinSystematicErrors[0].value << " systematic error value" << result.bins[1].systematicErrors[0].value << " syst name " << result.bins[1].systematicErrors[0].name  << endl;
+
+    CPPUNIT_ASSERT_EQUAL(result.bins[0].systematicErrors.size(),result.bins[1].referenceBinSystematicErrors.size()); // test if the size of referenceBinSystematicErrors is the same size as the reference bin
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(result.bins[0].systematicErrors[0].value,result.bins[1].referenceBinSystematicErrors[0].value,0.01); //Test if the referenceBinSystematicErrors is asserted correctly
+
+    // Compute error as in Plot::CalcTotalError
+    // Reference bin
+    double acc = result.bins[0].centralValueStatisticalError;
+    for ( unsigned int i(0); i < result.bins[0].systematicErrors.size(); i++){
+        double s = result.bins[0].systematicErrors[i].value;
+        acc += s*s;
+    }
+    double accExt = result.bins[0].centralValueStatisticalError;
+    for ( unsigned int i(0); i < result.bins[1].systematicErrors.size(); i++){
+        double sExt = result.bins[1].systematicErrors[i].value;
+        accExt += sExt*sExt;
+    }
+    if (result.bins[1].isExtended){
+        for (unsigned int j = 0; j < result.bins[1].referenceBinSystematicErrors.size(); j++){
+        double sExt2 = result.bins[1].referenceBinSystematicErrors[j].value;
+        accExt += sExt2*sExt2;
+        }
+    }
+
+    cout << "Systematic error of reference bin shoudl be lower or equal to extrapolated bin " << (acc < accExt) << " acc " << acc << " accExt" << accExt << endl;
+    CPPUNIT_ASSERT(acc < accExt);
+  }
+
 
 };
 
