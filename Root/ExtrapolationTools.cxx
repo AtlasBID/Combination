@@ -237,6 +237,12 @@ namespace BTagCombination {
           CalibrationBin newb(create_extrapolated_bin(ext_sys_new, *e_itr));
           newb.centralValue = ana_bin_cache[bounds].centralValue;
           newb.centralValueStatisticalError = ana_bin_cache[bounds].centralValueStatisticalError;
+          // Store systematic uncertainties of reference bin in extrapolated bin + rename the systematics
+          newb.referenceBinSystematicErrors = ana_bin_cache[bounds].systematicErrors;
+          for (unsigned int i(0); i < newb.referenceBinSystematicErrors.size(); i++){
+            newb.referenceBinSystematicErrors[i].name = string("reference_") + newb.referenceBinSystematicErrors[i].name;
+          }
+
           r.bins.push_back(newb);
         }
       }
@@ -310,9 +316,11 @@ namespace BTagCombination {
           double ext_sys_new = ext_sys_current / ext_sys_base * ana_sys_base;
           // Do the quad calc to figure out what this component should be.
           double ext_sys_new_delta = sqrt(ext_sys_new*ext_sys_new - ana_sys_base*ana_sys_base);
+
           CalibrationBin newb(create_extrapolated_bin(ext_sys_new_delta, *e_itr));
           newb.centralValue = ana_bin_cache[bounds].centralValue;
           newb.centralValueStatisticalError = ana_bin_cache[bounds].centralValueStatisticalError;
+          newb.referenceBinSystematicErrors = ana_bin_cache[bounds].systematicErrors;
           r.bins.push_back(newb);
         }
       }

@@ -54,6 +54,7 @@ namespace BTagCombination {
 
     // Systematic Errors
     std::vector<SystematicError> systematicErrors;	
+    std::vector<SystematicError> referenceBinSystematicErrors;	
    
     // Helper for printing
     enum BinFormatEnum { kBinInfoOnly = 1,

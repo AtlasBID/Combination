@@ -104,7 +104,17 @@ namespace {
       double s = b.systematicErrors[i].value;
       acc += s*s;
     }
+    if (b.isExtended){
+        std::cout << "Extended bin found!" << endl;
+        std :: cout << b.referenceBinSystematicErrors.size() << std::endl;
+    
+        for (unsigned int i = 0; i < b.referenceBinSystematicErrors.size(); i++) {
+          double s = b.referenceBinSystematicErrors[i].value;
+          std :: cout << s << std::endl;
+          acc += s*s;
+        }
 
+    }
     return sqrt(acc);
   }
 

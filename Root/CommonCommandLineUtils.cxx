@@ -344,6 +344,32 @@ namespace BTagCombination {
     }
 
     //
+    // For extrapolated bins, sepeated if the systematicErrors from referenceBinSystematic errors (see AFT-161)
+    //
+
+      for (vector<CalibrationAnalysis>::iterator anaItr = operatingPoints.Analyses.begin(); anaItr != operatingPoints.Analyses.end(); anaItr++) {
+        for (vector<CalibrationBin>::iterator i_bin = anaItr->bins.begin(); i_bin != anaItr->bins.end(); i_bin++) {
+          vector<SystematicError> errs;
+
+          // Fetch referenceBinSystematicErrors
+          vector<SystematicError> refErrs;
+
+          // copy_if does not seem to be available
+          for (size_t i_se = 0; i_se < i_bin->systematicErrors.size(); i_se++) {
+
+              if(i_bin->systematicErrors[i_se].name.find("reference_") == 0 ) {// if exbin syst error contains "reference_" at 0 position
+                refErrs.push_back(i_bin->systematicErrors[i_se]);
+              }
+              else {
+              errs.push_back(i_bin->systematicErrors[i_se]);
+              }
+          }
+          i_bin->systematicErrors = errs;
+          i_bin->referenceBinSystematicErrors = refErrs;
+        }
+      }
+
+    //
     // Remove any systematic errors we've been asked to.
     //
 
@@ -353,14 +379,33 @@ namespace BTagCombination {
           vector<SystematicError> errs;
           // copy_if does not seem to be available
           for (size_t i_se = 0; i_se < i_bin->systematicErrors.size(); i_se++) {
-            if (ignoreSysError[i_sys] != i_bin->systematicErrors[i_se].name)
+            if (ignoreSysError[i_sys] != i_bin->systematicErrors[i_se].name) {
               errs.push_back(i_bin->systematicErrors[i_se]);
+            }
           }
           i_bin->systematicErrors = errs;
         }
       }
     }
 
+    //
+    // Remove any systematic errors for the extrapolated bins as well.
+    //
+
+    for (size_t i_sys = 0; i_sys < ignoreSysError.size(); i_sys++) {
+      for (vector<CalibrationAnalysis>::iterator anaItr = operatingPoints.Analyses.begin(); anaItr != operatingPoints.Analyses.end(); anaItr++) {
+        for (vector<CalibrationBin>::iterator i_bin = anaItr->bins.begin(); i_bin != anaItr->bins.end(); i_bin++) {
+          vector<SystematicError> refErrs;
+          // copy_if does not seem to be available
+          for (size_t i_se = 0; i_se < i_bin->referenceBinSystematicErrors.size(); i_se++) {
+            if ( "reference_" +ignoreSysError[i_sys] != i_bin->referenceBinSystematicErrors[i_se].name) {
+              refErrs.push_back(i_bin->referenceBinSystematicErrors[i_se]);
+            }
+          }
+          i_bin->referenceBinSystematicErrors = refErrs;
+        }
+      }
+    }
     //
     // Process the copy commands... we will basically copy over anything listed
     //

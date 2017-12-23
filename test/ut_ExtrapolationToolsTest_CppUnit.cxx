@@ -958,6 +958,10 @@ class ExtrapolationToolsTest : public CppUnit::TestFixture
 
     cout << "Systematic error of reference bin shoudl be lower or equal to extrapolated bin " << (acc < accExt) << " acc " << acc << " accExt" << accExt << endl;
     CPPUNIT_ASSERT(acc < accExt);
+    // Check if name of systematic uncertainty is the name of refence bin systematics + reference_
+    
+    cout << "Test if the name match" << endl;
+    CPPUNIT_ASSERT(result.bins[1].referenceBinSystematicErrors[0].name == (string("reference_") + result.bins[0].systematicErrors[0].name));
   }
 
 

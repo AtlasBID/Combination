@@ -86,6 +86,9 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
   CPPUNIT_TEST_EXCEPTION(testCombineSplitWithPartialOverlap, std::runtime_error);
   CPPUNIT_TEST(emptyAnalysisRemoved);
 
+  // Test reference bin systematic uncertainties and extrapolated bin uncertainties
+  CPPUNIT_TEST(testInputFromFileExtrapolatedBins);
+
   CPPUNIT_TEST_SUITE_END();
 
   void testEmptyCommandLine()
@@ -868,6 +871,56 @@ class CommonCommandLineUtilsTest : public CppUnit::TestFixture
 	  vector<CalibrationAnalysis> r(CombineSameAnalyses(list));
 	  CPPUNIT_ASSERT_EQUAL((size_t)0, r.size());
   }
+  
+  // Test reference bin systematic errors (see AFT-161)
+  void testInputFromFileExtrapolatedBins()
+  {
+    cout << " Starting testInputFromFileExtrapolatedBins" << endl;
+    CalibrationInfo results;
+    vector<string> unknown;
+    const char *argv[] = {TESTDATA "/extrapolatedbin.txt"};
+
+    ParseOPInputArgs(argv, 1, results, unknown);
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, results.Analyses.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, unknown.size());
+
+    cout << "Analyses size " << results.Analyses.size() << endl; 
+    cout << "Unkown size " << unknown.size() << endl; 
+
+    CalibrationAnalysis ana = results.Analyses[0];
+    cout << "Ana bin size " << ana.bins.size() << endl;
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, ana.bins.size());
+
+    CalibrationBin refBin = ana.bins[0];
+    CalibrationBin exBin = ana.bins[1];
+
+    cout << "Reference bin, syst size " << refBin.systematicErrors.size() << endl;
+    cout << "Reference bin, ref syst size " << refBin.referenceBinSystematicErrors.size() << endl;
+
+    cout << "Extrapolated bin, syst size " << exBin.systematicErrors.size() << endl;
+    cout << "Extrapolated bin, ref syst size " << exBin.referenceBinSystematicErrors.size() << endl;
+
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, refBin.referenceBinSystematicErrors.size());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, exBin.systematicErrors.size());
+    CPPUNIT_ASSERT_EQUAL(refBin.systematicErrors.size(), exBin.referenceBinSystematicErrors.size());
+
+    double acc(0);
+    double exAcc(0);
+
+    for (unsigned int j(0); j < refBin.systematicErrors.size(); j++){
+    double s = refBin.systematicErrors[j].value;
+    acc = s*s;
+    }
+    for (unsigned int i(0); i < refBin.systematicErrors.size(); i++){
+    double s = exBin.referenceBinSystematicErrors[i].value;
+    exAcc = s*s;
+    }
+    cout << "Reference bin, Squared error: " << acc << endl;
+    cout << "Extrapolated bin, Squared error: " << exAcc << endl;
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(acc,exAcc,0.1);
+  }
+
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CommonCommandLineUtilsTest);

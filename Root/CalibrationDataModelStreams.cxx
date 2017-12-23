@@ -119,6 +119,27 @@ namespace BTagCombination {
 	    << (b.centralValue == 0 ? "" : "%")
 	    << ")";
       }
+    // For extrapolated bins, write down the referenceBinSystematicErrors
+    if (b.isExtended){
+      for (size_t i = 0; i < b.referenceBinSystematicErrors.size(); i++) {
+	if (std::isnan(b.referenceBinSystematicErrors[i].value)) {
+	  ostringstream err;
+	  err << "Systematic Error is NaN - can not write out bin";
+	  throw runtime_error(err.str());
+	}
+	out << endl
+	  << "    ";
+	if (b.referenceBinSystematicErrors[i].uncorrelated) {
+	  out << "usys";
+	} else {
+	  out << "sys";
+	}
+	out << " (" << quoteStringIf(b.referenceBinSystematicErrors[i].name)
+	    << ", " << (b.centralValue != 0 ? relativeErrorCalc(b.centralValue, b.referenceBinSystematicErrors[i].value) : b.referenceBinSystematicErrors[i].value)
+	    << (b.centralValue == 0 ? "" : "%")
+	    << ")";
+      }
+    }
 
       for (map<string, pair<double,double> >::const_iterator itr = b.metadata.begin(); itr != b.metadata.end(); itr++) {
 	out << endl;
